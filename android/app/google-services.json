@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "608111615365",
+    "project_id": "rsvp-rally",
+    "storage_bucket": "rsvp-rally.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:608111615365:android:6d8d156e14100c396a78ec",
+        "android_client_info": {
+          "package_name": "com.example.rsvp_rally"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDugugKqA6OF0nsjLRAD7uoBHs_JF4VPiU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
