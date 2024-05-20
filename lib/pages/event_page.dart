@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/widgets/event.dart';
+import 'package:semicircle_indicator/semicircle_indicator.dart';
+
 
 class EventPage extends StatelessWidget {
   const EventPage({super.key});
@@ -9,9 +12,10 @@ class EventPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('RSVP Rally'),
+        title: const Text('GoodPorn.to'),
         automaticallyImplyLeading: false,
       ),
+      
       body: Center(
         child: SingleChildScrollView(
           // Enables scrolling
@@ -19,73 +23,21 @@ class EventPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                width: screenSize.width * 0.85,
-                height: 130,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Fun Day at the Lake',
-                            style: TextStyle(
-                              fontSize: 20,
-                            ),
-                          ),
-                          Container(
-                            width: screenSize.width * 0.6,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Icon(Icons.document_scanner),
-                                Icon(Icons.bar_chart),
-                                Icon(Icons.chat),
-                                Icon(Icons.edit),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Padding(
-                          padding: EdgeInsets.only(top: 10, bottom: 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'May 20',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: Icon(Icons.arrow_forward_ios),
-                              ),
-                              SizedBox(
-                                height: 13,
-                              )
-                            ],
-                          )),
-                    ],
+                const SemicircularIndicator(
+                color: Colors.orange,
+                bottomPadding: 0,
+                progress: 0.5,
+                child: Text(
+                  '50%',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.orange,
                   ),
                 ),
               ),
+              SizedBox(height: 20),
+              EventWidget(screenSize: screenSize),
             ],
           ),
         ),
