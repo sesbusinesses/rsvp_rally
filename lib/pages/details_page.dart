@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/widgets/event_timeline.dart'; // Import the new EventTimeline widget
 
 class DetailsPage extends StatelessWidget {
   final String eventID;
-  const DetailsPage({super.key, required this.eventID});
+
+  const DetailsPage({Key? key, required this.eventID}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -10,9 +12,7 @@ class DetailsPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Event Details'),
       ),
-      body: const Center(
-        child: Text('This is the Details Page.'),
-      ),
+      body: EventTimeline(eventID: eventID), // Use the new EventTimeline widget
     );
   }
 }

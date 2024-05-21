@@ -116,3 +116,35 @@ Future<double?> getUserRating(String username) async {
     return null; // Return null in case of any errors
   }
 }
+
+Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  List<Map<String, dynamic>> timelineData = [];
+
+  try {
+    DocumentSnapshot eventDoc =
+        await firestore.collection('Events').doc(eventID).get();
+
+    if (eventDoc.exists) {
+      var eventData = eventDoc.data() as Map<String, dynamic>;
+      var timeline = eventData['Timeline'] as List<dynamic>;
+
+      for (var phase in timeline) {
+        Map<String, dynamic> phaseData = {
+          'startTime': phase['StartTime'].toDate().toString(),
+          'phaseName': phase['PhaseName'],
+          'phaseLocation': phase['PhaseLocation'],
+          'endTime': phase.containsKey('EndTime')
+              ? phase['EndTime'].toDate().toString()
+              : null
+        };
+        timelineData.add(phaseData);
+      }
+    }
+  } catch (e) {
+    print("Error fetching timeline: $e");
+  }
+  print("Fetched timeline data: $timelineData");
+
+  return timelineData;
+}
