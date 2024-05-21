@@ -34,47 +34,27 @@ void fetchDataFromFirestore() async {
   }
 }
 
-void getUserEvents(String username) async {
+Future<List<String>> getUserEvents(String username) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-  // Reference to the 'Users' collection
-  CollectionReference users = firestore.collection('Users');
+  List<String> eventIds = [];
 
   try {
-    // Query the 'Users' collection to find the user by their username
-    QuerySnapshot userQuery =
-        await users.where('Username', isEqualTo: username).get();
+    // Directly access the user's document using the username as the document ID
+    DocumentSnapshot userDoc =
+        await firestore.collection('Users').doc(username).get();
 
-    if (userQuery.docs.isEmpty) {
+    if (!userDoc.exists) {
       print("No user found with username $username");
-      return;
+      return eventIds; // Return an empty list if the user doesn't exist
     }
-
-    // Assuming there's only one matching document for a username
-    var userDoc = userQuery.docs.first;
 
     // Get the list of event IDs the user is associated with
-    List<dynamic> eventIds = userDoc.get('Events');
+    eventIds = List.from(userDoc.get('Events'));
 
-    if (eventIds.isEmpty) {
-      print("User $username has no events.");
-      return;
-    }
-
-    // Reference to the 'Events' collection
-    CollectionReference events = firestore.collection('Events');
-
-    // Fetch each event by its ID
-    for (String eventId in eventIds) {
-      DocumentSnapshot eventDoc = await events.doc(eventId).get();
-      if (eventDoc.exists) {
-        print("Event found: ${eventDoc.data()}");
-      } else {
-        print("No event found with ID $eventId");
-      }
-    }
+    return eventIds;
   } catch (e) {
     print("Error fetching user events: $e");
+    return eventIds; // Return the potentially empty list in case of error
   }
 }
 
