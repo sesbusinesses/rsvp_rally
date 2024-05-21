@@ -30,9 +30,10 @@ class EventPageState extends State<EventPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('RSVP Rally'),
+        title: const Text('GoodPorn.to'),
         automaticallyImplyLeading: false,
       ),
+      
       body: Center(
         child: SingleChildScrollView(
           child: Column(
