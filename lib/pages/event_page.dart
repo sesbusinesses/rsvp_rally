@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/widgets/create_event_button.dart';
 import 'package:rsvp_rally/widgets/eventcard.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
-import 'package:semicircle_indicator/semicircle_indicator.dart';
+import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
+import 'package:rsvp_rally/widgets/view_friends_button.dart';
 
 class EventPage extends StatefulWidget {
-  const EventPage({super.key});
+  final String username;
+
+  const EventPage({required this.username, super.key});
 
   @override
   EventPageState createState() => EventPageState();
 }
 
 class EventPageState extends State<EventPage> {
-  final String username = 'bossman5960';
   List<String> eventIds = [];
+  double userRating = 0;
 
   @override
   void initState() {
@@ -21,44 +25,53 @@ class EventPageState extends State<EventPage> {
   }
 
   Future<void> loadEvents() async {
-    eventIds = await getUserEvents(username);
+    eventIds = await getUserEvents(widget.username);
+    double? fetchedRating = await getUserRating(widget.username);
+    userRating = fetchedRating ?? 0;
     setState(() {});
-    print(eventIds);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GoodPorn.to'),
+        title: const Text('RSVP Rally'),
         automaticallyImplyLeading: false,
+        actions: <Widget>[
+          ViewFriendsButton(username: widget.username, userRating: userRating),
+        ],
       ),
-      
       body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SemicircularIndicator(
-                color: Colors.orange,
-                bottomPadding: 0,
-                progress: 0.5,
-                child: Text(
-                  '50%',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.orange,
-                  ),
-                ),
-              ),
-              // Using the spread operator to insert all EventCard widgets into the children list
-              ...eventIds.map((eventId) => EventCard(eventID: eventId)).toList()
-            ],
-          ),
+          child: Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            UserRatingIndicator(
+                userRating:
+                    userRating), // This remains at the top, not scrollable
+            Expanded(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: eventIds
+                            .map((eventId) => EventCard(
+                                eventID: eventId, userRating: userRating))
+                            .toList(),
+                      ),
+                    ),
+                  ]),
+            ),
+          ],
         ),
-      ),
+      )),
+      floatingActionButton: CreateEventButton(userRating: userRating),
+      //floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 }

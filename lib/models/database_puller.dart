@@ -93,3 +93,26 @@ Future<List<Map<String, dynamic>>> getEventDetails(
 
   return eventDetails;
 }
+
+Future<double?> getUserRating(String username) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  try {
+    // Access the user's document by the username
+    DocumentSnapshot userDoc =
+        await firestore.collection('Users').doc(username).get();
+
+    if (!userDoc.exists) {
+      print("No user found with username $username");
+      return null; // Return null if the user doesn't exist
+    }
+
+    // Extract the rating from the document; assuming 'Rating' is the field name
+    double? rating = userDoc.get('Rating');
+
+    return rating;
+  } catch (e) {
+    print("Error fetching user rating: $e");
+    return null; // Return null in case of any errors
+  }
+}

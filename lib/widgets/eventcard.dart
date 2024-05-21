@@ -7,8 +7,9 @@ import 'package:rsvp_rally/pages/poll_page.dart';
 
 class EventCard extends StatefulWidget {
   final String eventID;
+  final double userRating;
 
-  const EventCard({super.key, required this.eventID});
+  const EventCard({super.key, required this.eventID, required this.userRating});
 
   @override
   EventCardState createState() => EventCardState();
@@ -97,7 +98,8 @@ class EventCardState extends State<EventCard> {
 
   Widget iconButton(IconData icon, Widget page) {
     return GestureDetector(
-      child: Icon(icon),
+      child: Icon(icon,
+          color: Color.lerp(Colors.red, Colors.green, widget.userRating)),
       onTap: () {
         Navigator.push(
           context,

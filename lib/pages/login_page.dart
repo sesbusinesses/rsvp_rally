@@ -14,6 +14,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  var username = 'bossman5960';
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +51,10 @@ class _LoginPageState extends State<LoginPage> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const EventPage()),
+              MaterialPageRoute(
+                  builder: (context) => EventPage(
+                      username:
+                          username)), // change to _usernameController.text after implementing authentication
             );
             fetchDataFromFirestore();
           },
