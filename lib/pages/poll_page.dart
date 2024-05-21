@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class PollPage extends StatelessWidget {
-  const PollPage({super.key});
+  final String eventID;
+  const PollPage({super.key, required this.eventID});
 
   @override
   Widget build(BuildContext context) {

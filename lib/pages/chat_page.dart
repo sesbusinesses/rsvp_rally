@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ChatPage extends StatelessWidget {
-  const ChatPage({super.key});
+  final String eventID;
+  const ChatPage({super.key, required this.eventID});
 
   @override
   Widget build(BuildContext context) {
@@ -9,8 +10,8 @@ class ChatPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Event Chat'),
       ),
-      body: const Center(
-        child: Text('This is the Chat Page.'),
+      body: Center(
+        child: Text('This is the Chat Page. Event ID: $eventID'),
       ),
     );
   }

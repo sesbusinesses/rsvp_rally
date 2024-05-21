@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class DetailsPage extends StatelessWidget {
-  const DetailsPage({super.key});
+  final String eventID;
+  const DetailsPage({super.key, required this.eventID});
 
   @override
   Widget build(BuildContext context) {
