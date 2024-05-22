@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
@@ -37,7 +39,7 @@ class EditEventPageState extends State<EditEventPage> {
     if (eventDoc.exists) {
       Map<String, dynamic> eventData = eventDoc.data() as Map<String, dynamic>;
 
-      print("Raw Event Document: $eventData");
+      log("Raw Event Document: $eventData");
 
       eventNameController.text = eventData['EventName'] ?? "";
       eventDetailsController.text = eventData['Details'] ?? "";
@@ -68,16 +70,14 @@ class EditEventPageState extends State<EditEventPage> {
         });
       }
 
-      print("Loaded Event Name: ${eventNameController.text}");
-      print("Loaded Event Details: ${eventDetailsController.text}");
-      print(
-          "Loaded Phases: ${phaseControllers.map((pc) => pc.map((key, value) => MapEntry(key, value.text)))}");
-      print(
-          "Loaded Notifications: ${notificationControllers.map((nc) => nc.map((key, value) => MapEntry(key, value.text)))}");
+      log("Loaded Event Name: ${eventNameController.text}");
+      log("Loaded Event Details: ${eventDetailsController.text}");
+      log("Loaded Phases: ${phaseControllers.map((pc) => pc.map((key, value) => MapEntry(key, value.text)))}");
+      log("Loaded Notifications: ${notificationControllers.map((nc) => nc.map((key, value) => MapEntry(key, value.text)))}");
 
       setState(() {}); // Update the UI with the loaded data
     } else {
-      print("No event found with ID ${widget.eventID}");
+      log("No event found with ID ${widget.eventID}");
     }
   }
 

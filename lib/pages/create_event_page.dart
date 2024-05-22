@@ -5,6 +5,7 @@ import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/phases_section.dart';
 import 'package:rsvp_rally/widgets/notifications_section.dart';
 
+// ignore: must_be_immutable
 class CreateEventPage extends StatefulWidget {
   String username;
 

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/pages/details_page.dart';
@@ -43,7 +45,7 @@ class EventCardState extends State<EventCard> {
         eventDate = "${startTime.toDate().month}/${startTime.toDate().day}";
       });
     } else {
-      print("Event not found");
+      log("Event not found");
     }
   }
 

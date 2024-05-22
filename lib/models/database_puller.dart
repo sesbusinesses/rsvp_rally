@@ -12,12 +12,12 @@ void fetchDataFromFirestore() async {
     // Fetch all documents in the collection
     QuerySnapshot querySnapshot = await users.get();
 
-    // Iterate through all the documents and print their data
+    // Iterate through all the documents and log their data
     for (var doc in querySnapshot.docs) {
-      log(doc.data().toString()); // This prints each document's data
+      log(doc.data().toString()); // This logs each document's data
     }
   } catch (e) {
-    print("Error fetching data: $e");
+    log("Error fetching data: $e");
   }
 
   // Assuming you have a collection named 'users'. Change this to your specific collection name.
@@ -27,12 +27,12 @@ void fetchDataFromFirestore() async {
     // Fetch all documents in the collection
     QuerySnapshot querySnapshot = await events.get();
 
-    // Iterate through all the documents and print their data
+    // Iterate through all the documents and log their data
     for (var doc in querySnapshot.docs) {
-      log(doc.data().toString()); // This prints each document's data
+      log(doc.data().toString()); // This logs each document's data
     }
   } catch (e) {
-    print("Error fetching data: $e");
+    log("Error fetching data: $e");
   }
 }
 
@@ -46,7 +46,7 @@ Future<List<String>> getUserEvents(String username) async {
         await firestore.collection('Users').doc(username).get();
 
     if (!userDoc.exists) {
-      print("No user found with username $username");
+      log("No user found with username $username");
       return eventIds; // Return an empty list if the user doesn't exist
     }
 
@@ -55,7 +55,7 @@ Future<List<String>> getUserEvents(String username) async {
 
     return eventIds;
   } catch (e) {
-    print("Error fetching user events: $e");
+    log("Error fetching user events: $e");
     return eventIds; // Return the potentially empty list in case of error
   }
 }
@@ -84,13 +84,13 @@ Future<List<Map<String, dynamic>>> getEventDetails(
           'StartTime': startTime,
         });
 
-        print("Event: $eventName, Start Time: $startTime");
+        log("Event: $eventName, Start Time: $startTime");
       } else {
-        print("No event found with ID $eventId");
+        log("No event found with ID $eventId");
       }
     }
   } catch (e) {
-    print("Error fetching event details: $e");
+    log("Error fetching event details: $e");
   }
 
   return eventDetails;
@@ -105,7 +105,7 @@ Future<double?> getUserRating(String username) async {
         await firestore.collection('Users').doc(username).get();
 
     if (!userDoc.exists) {
-      print("No user found with username $username");
+      log("No user found with username $username");
       return null; // Return null if the user doesn't exist
     }
 
@@ -114,7 +114,7 @@ Future<double?> getUserRating(String username) async {
 
     return rating;
   } catch (e) {
-    print("Error fetching user rating: $e");
+    log("Error fetching user rating: $e");
     return null; // Return null in case of any errors
   }
 }
@@ -144,9 +144,9 @@ Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
       }
     }
   } catch (e) {
-    print("Error fetching timeline: $e");
+    log("Error fetching timeline: $e");
   }
-  print("Fetched timeline data: $timelineData");
+  log("Fetched timeline data: $timelineData");
 
   return timelineData;
 }
@@ -231,7 +231,7 @@ Future<String> isComing(String eventID, String userID) async {
       return 'maybe'; // Default response if the event does not exist
     }
   } catch (e) {
-    print("Error fetching event or processing data: $e");
+    log("Error fetching event or processing data: $e");
     return 'maybe'; // Default response in case of error
   }
 }
