@@ -61,7 +61,9 @@ class EventPageState extends State<EventPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: eventIds
                             .map((eventId) => EventCard(
-                                eventID: eventId, userRating: userRating))
+                                eventID: eventId,
+                                userRating: userRating,
+                                username: widget.username))
                             .toList(),
                       ),
                     ),
@@ -70,7 +72,8 @@ class EventPageState extends State<EventPage> {
           ],
         ),
       )),
-      floatingActionButton: CreateEventButton(userRating: userRating),
+      floatingActionButton:
+          CreateEventButton(userRating: userRating, username: widget.username),
       //floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }

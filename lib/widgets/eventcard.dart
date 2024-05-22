@@ -8,8 +8,13 @@ import 'package:rsvp_rally/pages/poll_page.dart';
 class EventCard extends StatefulWidget {
   final String eventID;
   final double userRating;
+  final String username;
 
-  const EventCard({super.key, required this.eventID, required this.userRating});
+  const EventCard(
+      {super.key,
+      required this.eventID,
+      required this.userRating,
+      required this.username});
 
   @override
   EventCardState createState() => EventCardState();
@@ -89,7 +94,10 @@ class EventCardState extends State<EventCard> {
                           Icons.bar_chart, PollPage(eventID: widget.eventID)),
                       iconButton(Icons.chat, ChatPage(eventID: widget.eventID)),
                       iconButton(
-                          Icons.edit, EditEventPage(eventID: widget.eventID)),
+                          Icons.edit,
+                          EditEventPage(
+                              eventID: widget.eventID,
+                              username: widget.username)),
                     ],
                   ),
                 ),

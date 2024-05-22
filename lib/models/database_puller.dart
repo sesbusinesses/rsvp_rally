@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 void fetchDataFromFirestore() async {
@@ -12,7 +14,7 @@ void fetchDataFromFirestore() async {
 
     // Iterate through all the documents and print their data
     for (var doc in querySnapshot.docs) {
-      print(doc.data()); // This prints each document's data
+      log(doc.data().toString()); // This prints each document's data
     }
   } catch (e) {
     print("Error fetching data: $e");
@@ -27,7 +29,7 @@ void fetchDataFromFirestore() async {
 
     // Iterate through all the documents and print their data
     for (var doc in querySnapshot.docs) {
-      print(doc.data()); // This prints each document's data
+      log(doc.data().toString()); // This prints each document's data
     }
   } catch (e) {
     print("Error fetching data: $e");
@@ -147,4 +149,89 @@ Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
   print("Fetched timeline data: $timelineData");
 
   return timelineData;
+}
+
+Future<Map<String, dynamic>> fetchEventDetails(String eventID) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DocumentSnapshot eventDoc =
+      await firestore.collection('Events').doc(eventID).get();
+
+  if (eventDoc.exists) {
+    var eventData = eventDoc.data() as Map<String, dynamic>;
+    return {
+      'eventName': eventData['EventName'],
+      'details': eventData['Details'],
+      'hostName': eventData['HostName']
+    };
+  } else {
+    throw Exception('Event not found');
+  }
+}
+
+Future<List<Map<String, dynamic>>> fetchEventAttendees(String eventID) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DocumentSnapshot eventDoc =
+      await firestore.collection('Events').doc(eventID).get();
+  List<Map<String, dynamic>> attendeesDetails = [];
+
+  if (eventDoc.exists) {
+    var eventData = eventDoc.data() as Map<String, dynamic>;
+    List<dynamic> attendeesUsernames = eventData['Attendees'] ?? [];
+
+    for (String username in attendeesUsernames) {
+      DocumentSnapshot userDoc =
+          await firestore.collection('Users').doc(username).get();
+      if (userDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        String comingStatus = await isComing(
+            eventID, username); // Fetch and include coming status
+        attendeesDetails.add({
+          'username': username,
+          'firstName': userData['FirstName'],
+          'lastName': userData['LastName'],
+          'rating': userData['Rating'],
+          'isComing': comingStatus // Include coming status
+        });
+      }
+    }
+  }
+  return attendeesDetails;
+}
+
+Future<String> isComing(String eventID, String userID) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  try {
+    DocumentSnapshot eventDoc =
+        await firestore.collection('Events').doc(eventID).get();
+    if (eventDoc.exists) {
+      Map<String, dynamic> eventData = eventDoc.data() as Map<String, dynamic>;
+      Map<String, dynamic> polls = eventData['Polls'] ?? {};
+
+      bool hasRespondedYes = false;
+      bool hasRespondedNo = true; // Assume 'no' until a 'yes' is found
+
+      for (var pollName in polls.keys) {
+        if (pollName.startsWith('RSVP for')) {
+          var responses = polls[pollName];
+          if (responses['Yes'] != null && responses['Yes'].contains(userID)) {
+            hasRespondedYes = true;
+          }
+          if (responses['No'] != null && responses['No'].contains(userID)) {
+            hasRespondedNo = hasRespondedNo && true;
+          } else {
+            hasRespondedNo = false;
+          }
+        }
+      }
+
+      if (hasRespondedYes) return 'yes';
+      if (hasRespondedNo) return 'no';
+      return 'maybe';
+    } else {
+      return 'maybe'; // Default response if the event does not exist
+    }
+  } catch (e) {
+    print("Error fetching event or processing data: $e");
+    return 'maybe'; // Default response in case of error
+  }
 }

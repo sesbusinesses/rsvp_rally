@@ -23,7 +23,9 @@ class ViewFriendsButton extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const FriendsPage(),
+            builder: (context) => FriendsPage(
+              username: username,
+            ),
           ),
         );
       },
