@@ -5,11 +5,10 @@ import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/phases_section.dart';
 import 'package:rsvp_rally/widgets/notifications_section.dart';
 
-// ignore: must_be_immutable
 class CreateEventPage extends StatefulWidget {
-  String username;
+  final String username;
 
-  CreateEventPage({super.key, required this.username});
+  const CreateEventPage({super.key, required this.username});
 
   @override
   CreateEventPageState createState() => CreateEventPageState();
@@ -64,32 +63,72 @@ class CreateEventPageState extends State<CreateEventPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create New Event'),
+        backgroundColor: Colors.transparent,
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFfefdfd),
+              Color(0xFF5f42b2)
+            ], // White to purple gradient
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Stack(
           children: [
-            WideTextBox(
-                hintText: 'Event Name', controller: eventNameController),
-            const SizedBox(height: 10),
-            PhasesSection(
-              phaseControllers: phaseControllers,
-              onAddPhase: addPhase,
-              onRemovePhase: removePhase, // Pass the correct remove callback
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                  bottom: 70), // Add bottom padding to avoid overlap
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                child: Column(
+                  children: [
+                    WideTextBox(
+                      hintText: 'Event Name',
+                      controller: eventNameController,
+                    ),
+                    const SizedBox(height: 10),
+                    PhasesSection(
+                      phaseControllers: phaseControllers,
+                      onAddPhase: addPhase,
+                      onRemovePhase: removePhase,
+                    ),
+                    const SizedBox(height: 10),
+                    NotificationsSection(
+                      notificationControllers: notificationControllers,
+                      onAddNotification: addNotification,
+                      onRemoveNotification: removeNotification,
+                    ),
+                    const SizedBox(height: 10),
+                    AttendeeEntrySection(username: widget.username),
+                    const SizedBox(height: 10),
+                    WideTextBox(
+                      hintText: 'Event Details',
+                      controller: eventDetailsController,
+                    ),
+                    const SizedBox(
+                        height:
+                            80), // Add some space at the bottom for better visibility
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 10),
-            NotificationsSection(
-              notificationControllers: notificationControllers,
-              onAddNotification: addNotification,
-              onRemoveNotification:
-                  removeNotification, // Pass the correct remove callback
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                height: 100,
+                child: WideButton(
+                  buttonText: 'Create Event',
+                  onPressed: () {
+                    // Implement event creation logic
+                  },
+                ),
+              ),
             ),
-            const SizedBox(height: 10),
-            AttendeeEntrySection(username: widget.username),
-            const SizedBox(height: 10),
-            WideTextBox(
-                hintText: 'Event Details', controller: eventDetailsController),
-            const SizedBox(height: 10),
-            WideButton(buttonText: 'Create Event', onPressed: () {})
           ],
         ),
       ),
