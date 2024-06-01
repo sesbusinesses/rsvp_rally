@@ -112,10 +112,19 @@ class EventCardState extends State<EventCard> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    iconButton(Icons.document_scanner, DetailsPage(eventID: widget.eventID)),
-                    iconButton(Icons.bar_chart, PollPage(eventID: widget.eventID)),
+                    iconButton(Icons.document_scanner,
+                        DetailsPage(eventID: widget.eventID)),
+                    iconButton(
+                        Icons.bar_chart,
+                        PollPage(
+                            eventID: widget.eventID,
+                            username: widget.username)),
                     iconButton(Icons.chat, ChatPage(eventID: widget.eventID)),
-                    iconButton(Icons.edit, EditEventPage(eventID: widget.eventID, username: widget.username)),
+                    iconButton(
+                        Icons.edit,
+                        EditEventPage(
+                            eventID: widget.eventID,
+                            username: widget.username)),
                   ],
                 ),
               ),

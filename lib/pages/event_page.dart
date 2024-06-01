@@ -45,7 +45,10 @@ class EventPageState extends State<EventPage> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFfefdfd), Color(0xFF5f42b2)], // White to purple gradient
+            colors: [
+              Color(0xFFfefdfd),
+              Color(0xFF5f42b2)
+            ], // White to purple gradient
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -58,7 +61,8 @@ class EventPageState extends State<EventPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 UserRatingIndicator(
-                    userRating: userRating), // This remains at the top, not scrollable
+                    userRating:
+                        userRating), // This remains at the top, not scrollable
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -78,8 +82,8 @@ class EventPageState extends State<EventPage> {
           ),
         ),
       ),
-      floatingActionButton: CreateEventButton(userRating: userRating, username: widget.username),
+      floatingActionButton:
+          CreateEventButton(userRating: userRating, username: widget.username),
     );
   }
 }
-

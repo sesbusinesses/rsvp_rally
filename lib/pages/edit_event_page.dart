@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
@@ -44,8 +43,7 @@ class EditEventPageState extends State<EditEventPage> {
       eventNameController.text = eventData['EventName'] ?? "";
       eventDetailsController.text = eventData['Details'] ?? "";
 
-      List<dynamic> phases = eventData['Timeline'] ??
-          []; // Corrected to 'Timeline' if that's the key used in Firestore
+      List<dynamic> phases = eventData['Timeline'] ?? [];
       List<dynamic> notifications = eventData['Notifications'] ?? [];
 
       phaseControllers.clear();
@@ -92,37 +90,96 @@ class EditEventPageState extends State<EditEventPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Event'),
+        backgroundColor: Colors.transparent,
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFfefdfd),
+              Color(0xFF5f42b2)
+            ], // White to purple gradient
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Stack(
           children: [
-            WideTextBox(
-                hintText: 'Event Name', controller: eventNameController),
-            const SizedBox(height: 10),
-            PhasesSection(
-              phaseControllers: phaseControllers,
-              onAddPhase: () => {}, // Implement logic to add phase
-              onRemovePhase: (index) => {}, // Implement logic to remove phase
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                  bottom: 70), // Add bottom padding to avoid overlap
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                child: Column(
+                  children: [
+                    WideTextBox(
+                      hintText: 'Event Name',
+                      controller: eventNameController,
+                    ),
+                    const SizedBox(height: 10),
+                    PhasesSection(
+                      phaseControllers: phaseControllers,
+                      onAddPhase: () {
+                        setState(() {
+                          phaseControllers.add({
+                            'name': TextEditingController(),
+                            'location': TextEditingController(),
+                            'startTime': TextEditingController(),
+                            'endTime': TextEditingController(),
+                          });
+                        });
+                      },
+                      onRemovePhase: (index) {
+                        setState(() {
+                          phaseControllers.removeAt(index);
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    NotificationsSection(
+                      notificationControllers: notificationControllers,
+                      onAddNotification: () {
+                        setState(() {
+                          notificationControllers.add({
+                            'text': TextEditingController(),
+                            'time': TextEditingController(),
+                          });
+                        });
+                      },
+                      onRemoveNotification: (index) {
+                        setState(() {
+                          notificationControllers.removeAt(index);
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    AttendeeEntrySection(username: widget.username),
+                    const SizedBox(height: 10),
+                    WideTextBox(
+                      hintText: 'Event Details',
+                      controller: eventDetailsController,
+                    ),
+                    const SizedBox(
+                        height:
+                            80), // Add some space at the bottom for better visibility
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 10),
-            NotificationsSection(
-              notificationControllers: notificationControllers,
-              onAddNotification: () =>
-                  {}, // Implement logic to add notification
-              onRemoveNotification: (index) =>
-                  {}, // Implement logic to remove notification
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                height: 100,
+                child: WideButton(
+                  buttonText: 'Update Event',
+                  onPressed: () {
+                    // Implement event update logic
+                  },
+                ),
+              ),
             ),
-            const SizedBox(height: 10),
-            AttendeeEntrySection(username: widget.username),
-            const SizedBox(height: 10),
-            WideTextBox(
-                hintText: 'Event Details', controller: eventDetailsController),
-            const SizedBox(height: 10),
-            WideButton(
-                buttonText: 'Update Event',
-                onPressed: () {
-                  // Implement event update logic
-                })
           ],
         ),
       ),
