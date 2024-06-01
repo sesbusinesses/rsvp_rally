@@ -17,7 +17,7 @@ class ViewFriendsButton extends StatelessWidget {
       iconSize: 50,
       icon: Icon(
         Icons.account_circle,
-        color: Color.lerp(Colors.red, Colors.green, userRating) ?? Colors.red,
+        color: Color(0xFF5f42b2),
       ),
       onPressed: () {
         Navigator.push(

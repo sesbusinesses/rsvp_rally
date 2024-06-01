@@ -61,63 +61,75 @@ class FriendsPageState extends State<FriendsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Friends'),
+        backgroundColor: Colors.transparent, // AppBar color
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            UserCard(username: widget.username),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              width: screenSize.width * 0.85,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  const Text('Add Friends', style: TextStyle(fontSize: 20)),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: WideTextBox(
-                          hintText: 'Search for friends...',
-                          controller: searchController,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.search_rounded),
-                        onPressed: () => filterFriends(searchController.text),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-                child: Column(children: [
-              (SingleChildScrollView(
-                  child: Container(
-                padding: EdgeInsets.symmetric(
-                    horizontal: screenSize.width * 0.075, vertical: 10),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFfefdfd), Color(0xFF5f42b2)], // White to purple gradient
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              UserCard(username: widget.username),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 width: screenSize.width * 0.85,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
+                  color: Colors.transparent, // Light background color
+                  border: Border.all(color: Colors.transparent),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   children: [
-                    const Text('Friends', style: TextStyle(fontSize: 20)),
-                    ...filteredFriends.map(
-                        (friendUsername) => UserCard(username: friendUsername)),
+                    const Text('Add Friends', style: TextStyle(fontSize: 20)),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: WideTextBox(
+                            hintText: 'Search for friends...',
+                            controller: searchController,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.search_rounded),
+                          onPressed: () => filterFriends(searchController.text),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              )))
-            ]))
-          ],
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: screenSize.width * 0.075, vertical: 10),
+                    width: screenSize.width * 0.85,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent, // Light background color
+                      border: Border.all(color: Colors.transparent),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text('Friends', style: TextStyle(fontSize: 20)),
+                        ...filteredFriends.map(
+                            (friendUsername) => UserCard(username: friendUsername)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

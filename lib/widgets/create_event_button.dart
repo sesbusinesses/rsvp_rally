@@ -22,8 +22,8 @@ class CreateEventButton extends StatelessWidget {
         );
       },
       backgroundColor:
-          Color.lerp(Colors.red, Colors.green, userRating) ?? Colors.red,
-      child: const Icon(Icons.add),
+          Color(0xFF5f42b2),
+      child: const Icon(Icons.add, color: Color(0xFFfefdfd),),
     );
   }
 }
