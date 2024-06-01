@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
@@ -69,8 +70,8 @@ class CreateEventPageState extends State<CreateEventPage> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFfefdfd),
-              Color(0xFF5f42b2)
+              AppColors.light,
+              AppColors.main
             ], // White to purple gradient
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -120,7 +121,7 @@ class CreateEventPageState extends State<CreateEventPage> {
               alignment: Alignment.bottomCenter,
               child: Container(
                 padding: const EdgeInsets.all(20),
-                height: 100,
+                height: 120,
                 child: WideButton(
                   buttonText: 'Create Event',
                   onPressed: () {

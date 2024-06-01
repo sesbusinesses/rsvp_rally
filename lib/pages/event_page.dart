@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/create_event_button.dart';
 import 'package:rsvp_rally/widgets/eventcard.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
@@ -37,53 +38,43 @@ class EventPageState extends State<EventPage> {
       appBar: AppBar(
         title: const Text('RSVP Rally'),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.transparent, // Purple background for AppBar
+        backgroundColor: Colors.transparent,
         actions: <Widget>[
           ViewFriendsButton(username: widget.username, userRating: userRating),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFfefdfd),
-              Color(0xFF5f42b2)
-            ], // White to purple gradient
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 40),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                UserRatingIndicator(
-                    userRating:
-                        userRating), // This remains at the top, not scrollable
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: eventIds
-                          .map((eventId) => EventCard(
-                              eventID: eventId,
-                              userRating: userRating,
-                              username: widget.username))
-                          .toList(),
-                    ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              UserRatingIndicator(
+                  userRating:
+                      userRating), // This remains at the top, not scrollable
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: eventIds
+                        .map((eventId) => EventCard(
+                            eventID: eventId,
+                            userRating: userRating,
+                            username: widget.username))
+                        .toList(),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-      floatingActionButton:
-          CreateEventButton(userRating: userRating, username: widget.username),
+      floatingActionButton: CreateEventButton(
+        userRating: userRating,
+        username: widget.username,
+      ),
     );
   }
 }

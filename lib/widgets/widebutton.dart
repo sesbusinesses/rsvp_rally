@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/models/colors.dart';
 
 class WideButton extends StatelessWidget {
   final String buttonText;
@@ -19,7 +20,7 @@ class WideButton extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: AppColors.main,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
