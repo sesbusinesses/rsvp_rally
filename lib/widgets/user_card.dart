@@ -42,37 +42,67 @@ class UserCardState extends State<UserCard> {
     Size screenSize = MediaQuery.of(context).size;
     return Container(
       width: screenSize.width * 0.85,
-      height: 60,
+      height: 80, // Adjusted height for better aesthetics
       padding: const EdgeInsets.symmetric(horizontal: 10),
       margin: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFefd9ce), // Light background color
         border: Border.all(
-            color: Color.lerp(Colors.red, Colors.green, rating) ?? Colors.red),
+          color: Color(0xFFefd9ce),
+          width: 2,
+        ),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 5,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-            Text("$firstName $lastName",
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "$firstName $lastName",
                 style: TextStyle(
-                    fontSize: 20,
-                    color: Color.lerp(Colors.red, Colors.green, rating) ??
-                        Colors.red)),
-            if (widget.showUsername)
-              Text(widget.username,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF7161ef), // Dark text color
+                ),
+              ),
+              if (widget.showUsername)
+                Text(
+                  widget.username,
                   style: TextStyle(
-                    color: Color.lerp(Colors.red, Colors.green, rating) ??
-                        Colors.red,
+                    color: Color(0xFF957fef), // Medium dark text color
                     fontSize: 16,
-                  )),
-          ]),
-          Text("Rating: ${rating.toStringAsFixed(2)}",
+                  ),
+                ),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFb79ced), Color(0xFF957fef)], // Gradient for rating box
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              "Rating: ${rating.toStringAsFixed(2)}",
               style: TextStyle(
-                  fontSize: 16,
-                  color: Color.lerp(Colors.red, Colors.green, rating) ??
-                      Colors.red)),
+                fontSize: 16,
+                color: Colors.white, // White text color for readability
+              ),
+            ),
+          ),
         ],
       ),
     );
