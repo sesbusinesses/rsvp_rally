@@ -59,9 +59,9 @@ class EventCardState extends State<EventCard> {
         width: screenSize.width * 0.85,
         height: 150, // Increased height for better aesthetics
         decoration: BoxDecoration(
-          color: Color(0xFF010101), // Dark background color
+          color: const Color(0xFF010101), // Dark background color
           borderRadius: BorderRadius.circular(15),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black26,
               blurRadius: 10,
@@ -79,7 +79,7 @@ class EventCardState extends State<EventCard> {
                 children: [
                   Text(
                     eventName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFfefdfd), // Light text color
@@ -87,7 +87,7 @@ class EventCardState extends State<EventCard> {
                   ),
                   Text(
                     eventDate,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFFb1aebb), // Medium light text color
@@ -99,9 +99,9 @@ class EventCardState extends State<EventCard> {
                 width: double.infinity,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: Color(0xFF3a3153), // Button container color
+                  color: const Color(0xFF3a3153), // Button container color
                   borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black26,
                       blurRadius: 10,
@@ -135,8 +135,8 @@ class EventCardState extends State<EventCard> {
         );
       },
       child: Container(
-        padding: EdgeInsets.all(10),
-        decoration: BoxDecoration(
+        padding: const EdgeInsets.all(10),
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
           color: Color(0xFF5f42b2), // Button background color
           boxShadow: [
@@ -149,7 +149,7 @@ class EventCardState extends State<EventCard> {
         ),
         child: Icon(
           icon,
-          color: Color(0xFFfefdfd), // Icon color
+          color: const Color(0xFFfefdfd), // Icon color
         ),
       ),
     );

@@ -43,7 +43,7 @@ class EventPageState extends State<EventPage> {
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFfefdfd), Color(0xFF5f42b2)], // White to purple gradient
             begin: Alignment.topCenter,

@@ -18,24 +18,24 @@ class UserRatingIndicator extends StatelessWidget {
     }
 
     return Container(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [
+        boxShadow: const [
         ],
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
           CustomPaint(
-            size: Size(200, 200),
+            size: const Size(200, 200),
             painter: _SemicircularPainter(userRating),
           ),
           Positioned(
             top: 50,
             child: Text(
               getEmoji(userRating), // Displaying the appropriate emoji
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 50,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -56,10 +56,10 @@ class _SemicircularPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    final startAngle = -math.pi;
+    const startAngle = -math.pi;
     final sweepAngle = math.pi * progress;
 
-    final gradient = LinearGradient(
+    final gradient = const LinearGradient(
       colors: [Colors.red, Colors.yellow, Colors.green],
       stops: [0.0, 0.5, 1.0],
     ).createShader(rect);
