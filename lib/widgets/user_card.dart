@@ -90,10 +90,9 @@ class UserCardState extends State<UserCard> {
               children: [
                 Text(
                   "$firstName $lastName",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: dynamicColor, // Dynamic text color
+                    color: AppColors.dark, // Dynamic text color
                   ),
                   overflow: TextOverflow.ellipsis,
                   softWrap: false,
@@ -102,7 +101,7 @@ class UserCardState extends State<UserCard> {
                   Text(
                     widget.username,
                     style: TextStyle(
-                      color: dynamicColor
+                      color: AppColors.accent
                           .withOpacity(0.7), // Slightly lighter dynamic color
                       fontSize: 16,
                     ),
