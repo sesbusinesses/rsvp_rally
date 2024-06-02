@@ -61,41 +61,66 @@ class CreateEventPageState extends State<CreateEventPage> {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Create New Event'),
         backgroundColor: Colors.transparent,
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.light,
-              AppColors.main
-            ], // White to purple gradient
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(
-                  bottom: 70), // Add bottom padding to avoid overlap
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(
+                bottom: 70), // Add bottom padding to avoid overlap
+            child: Center(
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    WideTextBox(
-                      hintText: 'Event Name',
-                      controller: eventNameController,
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      width: screenSize.width * 0.85,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.dark),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text('Event Name',
+                              style: TextStyle(fontSize: 20)),
+                          WideTextBox(
+                            hintText: 'Event Name',
+                            controller: eventNameController,
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 10),
                     PhasesSection(
                       phaseControllers: phaseControllers,
                       onAddPhase: addPhase,
                       onRemovePhase: removePhase,
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      width: screenSize.width * 0.85,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.dark),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text('Additional Details',
+                              style: TextStyle(fontSize: 20)),
+                          WideTextBox(
+                            hintText: 'Event Details',
+                            controller: eventDetailsController,
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 10),
                     NotificationsSection(
@@ -105,11 +130,6 @@ class CreateEventPageState extends State<CreateEventPage> {
                     ),
                     const SizedBox(height: 10),
                     AttendeeEntrySection(username: widget.username),
-                    const SizedBox(height: 10),
-                    WideTextBox(
-                      hintText: 'Event Details',
-                      controller: eventDetailsController,
-                    ),
                     const SizedBox(
                         height:
                             80), // Add some space at the bottom for better visibility
@@ -117,21 +137,21 @@ class CreateEventPageState extends State<CreateEventPage> {
                 ),
               ),
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                height: 120,
-                child: WideButton(
-                  buttonText: 'Create Event',
-                  onPressed: () {
-                    // Implement event creation logic
-                  },
-                ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              height: 100,
+              child: WideButton(
+                buttonText: 'Create Event',
+                onPressed: () {
+                  // Implement event creation logic
+                },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

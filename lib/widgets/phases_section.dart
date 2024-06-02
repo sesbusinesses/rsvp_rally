@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/phase_entry_widget.dart';
 
 class PhasesSection extends StatelessWidget {
@@ -20,12 +21,12 @@ class PhasesSection extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         width: screenSize.width * 0.85,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.black),
+          border: Border.all(color: AppColors.dark),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
-            const Text('Event Phases', style: TextStyle(fontSize: 20)),
+            const Text('Add Phases', style: TextStyle(fontSize: 20)),
             TextButton(onPressed: onAddPhase, child: const Text('Add Phase')),
             ...List.generate(phaseControllers.length, (index) {
               return PhaseEntryWidget(

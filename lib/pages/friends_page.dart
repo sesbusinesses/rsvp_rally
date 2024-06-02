@@ -13,8 +13,8 @@ class FriendsPage extends StatefulWidget {
 }
 
 class FriendsPageState extends State<FriendsPage> {
-  List<String> friendsUsernames = [];
-  List<String> filteredFriends = [];
+  List<Map<String, dynamic>> friendsData = [];
+  List<Map<String, dynamic>> filteredFriends = [];
   TextEditingController searchController = TextEditingController();
 
   @override
@@ -25,27 +25,51 @@ class FriendsPageState extends State<FriendsPage> {
 
   Future<void> fetchFriends() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    DocumentSnapshot userDoc =
-        await firestore.collection('Users').doc(widget.username).get();
+    try {
+      DocumentSnapshot userDoc =
+          await firestore.collection('Users').doc(widget.username).get();
 
-    if (userDoc.exists) {
-      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-      setState(() {
-        friendsUsernames = List.from(userData['Friends'] ?? []);
-        filteredFriends = friendsUsernames;
-      });
+      if (userDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        List<String> friendsUsernames = List.from(userData['Friends'] ?? []);
+        List<Map<String, dynamic>> friends = [];
+
+        for (String friendUsername in friendsUsernames) {
+          DocumentSnapshot friendDoc =
+              await firestore.collection('Users').doc(friendUsername).get();
+
+          if (friendDoc.exists) {
+            Map<String, dynamic> friendData =
+                friendDoc.data() as Map<String, dynamic>;
+            friends.add({
+              'username': friendUsername,
+              'rating': double.tryParse(friendData['Rating'].toString()) ?? 0.0,
+            });
+          }
+        }
+
+        friends.sort((a, b) => b['rating'].compareTo(a['rating']));
+
+        setState(() {
+          friendsData = friends;
+          filteredFriends = friendsData;
+        });
+      }
+    } catch (e) {
+      // Handle error
+      print("Error fetching friends: $e");
     }
   }
 
   void filterFriends(String query) {
     if (query.isEmpty) {
       setState(() {
-        filteredFriends = friendsUsernames;
+        filteredFriends = friendsData;
       });
     } else {
-      List<String> temp = [];
-      for (String friend in friendsUsernames) {
-        if (friend.toLowerCase().contains(query.toLowerCase())) {
+      List<Map<String, dynamic>> temp = [];
+      for (Map<String, dynamic> friend in friendsData) {
+        if (friend['username'].toLowerCase().contains(query.toLowerCase())) {
           temp.add(friend);
         }
       }
@@ -60,76 +84,69 @@ class FriendsPageState extends State<FriendsPage> {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Friends'),
-        backgroundColor: Colors.transparent, // AppBar color
+        title: const Text('Your Profile'),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFfefdfd), Color(0xFF5f42b2)], // White to purple gradient
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              UserCard(username: widget.username),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                width: screenSize.width * 0.85,
-                decoration: BoxDecoration(
-                  color: Colors.transparent, // Light background color
-                  border: Border.all(color: Colors.transparent),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    const Text('Add Friends', style: TextStyle(fontSize: 20)),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: WideTextBox(
-                            hintText: 'Search for friends...',
-                            controller: searchController,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.search_rounded),
-                          onPressed: () => filterFriends(searchController.text),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            UserCard(username: widget.username),
+            Container(
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                border: Border.all(color: Colors.transparent),
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: screenSize.width * 0.075, vertical: 10),
-                    width: screenSize.width * 0.85,
-                    decoration: BoxDecoration(
-                      color: Colors.transparent, // Light background color
-                      border: Border.all(color: Colors.transparent),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        const Text('Friends', style: TextStyle(fontSize: 20)),
-                        ...filteredFriends.map(
-                            (friendUsername) => UserCard(username: friendUsername)),
-                      ],
-                    ),
+              child: Column(
+                children: [
+                  const Text('Add Friends', style: TextStyle(fontSize: 20)),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: WideTextBox(
+                          hintText: 'Search for friends...',
+                          controller: searchController,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.search_rounded),
+                        onPressed: () => filterFriends(searchController.text),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  width: screenSize.width * 0.85,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent, // Light background color
+                    border: Border.all(color: Colors.transparent),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text('Your Friends',
+                          style: TextStyle(fontSize: 20)),
+                      ...filteredFriends.map((friendData) =>
+                          UserCard(username: friendData['username'])),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

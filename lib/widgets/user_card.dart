@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/widgets/rating_indicator.dart';
 
 class UserCard extends StatefulWidget {
   final String username;
@@ -37,24 +39,42 @@ class UserCardState extends State<UserCard> {
     }
   }
 
+  Color getInterpolatedColor(double value) {
+    const List<Color> colors = [Colors.red, Colors.yellow, Colors.green];
+    const List<double> stops = [0.0, 0.5, 1.0];
+
+    if (value <= stops.first) return colors.first;
+    if (value >= stops.last) return colors.last;
+
+    for (int i = 0; i < stops.length - 1; i++) {
+      if (value >= stops[i] && value <= stops[i + 1]) {
+        final t = (value - stops[i]) / (stops[i + 1] - stops[i]);
+        return Color.lerp(colors[i], colors[i + 1], t)!;
+      }
+    }
+    return colors.last;
+  }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
+    Color dynamicColor = getInterpolatedColor(rating);
+
     return Container(
       width: screenSize.width * 0.85,
       height: 80, // Adjusted height for better aesthetics
       padding: const EdgeInsets.symmetric(horizontal: 10),
       margin: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: Color(0xFFefd9ce), // Light background color
+        color: AppColors.light, // Light background color
         border: Border.all(
-          color: Color(0xFFefd9ce),
+          color: dynamicColor,
           width: 2,
         ),
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black12,
+            color: AppColors.shadow,
             blurRadius: 5,
             offset: Offset(0, 3),
           ),
@@ -63,46 +83,36 @@ class UserCardState extends State<UserCard> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "$firstName $lastName",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF7161ef), // Dark text color
-                ),
-              ),
-              if (widget.showUsername)
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  widget.username,
+                  "$firstName $lastName",
                   style: TextStyle(
-                    color: Color(0xFF957fef), // Medium dark text color
-                    fontSize: 16,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: dynamicColor, // Dynamic text color
                   ),
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
                 ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFb79ced), Color(0xFF957fef)], // Gradient for rating box
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              "Rating: ${rating.toStringAsFixed(2)}",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white, // White text color for readability
-              ),
+                if (widget.showUsername)
+                  Text(
+                    widget.username,
+                    style: TextStyle(
+                      color: dynamicColor
+                          .withOpacity(0.7), // Slightly lighter dynamic color
+                      fontSize: 16,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                  ),
+              ],
             ),
           ),
+          RatingIndicator(progress: rating),
         ],
       ),
     );
