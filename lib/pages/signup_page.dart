@@ -12,10 +12,16 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpState extends State<SignUpPage> {
-  String email = "", password = "", name = "";
-  TextEditingController namecontroller = new TextEditingController();
-  TextEditingController passwordcontroller = new TextEditingController();
-  TextEditingController mailcontroller = new TextEditingController();
+  String email = "",
+      password = "",
+      username = "",
+      firstName = "",
+      lastName = "";
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController firstNameController = TextEditingController();
+  TextEditingController lastNameController = TextEditingController();
 
   final _formkey = GlobalKey<FormState>();
   final DataPusher _dataPusher = DataPusher();
@@ -29,10 +35,10 @@ class _SignUpState extends State<SignUpPage> {
         User? user = userCredential.user;
 
         if (user != null) {
-          await user.updateDisplayName(name); // Update the display name
+          await user.updateDisplayName(username); // Update the display name
 
           // Call the method from DataPusher to create a new user in Firestore
-          await _dataPusher.createNewUser(user.uid, name, email);
+          await _dataPusher.createNewUser(username, firstName, lastName);
 
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               backgroundColor: Colors.redAccent,
@@ -44,7 +50,7 @@ class _SignUpState extends State<SignUpPage> {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => EventPage(username: name)));
+                  builder: (context) => EventPage(username: username)));
         }
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {
@@ -77,112 +83,105 @@ class _SignUpState extends State<SignUpPage> {
             child: Column(
               children: [
                 Container(
-                  margin: EdgeInsets.only(top: 130.0, left: 20.0, right: 20.0),
+                  margin: EdgeInsets.only(top: 50.0, left: 20.0, right: 20.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         "Hello...!",
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 36.0,
                             fontFamily: 'Pacifico'),
                       ),
-                      SizedBox(
-                        height: 50.0,
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 3.0, horizontal: 5.0),
-                        decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 147, 126, 207),
-                            borderRadius: BorderRadius.circular(30)),
-                        child: TextFormField(
-                          controller: namecontroller,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please Enter Name';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                              border: InputBorder.none,
-                              prefixIcon: Icon(
-                                Icons.person_2_outlined,
-                                color: Colors.white,
-                              ),
-                              hintText: 'Your username',
-                              hintStyle: TextStyle(color: Colors.white60)),
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      SizedBox(
+                      const SizedBox(
                         height: 30.0,
                       ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 3.0, horizontal: 5.0),
-                        decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 147, 126, 207),
-                            borderRadius: BorderRadius.circular(30)),
-                        child: TextFormField(
-                          controller: mailcontroller,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please Enter E-mail';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                              border: InputBorder.none,
-                              prefixIcon: Icon(
-                                Icons.email_outlined,
-                                color: Colors.white,
-                              ),
-                              hintText: 'Your E-mail',
-                              hintStyle: TextStyle(color: Colors.white60)),
-                          style: TextStyle(color: Colors.white),
-                        ),
+                      buildTextFormField(
+                        controller: usernameController,
+                        hintText: 'Your username',
+                        icon: Icons.person_2_outlined,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please Enter Username';
+                          }
+
+                          return null;
+                        },
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 30.0,
                       ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 3.0, horizontal: 5.0),
-                        decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 147, 126, 207),
-                            borderRadius: BorderRadius.circular(30)),
-                        child: TextFormField(
-                          obscureText: true,
-                          controller: passwordcontroller,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please Enter Password';
-                            }
-                            return null;
-                          },
-                          decoration: InputDecoration(
-                              border: InputBorder.none,
-                              prefixIcon: Icon(
-                                Icons.password_outlined,
-                                color: Colors.white,
-                              ),
-                              hintText: 'Password',
-                              hintStyle: TextStyle(color: Colors.white60)),
-                          style: TextStyle(color: Colors.white),
-                        ),
+                      buildTextFormField(
+                        controller: firstNameController,
+                        hintText: 'Your First Name',
+                        icon: Icons.edit,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please Enter First Name';
+                          }
+
+                          return null;
+                        },
+                      ),
+                      const SizedBox(
+                        height: 30.0,
+                      ),
+                      buildTextFormField(
+                        controller: lastNameController,
+                        hintText: 'Your Last Name',
+                        icon: Icons.edit,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please Enter Last Name';
+                          }
+
+                          return null;
+                        },
+                      ),
+                      const SizedBox(
+                        height: 30.0,
+                      ),
+                      buildTextFormField(
+                        controller: emailController,
+                        hintText: 'Your E-mail',
+                        icon: Icons.email_outlined,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please Enter E-mail';
+                          }
+
+                          return null;
+                        },
+                      ),
+                      const SizedBox(
+                        height: 30.0,
+                      ),
+                      buildTextFormField(
+                        controller: passwordController,
+                        hintText: 'Password',
+                        icon: Icons.password_outlined,
+                        obscureText: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please Enter Password';
+                          }
+
+                          return null;
+                        },
                       ),
                       SizedBox(
-                        height: 80.0,
+                        height: 40.0,
                       ),
                       GestureDetector(
                         onTap: () async {
                           if (_formkey.currentState!.validate()) {
                             setState(() {
-                              email = mailcontroller.text;
-                              name = namecontroller.text;
-                              password = passwordcontroller.text;
+                              email = emailController.text;
+                              username = usernameController.text;
+                              firstName = firstNameController.text;
+                              lastName = lastNameController.text;
+                              password = passwordController.text;
                             });
                           }
                           registration();
@@ -190,7 +189,7 @@ class _SignUpState extends State<SignUpPage> {
                         child: Center(
                           child: Container(
                             width: 150,
-                            height: 55,
+                            height: 50,
                             padding: EdgeInsets.all(10),
                             decoration: BoxDecoration(
                                 color: Color(0xFFf95f3b),
@@ -209,9 +208,8 @@ class _SignUpState extends State<SignUpPage> {
                     ],
                   ),
                 ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height / 6,
-                ),
+                SizedBox(height: 20.0 //MediaQuery.of(context).size.height / 8,
+                    ),
                 Row(
                   children: [
                     Spacer(),
@@ -245,6 +243,35 @@ class _SignUpState extends State<SignUpPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildTextFormField({
+    required TextEditingController controller,
+    required String hintText,
+    required IconData icon,
+    required String? Function(String?) validator,
+    bool obscureText = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 3.0, horizontal: 5.0),
+      decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 147, 126, 207),
+          borderRadius: BorderRadius.circular(30)),
+      child: TextFormField(
+        controller: controller,
+        validator: validator,
+        obscureText: obscureText,
+        decoration: InputDecoration(
+            border: InputBorder.none,
+            prefixIcon: Icon(
+              icon,
+              color: Colors.white,
+            ),
+            hintText: hintText,
+            hintStyle: const TextStyle(color: Colors.white60)),
+        style: const TextStyle(color: Colors.white),
       ),
     );
   }
