@@ -27,7 +27,8 @@ class _SignUpState extends State<SignUpPage> {
   final DataPusher _dataPusher = DataPusher();
 
   registration() async {
-    if (password.isEmpty) {
+    // is this if really neccessary?
+    if (password != null) {
       try {
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
@@ -65,6 +66,13 @@ class _SignUpState extends State<SignUpPage> {
               backgroundColor: Colors.orangeAccent,
               content: Text(
                 "Account Already exists",
+                style: TextStyle(fontSize: 18.0),
+              )));
+        } else if (e.code == "invalid-email") {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Colors.orangeAccent,
+              content: Text(
+                "The email address is badly formatted",
                 style: TextStyle(fontSize: 18.0),
               )));
         }
