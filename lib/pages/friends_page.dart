@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
+import 'package:rsvp_rally/pages/add_friends_page.dart';
 
 class FriendsPage extends StatefulWidget {
   final String username;
@@ -66,7 +67,10 @@ class FriendsPageState extends State<FriendsPage> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFfefdfd), Color(0xFF5f42b2)], // White to purple gradient
+            colors: [
+              Color(0xFFfefdfd),
+              Color(0xFF5f42b2)
+            ], // White to purple gradient
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -87,7 +91,32 @@ class FriendsPageState extends State<FriendsPage> {
                 ),
                 child: Column(
                   children: [
-                    const Text('Add Friends', style: TextStyle(fontSize: 20)),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AddFriendsPage(username: widget.username),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF7161ef), // Button color
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Find More Friends +',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.white, // Text color
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -121,8 +150,8 @@ class FriendsPageState extends State<FriendsPage> {
                     child: Column(
                       children: [
                         const Text('Friends', style: TextStyle(fontSize: 20)),
-                        ...filteredFriends.map(
-                            (friendUsername) => UserCard(username: friendUsername)),
+                        ...filteredFriends.map((friendUsername) =>
+                            UserCard(username: friendUsername)),
                       ],
                     ),
                   ),
