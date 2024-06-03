@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
 
 class AttendeeEntrySection extends StatefulWidget {
+  final double rating;
   final String username;
 
   const AttendeeEntrySection({
     super.key,
+    required this.rating,
     required this.username,
   });
 
@@ -69,7 +72,7 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         width: screenSize.width * 0.85,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.black),
+          border: Border.all(color: getInterpolatedColor(widget.rating)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(

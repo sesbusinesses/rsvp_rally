@@ -36,6 +36,7 @@ class CreateEventButton extends StatelessWidget {
           MaterialPageRoute(
               builder: (context) => CreateEventPage(
                     username: username,
+                    rating: userRating,
                   )),
         );
       },

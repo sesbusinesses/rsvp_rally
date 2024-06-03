@@ -9,11 +9,15 @@ import 'package:rsvp_rally/widgets/phases_section.dart';
 import 'package:rsvp_rally/widgets/notifications_section.dart';
 
 class EditEventPage extends StatefulWidget {
+  final double rating;
   final String username;
   final String eventID;
 
   const EditEventPage(
-      {super.key, required this.username, required this.eventID});
+      {super.key,
+      required this.rating,
+      required this.username,
+      required this.eventID});
 
   @override
   EditEventPageState createState() => EditEventPageState();
@@ -126,6 +130,7 @@ class EditEventPageState extends State<EditEventPage> {
                         )),
                     const SizedBox(height: 10),
                     PhasesSection(
+                      rating: widget.rating,
                       phaseControllers: phaseControllers,
                       onAddPhase: () {
                         setState(() {
@@ -163,6 +168,7 @@ class EditEventPageState extends State<EditEventPage> {
                         )),
                     const SizedBox(height: 10),
                     NotificationsSection(
+                      rating: widget.rating,
                       notificationControllers: notificationControllers,
                       onAddNotification: () {
                         setState(() {
@@ -179,7 +185,8 @@ class EditEventPageState extends State<EditEventPage> {
                       },
                     ),
                     const SizedBox(height: 10),
-                    AttendeeEntrySection(username: widget.username),
+                    AttendeeEntrySection(
+                        rating: widget.rating, username: widget.username),
                     const SizedBox(
                         height:
                             80), // Add some space at the bottom for better visibility
@@ -194,6 +201,7 @@ class EditEventPageState extends State<EditEventPage> {
               padding: const EdgeInsets.all(20),
               height: 100,
               child: WideButton(
+                rating: widget.rating,
                 buttonText: 'Update Event',
                 onPressed: () {
                   // Implement event update logic

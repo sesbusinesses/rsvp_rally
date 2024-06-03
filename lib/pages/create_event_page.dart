@@ -8,8 +8,10 @@ import 'package:rsvp_rally/widgets/notifications_section.dart';
 
 class CreateEventPage extends StatefulWidget {
   final String username;
+  final double rating;
 
-  const CreateEventPage({super.key, required this.username});
+  const CreateEventPage(
+      {super.key, required this.username, required this.rating});
 
   @override
   CreateEventPageState createState() => CreateEventPageState();
@@ -83,7 +85,8 @@ class CreateEventPageState extends State<CreateEventPage> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       width: screenSize.width * 0.85,
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.dark),
+                        border: Border.all(
+                            color: getInterpolatedColor(widget.rating)),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -99,6 +102,7 @@ class CreateEventPageState extends State<CreateEventPage> {
                     ),
                     const SizedBox(height: 10),
                     PhasesSection(
+                      rating: widget.rating,
                       phaseControllers: phaseControllers,
                       onAddPhase: addPhase,
                       onRemovePhase: removePhase,
@@ -108,7 +112,8 @@ class CreateEventPageState extends State<CreateEventPage> {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       width: screenSize.width * 0.85,
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.dark),
+                        border: Border.all(
+                            color: getInterpolatedColor(widget.rating)),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -124,12 +129,14 @@ class CreateEventPageState extends State<CreateEventPage> {
                     ),
                     const SizedBox(height: 10),
                     NotificationsSection(
+                      rating: widget.rating,
                       notificationControllers: notificationControllers,
                       onAddNotification: addNotification,
                       onRemoveNotification: removeNotification,
                     ),
                     const SizedBox(height: 10),
-                    AttendeeEntrySection(username: widget.username),
+                    AttendeeEntrySection(
+                        rating: widget.rating, username: widget.username),
                     const SizedBox(
                         height:
                             80), // Add some space at the bottom for better visibility
@@ -144,6 +151,7 @@ class CreateEventPageState extends State<CreateEventPage> {
               padding: const EdgeInsets.all(20),
               height: 100,
               child: WideButton(
+                rating: widget.rating,
                 buttonText: 'Create Event',
                 onPressed: () {
                   // Implement event creation logic

@@ -39,26 +39,10 @@ class UserCardState extends State<UserCard> {
     }
   }
 
-  Color getInterpolatedColor(double value) {
-    const List<Color> colors = [Colors.red, Colors.yellow, Colors.green];
-    const List<double> stops = [0.0, 0.5, 1.0];
-
-    if (value <= stops.first) return colors.first;
-    if (value >= stops.last) return colors.last;
-
-    for (int i = 0; i < stops.length - 1; i++) {
-      if (value >= stops[i] && value <= stops[i + 1]) {
-        final t = (value - stops[i]) / (stops[i + 1] - stops[i]);
-        return Color.lerp(colors[i], colors[i + 1], t)!;
-      }
-    }
-    return colors.last;
-  }
-
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
-    Color dynamicColor = getInterpolatedColor(rating);
+    Color ratingColor = getInterpolatedColor(rating);
 
     return Container(
       width: screenSize.width * 0.85,
@@ -68,7 +52,7 @@ class UserCardState extends State<UserCard> {
       decoration: BoxDecoration(
         color: AppColors.light, // Light background color
         border: Border.all(
-          color: dynamicColor,
+          color: ratingColor,
           width: 2,
         ),
         borderRadius: BorderRadius.circular(12),
@@ -92,7 +76,7 @@ class UserCardState extends State<UserCard> {
                   "$firstName $lastName",
                   style: const TextStyle(
                     fontSize: 20,
-                    color: AppColors.dark, // Dynamic text color
+                    color: AppColors.dark, // Dark text color
                   ),
                   overflow: TextOverflow.ellipsis,
                   softWrap: false,
@@ -102,7 +86,7 @@ class UserCardState extends State<UserCard> {
                     widget.username,
                     style: TextStyle(
                       color: AppColors.accent
-                          .withOpacity(0.7), // Slightly lighter dynamic color
+                          .withOpacity(0.7), // Slightly lighter accent color
                       fontSize: 16,
                     ),
                     overflow: TextOverflow.ellipsis,
