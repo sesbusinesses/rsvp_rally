@@ -140,14 +140,11 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                               GestureDetector(
                                 onTap: () {
                                   Navigator.pushAndRemoveUntil(
-                                      context,
-                                      PageRouteBuilder(
-                                        pageBuilder: (context, a, b) =>
-                                            const LogInPage(),
-                                        transitionDuration:
-                                            const Duration(seconds: 0),
-                                      ),
-                                      (route) => false);
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => LogInPage()),
+                                    (Route<dynamic> route) => false,
+                                  );
                                 },
                                 child: Container(
                                     alignment: Alignment.bottomRight,

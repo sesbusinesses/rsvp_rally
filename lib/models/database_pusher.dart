@@ -6,10 +6,11 @@ class DataPusher {
 
   Future<void> createNewUser(String uid, String name, String email) async {
     final newUser = {
-      'UserEmail': email,
+      'FirstName': 'firstname',
+      'LastName': 'lastname',
       'Rating': 0.99,
-      'Events': [],
-      'Friends': []
+      'Events': ['EAO5TLf41xsNEoL7FOVm'],
+      'Friends': ['spark259', 'sherwinnw22']
     };
     await _firestore.collection('Users').doc(name).set(newUser);
   }

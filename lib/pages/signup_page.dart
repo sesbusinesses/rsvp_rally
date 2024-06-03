@@ -224,10 +224,12 @@ class _SignUpState extends State<SignUpPage> {
                     ),
                     GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LogInPage()));
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => LogInPage()),
+                            (Route<dynamic> route) => false,
+                          );
                         },
                         child: Text(
                           " Login",
