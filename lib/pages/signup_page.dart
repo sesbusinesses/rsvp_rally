@@ -27,7 +27,7 @@ class _SignUpState extends State<SignUpPage> {
   final DataPusher _dataPusher = DataPusher();
 
   registration() async {
-    if (password != null) {
+    if (password.isEmpty) {
       try {
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
