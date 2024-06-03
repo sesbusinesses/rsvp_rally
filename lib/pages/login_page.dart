@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/pages/signup_page.dart';
 import 'package:rsvp_rally/pages/forgotpassword_page.dart';
@@ -89,7 +87,7 @@ class _LogInState extends State<LogInPage> {
                     controller: useremailcontroller,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please Enter E-Mail';
+                        return 'Please Enter Email';
                       }
                       return null;
                     },
