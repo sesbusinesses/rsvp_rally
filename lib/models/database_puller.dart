@@ -198,7 +198,7 @@ Future<List<Map<String, dynamic>>> fetchEventAttendees(String eventID) async {
   return attendeesDetails;
 }
 
-Future<String> isComing(String eventID, String userID) async {
+Future<String> isComing(String eventID, String username) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   try {
     DocumentSnapshot eventDoc =
@@ -213,10 +213,10 @@ Future<String> isComing(String eventID, String userID) async {
       for (var pollName in polls.keys) {
         if (pollName.startsWith('RSVP for')) {
           var responses = polls[pollName];
-          if (responses['Yes'] != null && responses['Yes'].contains(userID)) {
+          if (responses['Yes'] != null && responses['Yes'].contains(username)) {
             hasRespondedYes = true;
           }
-          if (responses['No'] != null && responses['No'].contains(userID)) {
+          if (responses['No'] != null && responses['No'].contains(username)) {
             hasRespondedNo = hasRespondedNo && true;
           } else {
             hasRespondedNo = false;

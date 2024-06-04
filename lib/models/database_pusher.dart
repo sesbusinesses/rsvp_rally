@@ -3,14 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class DataPusher {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> createNewUser(String uid, String name, String email) async {
+  Future<void> createNewUser(
+      String username, String firstName, String lastName) async {
     final newUser = {
-      'uid': uid,
-      'UserEmail': email,
+      'FirstName': firstName,
+      'LastName': lastName,
       'Rating': 0.99,
-      'Events': [],
-      'Friends': []
+      'Events': ['EAO5TLf41xsNEoL7FOVm'],
+      'Friends': ['spark259', 'sherwinnw22']
     };
-    await _firestore.collection('Users').doc(name).set(newUser);
+    await _firestore.collection('Users').doc(username).set(newUser);
   }
 }

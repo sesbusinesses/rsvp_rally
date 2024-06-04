@@ -576,6 +576,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  searchfield:
+    dependency: "direct main"
+    description:
+      name: searchfield
+      sha256: "2f420103aab1c2ea68d34bb49689684ef95b8b2fb07d98d3447b8c132a4a81f1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
   semicircle_indicator:
     dependency: "direct main"
     description:
