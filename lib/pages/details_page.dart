@@ -6,10 +6,15 @@ import 'package:rsvp_rally/widgets/attendees_card.dart';
 import 'package:rsvp_rally/widgets/bottomnav.dart';
 
 class DetailsPage extends StatefulWidget {
+  final String username;
   final String eventID;
   final double userRating;
 
-  const DetailsPage({super.key, required this.eventID, required this.userRating});
+  const DetailsPage(
+      {super.key,
+      required this.eventID,
+      required this.userRating,
+      required this.username});
 
   @override
   DetailsPageState createState() => DetailsPageState();
@@ -54,7 +59,7 @@ class DetailsPageState extends State<DetailsPage> {
       bottomNavigationBar: BottomNav(
         rating: widget.userRating,
         eventID: widget.eventID,
-        username: 'example_username', // Replace with actual username
+        username: widget.username, // Replace with actual username
         selectedIndex: 0, // Index for DetailsPage
       ),
     );

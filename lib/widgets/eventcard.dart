@@ -95,6 +95,7 @@ class EventCardState extends State<EventCard> {
             context,
             MaterialPageRoute(
               builder: (context) => DetailsPage(
+                username: widget.username,
                 userRating: widget.userRating,
                 eventID: widget.eventID,
               ),

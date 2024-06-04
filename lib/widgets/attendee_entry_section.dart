@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/models/colors.dart';
@@ -28,40 +29,52 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
   }
 
   Future<void> fetchFriends() async {
+    log('Fetching friends for user: ${widget.username}');
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    DocumentSnapshot userDoc =
-        await firestore.collection('Users').doc(widget.username).get();
-    if (userDoc.exists) {
-      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-      List<dynamic> friends = userData['Friends'] ?? [];
+    try {
+      DocumentSnapshot userDoc =
+          await firestore.collection('Users').doc(widget.username).get();
+      if (userDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        List<dynamic> friends = userData['Friends'] ?? [];
+        log('Friends list: $friends');
 
-      List<Map<String, dynamic>> friendsWithRatings = [];
+        List<Map<String, dynamic>> friendsWithRatings = [];
 
-      for (String friendUsername in friends) {
-        DocumentSnapshot friendDoc =
-            await firestore.collection('Users').doc(friendUsername).get();
+        for (String friendUsername in friends) {
+          DocumentSnapshot friendDoc =
+              await firestore.collection('Users').doc(friendUsername).get();
 
-        if (friendDoc.exists) {
-          Map<String, dynamic> friendData =
-              friendDoc.data() as Map<String, dynamic>;
-          double rating =
-              double.tryParse(friendData['Rating'].toString()) ?? 0.0;
+          if (friendDoc.exists) {
+            Map<String, dynamic> friendData =
+                friendDoc.data() as Map<String, dynamic>;
+            double rating =
+                double.tryParse(friendData['Rating'].toString()) ?? 0.0;
+            log('Friend: $friendUsername, Rating: $rating');
 
-          friendsWithRatings.add({
-            'username': friendUsername,
-            'rating': rating,
-          });
+            friendsWithRatings.add({
+              'username': friendUsername,
+              'rating': rating,
+            });
+          } else {
+            log('Friend document does not exist: $friendUsername');
+          }
         }
+
+        friendsWithRatings.sort((a, b) => b['rating'].compareTo(a['rating']));
+
+        setState(() {
+          friendsData = friendsWithRatings;
+          for (var friend in friendsData) {
+            selectedFriends[friend['username']] = false;
+          }
+          log('Friends data with ratings: $friendsData');
+        });
+      } else {
+        log('User document does not exist: ${widget.username}');
       }
-
-      friendsWithRatings.sort((a, b) => b['rating'].compareTo(a['rating']));
-
-      setState(() {
-        friendsData = friendsWithRatings;
-        for (var friend in friendsData) {
-          selectedFriends[friend['username']] = false;
-        }
-      });
+    } catch (e) {
+      log('Error fetching friends: $e');
     }
   }
 

@@ -116,7 +116,8 @@ class EditEventPageState extends State<EditEventPage> {
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         width: screenSize.width * 0.85,
                         decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.dark),
+                          border: Border.all(
+                              color: getInterpolatedColor(widget.rating)),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -154,7 +155,8 @@ class EditEventPageState extends State<EditEventPage> {
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         width: screenSize.width * 0.85,
                         decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.dark),
+                          border: Border.all(
+                              color: getInterpolatedColor(widget.rating)),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(

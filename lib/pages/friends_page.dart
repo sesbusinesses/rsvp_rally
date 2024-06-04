@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
+import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/pages/add_friends_page.dart';
 
 class FriendsPage extends StatefulWidget {
   final String username;
+  final double rating;
 
-  const FriendsPage({super.key, required this.username});
+  const FriendsPage({super.key, required this.username, required this.rating});
 
   @override
   FriendsPageState createState() => FriendsPageState();
@@ -89,78 +92,13 @@ class FriendsPageState extends State<FriendsPage> {
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
         ),
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFFfefdfd),
-                Color(0xFF5f42b2)
-              ], // White to purple gradient
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-          child: Center(
+        body: Stack(children: [
+          Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 UserCard(username: widget.username),
-                Container(
-                  padding: const EdgeInsets.only(top: 10, bottom: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    border: Border.all(color: Colors.transparent),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  AddFriendsPage(username: widget.username),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 20),
-                          decoration: BoxDecoration(
-                            color: Color(0xFF7161ef), // Button color
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            'Find More Friends +',
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.white, // Text color
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: WideTextBox(
-                              hintText: 'Search for friends...',
-                              controller: searchController,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.search_rounded),
-                            onPressed: () =>
-                                filterFriends(searchController.text),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Container(
@@ -175,8 +113,26 @@ class FriendsPageState extends State<FriendsPage> {
                         children: [
                           const Text('Your Friends',
                               style: TextStyle(fontSize: 20)),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: WideTextBox(
+                                  hintText: 'Search through your friends...',
+                                  controller: searchController,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.search_rounded),
+                                onPressed: () =>
+                                    filterFriends(searchController.text),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
                           ...filteredFriends.map((friendData) =>
                               UserCard(username: friendData['username'])),
+                          const SizedBox(height: 80)
                         ],
                       ),
                     ),
@@ -185,6 +141,27 @@ class FriendsPageState extends State<FriendsPage> {
               ],
             ),
           ),
-        ));
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: screenSize.width * 0.075, vertical: 20),
+              height: 100,
+              child: WideButton(
+                buttonText: 'Find More Friends +',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AddFriendsPage(username: widget.username),
+                    ),
+                  );
+                },
+                rating: widget.rating,
+              ),
+            ),
+          ),
+        ]));
   }
 }

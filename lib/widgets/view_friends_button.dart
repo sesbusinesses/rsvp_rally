@@ -42,6 +42,7 @@ class ViewFriendsButton extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => FriendsPage(
+              rating: userRating,
               username: username,
             ),
           ),
