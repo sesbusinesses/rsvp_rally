@@ -90,11 +90,34 @@ class FriendsPageState extends State<FriendsPage> {
                 ),
                 child: Column(
                   children: [
-                    const Text('Add Friends', style: TextStyle(fontSize: 20)),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                AddFriendsPage(username: widget.username),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF7161ef), // Button color
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          'Find More Friends +',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.white, // Text color
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
                           child: WideTextBox(
@@ -115,7 +138,8 @@ class FriendsPageState extends State<FriendsPage> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: screenSize.width * 0.075, vertical: 10),
                     width: screenSize.width * 0.85,
                     decoration: BoxDecoration(
                       color: Colors.transparent, // Light background color
@@ -124,10 +148,9 @@ class FriendsPageState extends State<FriendsPage> {
                     ),
                     child: Column(
                       children: [
-                        const Text('Your Friends',
-                            style: TextStyle(fontSize: 20)),
-                        ...filteredFriends.map((friendData) =>
-                            UserCard(username: friendData['username'])),
+                        const Text('Friends', style: TextStyle(fontSize: 20)),
+                        ...filteredFriends.map((friendUsername) =>
+                            UserCard(username: friendUsername)),
                       ],
                     ),
                   ),
