@@ -213,6 +213,7 @@ class EditEventPageState extends State<EditEventPage> {
         ],
       ),
       bottomNavigationBar: BottomNav(
+        rating: widget.rating,
         eventID: widget.eventID,
         username: 'example_username', // Replace with actual username
         selectedIndex: 3, // Index for DetailsPage

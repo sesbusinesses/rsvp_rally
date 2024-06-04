@@ -8,12 +8,14 @@ class BottomNav extends StatefulWidget {
   final String eventID;
   final String username;
   final int selectedIndex;
+  final double rating;
 
   const BottomNav({
     Key? key,
     required this.eventID,
     required this.username,
     required this.selectedIndex,
+    required this.rating,
   }) : super(key: key);
 
   @override
@@ -27,7 +29,7 @@ class _BottomNavState extends State<BottomNav> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => DetailsPage(eventID: widget.eventID),
+            builder: (context) => DetailsPage(eventID: widget.eventID, userRating: widget.rating),
           ),
         );
         break;
@@ -55,6 +57,7 @@ class _BottomNavState extends State<BottomNav> {
           context,
           MaterialPageRoute(
             builder: (context) => EditEventPage(
+              rating: widget.rating,
               eventID: widget.eventID,
               username: widget.username,
             ),

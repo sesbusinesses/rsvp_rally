@@ -88,6 +88,7 @@ class _PollPageState extends State<PollPage> {
         ),
       ),
       bottomNavigationBar: BottomNav(
+        rating: userRating,
         eventID: widget.eventID,
         username: widget.username,
         selectedIndex: 1, // Index for PollPage

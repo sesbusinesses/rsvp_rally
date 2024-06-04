@@ -1,7 +1,7 @@
 import 'package:diffutil_dart/diffutil.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:flutter_chat_ui/flutter_chat_ui.dart' show BubbleRtlAlignment;
+import '../models/bubble_rtl_alignment.dart';
 import 'state/inherited_chat_theme.dart';
 import 'state/inherited_user.dart';
 import 'typing_indicator.dart';
