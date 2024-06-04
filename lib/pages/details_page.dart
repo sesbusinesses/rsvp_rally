@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/widgets/event_timeline.dart';
 import 'package:rsvp_rally/widgets/details_card.dart';
 import 'package:rsvp_rally/widgets/attendees_card.dart';
+import 'package:rsvp_rally/widgets/bottomnav.dart';
 
 class DetailsPage extends StatefulWidget {
   final String eventID;
@@ -48,6 +49,11 @@ class DetailsPageState extends State<DetailsPage> {
           SliverToBoxAdapter(child: DetailsCard(eventID: widget.eventID)),
           SliverToBoxAdapter(child: AttendeesCard(eventID: widget.eventID)),
         ],
+      ),
+      bottomNavigationBar: BottomNav(
+        eventID: widget.eventID,
+        username: 'example_username', // Replace with actual username
+        selectedIndex: 0, // Index for DetailsPage
       ),
     );
   }

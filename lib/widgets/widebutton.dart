@@ -4,11 +4,13 @@ import 'package:rsvp_rally/models/colors.dart';
 class WideButton extends StatelessWidget {
   final String buttonText;
   final VoidCallback onPressed;
+  final double rating;
 
   const WideButton({
     super.key,
     required this.buttonText,
     required this.onPressed,
+    required this.rating,
   });
 
   @override
@@ -20,7 +22,7 @@ class WideButton extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.main,
+              color: getInterpolatedColor(rating),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(

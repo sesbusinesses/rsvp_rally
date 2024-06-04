@@ -1,18 +1,24 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/phases_section.dart';
 import 'package:rsvp_rally/widgets/notifications_section.dart';
+import 'package:rsvp_rally/widgets/bottomnav.dart';
 
 class EditEventPage extends StatefulWidget {
+  final double rating;
   final String username;
   final String eventID;
 
   const EditEventPage(
-      {super.key, required this.username, required this.eventID});
+      {super.key,
+      required this.rating,
+      required this.username,
+      required this.eventID});
 
   @override
   EditEventPageState createState() => EditEventPageState();
@@ -87,38 +93,45 @@ class EditEventPageState extends State<EditEventPage> {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Event'),
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFfefdfd),
-              Color(0xFF5f42b2)
-            ], // White to purple gradient
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(
-                  bottom: 70), // Add bottom padding to avoid overlap
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(
+                bottom: 70), // Add bottom padding to avoid overlap
+            child: Center(
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    WideTextBox(
-                      hintText: 'Event Name',
-                      controller: eventNameController,
-                    ),
+                    Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        width: screenSize.width * 0.85,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.dark),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text('Event Name',
+                                style: TextStyle(fontSize: 20)),
+                            WideTextBox(
+                              hintText: 'Event Name',
+                              controller: eventNameController,
+                            ),
+                          ],
+                        )),
                     const SizedBox(height: 10),
                     PhasesSection(
+                      rating: widget.rating,
                       phaseControllers: phaseControllers,
                       onAddPhase: () {
                         setState(() {
@@ -137,7 +150,26 @@ class EditEventPageState extends State<EditEventPage> {
                       },
                     ),
                     const SizedBox(height: 10),
+                    Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        width: screenSize.width * 0.85,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.dark),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text('Additional Details',
+                                style: TextStyle(fontSize: 20)),
+                            WideTextBox(
+                              hintText: 'Event Details',
+                              controller: eventDetailsController,
+                            ),
+                          ],
+                        )),
+                    const SizedBox(height: 10),
                     NotificationsSection(
+                      rating: widget.rating,
                       notificationControllers: notificationControllers,
                       onAddNotification: () {
                         setState(() {
@@ -154,12 +186,8 @@ class EditEventPageState extends State<EditEventPage> {
                       },
                     ),
                     const SizedBox(height: 10),
-                    AttendeeEntrySection(username: widget.username),
-                    const SizedBox(height: 10),
-                    WideTextBox(
-                      hintText: 'Event Details',
-                      controller: eventDetailsController,
-                    ),
+                    AttendeeEntrySection(
+                        rating: widget.rating, username: widget.username),
                     const SizedBox(
                         height:
                             80), // Add some space at the bottom for better visibility
@@ -167,21 +195,27 @@ class EditEventPageState extends State<EditEventPage> {
                 ),
               ),
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                height: 100,
-                child: WideButton(
-                  buttonText: 'Update Event',
-                  onPressed: () {
-                    // Implement event update logic
-                  },
-                ),
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              height: 100,
+              child: WideButton(
+                rating: widget.rating,
+                buttonText: 'Update Event',
+                onPressed: () {
+                  // Implement event update logic
+                },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNav(
+        eventID: widget.eventID,
+        username: 'example_username', // Replace with actual username
+        selectedIndex: 3, // Index for DetailsPage
       ),
     );
   }

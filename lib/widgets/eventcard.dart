@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/details_page.dart';
-import 'package:rsvp_rally/pages/edit_event_page.dart';
-import 'package:rsvp_rally/pages/chat_page.dart';
-import 'package:rsvp_rally/pages/poll_page.dart';
 
 class EventCard extends StatefulWidget {
   final String eventID;
@@ -43,123 +40,114 @@ class EventCardState extends State<EventCard> {
       setState(() {
         eventName = data['EventName'] ?? "Event Name Not Found";
         Timestamp startTime = data['Timeline'][0]['StartTime'];
-        eventDate = "${startTime.toDate().month}/${startTime.toDate().day}";
+        DateTime date = startTime.toDate();
+        eventDate = "${_monthToString(date.month)} ${date.day}";
       });
     } else {
       log("Event not found");
     }
   }
 
+  String _monthToString(int month) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    return months[month - 1];
+  }
+
+  Color getInterpolatedColor(double value) {
+    const List<Color> colors = [Colors.red, Colors.yellow, Colors.green];
+    const List<double> stops = [0.0, 0.5, 1.0];
+
+    if (value <= stops.first) return colors.first;
+    if (value >= stops.last) return colors.last;
+
+    for (int i = 0; i < stops.length - 1; i++) {
+      if (value >= stops[i] && value <= stops[i + 1]) {
+        final t = (value - stops[i]) / (stops[i + 1] - stops[i]);
+        return Color.lerp(colors[i], colors[i + 1], t)!;
+      }
+    }
+    return colors.last;
+  }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
+    Color dynamicColor = getInterpolatedColor(widget.userRating);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Container(
-        width: screenSize.width * 0.85,
-        height: 150, // Increased height for better aesthetics
-        decoration: BoxDecoration(
-          color: AppColors.light, // Dark background color
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 10,
-              offset: Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    eventName,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.dark, // Light text color
-                    ),
-                  ),
-                  Text(
-                    eventDate,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.accent, // Medium light text color
-                    ),
-                  ),
-                ],
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailsPage(
+                eventID: widget.eventID,
               ),
-              Container(
-                width: double.infinity,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: AppColors.accent, // Button container color
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 10,
-                      offset: Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    iconButton(Icons.document_scanner,
-                        DetailsPage(eventID: widget.eventID)),
-                    iconButton(
-                        Icons.bar_chart,
-                        PollPage(
-                            eventID: widget.eventID,
-                            username: widget.username)),
-                    iconButton(Icons.chat, ChatPage(eventID: widget.eventID)),
-                    iconButton(
-                        Icons.edit,
-                        EditEventPage(
-                            eventID: widget.eventID,
-                            username: widget.username)),
-                  ],
-                ),
+            ),
+          );
+        },
+        child: Container(
+          width: screenSize.width * 0.85,
+          height: 100, // Increased height for better aesthetics
+          decoration: BoxDecoration(
+            color: AppColors.light, // Dark background color
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+              color: dynamicColor,
+              width: 2,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10,
+                offset: Offset(0, 5),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget iconButton(IconData icon, Widget page) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => page),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.main, // Button background color
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 5,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Icon(
-          icon,
-          color: AppColors.light, // Icon color
+          child: Padding(
+            padding: const EdgeInsets.all(15),
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        eventName,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.dark, // Light text color
+                        ),
+                      ),
+                      Text(
+                        eventDate,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.accent, // Medium light text color
+                        ),
+                      ),
+                    ],
+                  ),
+                  Icon(Icons.arrow_forward_ios, color: dynamicColor),
+                ]),
+          ),
         ),
       ),
     );

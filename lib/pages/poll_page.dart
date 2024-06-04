@@ -1,28 +1,50 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/widgets/poll_card.dart';
+import 'package:rsvp_rally/widgets/bottomnav.dart';
+import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/models/database_puller.dart';
 
-class PollPage extends StatelessWidget {
+class PollPage extends StatefulWidget {
   final String eventID;
   final String username;
 
   const PollPage({super.key, required this.eventID, required this.username});
 
   @override
+  _PollPageState createState() => _PollPageState();
+}
+
+class _PollPageState extends State<PollPage> {
+  double userRating = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserRating();
+  }
+
+  Future<void> fetchUserRating() async {
+    double? rating = await getUserRating(widget.username);
+    setState(() {
+      userRating = rating ?? 0.0;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Event Poll'),
-        backgroundColor:
-            Colors.transparent, // Transparent background for AppBar
+        backgroundColor: Colors.transparent, // Transparent background for AppBar
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFfefdfd),
-              Color(0xFF5f42b2)
-            ], // White to purple gradient
+              AppColors.light,
+              getInterpolatedColor(userRating), // Use the interpolated color
+            ], // Light to dynamic color gradient
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -30,7 +52,7 @@ class PollPage extends StatelessWidget {
         child: FutureBuilder<DocumentSnapshot>(
           future: FirebaseFirestore.instance
               .collection('Events')
-              .doc(eventID)
+              .doc(widget.eventID)
               .get(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
@@ -43,8 +65,9 @@ class PollPage extends StatelessWidget {
                 return ListView(
                   children: polls.entries.map((entry) {
                     return PollCard(
-                      eventID: eventID,
-                      username: username,
+                      userRating: userRating,
+                      eventID: widget.eventID,
+                      username: widget.username,
                       pollData: {
                         'question': entry.key,
                         'responses': entry.value
@@ -64,6 +87,12 @@ class PollPage extends StatelessWidget {
           },
         ),
       ),
+      bottomNavigationBar: BottomNav(
+        eventID: widget.eventID,
+        username: widget.username,
+        selectedIndex: 1, // Index for PollPage
+      ),
     );
   }
 }
+
