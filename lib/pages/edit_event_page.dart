@@ -6,6 +6,7 @@ import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/phases_section.dart';
 import 'package:rsvp_rally/widgets/notifications_section.dart';
+import 'package:rsvp_rally/widgets/bottomnav.dart';
 
 class EditEventPage extends StatefulWidget {
   final String username;
@@ -182,6 +183,11 @@ class EditEventPageState extends State<EditEventPage> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNav(
+        eventID: widget.eventID,
+        username: 'example_username', // Replace with actual username
+        selectedIndex: 3, // Index for DetailsPage
       ),
     );
   }
