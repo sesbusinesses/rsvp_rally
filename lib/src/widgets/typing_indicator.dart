@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
-import '../models/bubble_rtl_alignment.dart' as bubble_rtl_alignment;
+import '../models/bubble_rtl_alignment.dart';
 import '../util.dart';
 import 'state/inherited_chat_theme.dart';
 import 'state/inherited_l10n.dart';
