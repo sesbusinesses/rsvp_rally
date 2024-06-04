@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
 
 class AttendeeEntrySection extends StatefulWidget {
+  final double rating;
   final String username;
 
   const AttendeeEntrySection({
     super.key,
+    required this.rating,
     required this.username,
   });
 
@@ -15,7 +18,7 @@ class AttendeeEntrySection extends StatefulWidget {
 }
 
 class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
-  List<String> friendsList = [];
+  List<Map<String, dynamic>> friendsData = [];
   Map<String, bool> selectedFriends = {};
 
   @override
@@ -31,10 +34,32 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
     if (userDoc.exists) {
       Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
       List<dynamic> friends = userData['Friends'] ?? [];
+
+      List<Map<String, dynamic>> friendsWithRatings = [];
+
+      for (String friendUsername in friends) {
+        DocumentSnapshot friendDoc =
+            await firestore.collection('Users').doc(friendUsername).get();
+
+        if (friendDoc.exists) {
+          Map<String, dynamic> friendData =
+              friendDoc.data() as Map<String, dynamic>;
+          double rating =
+              double.tryParse(friendData['Rating'].toString()) ?? 0.0;
+
+          friendsWithRatings.add({
+            'username': friendUsername,
+            'rating': rating,
+          });
+        }
+      }
+
+      friendsWithRatings.sort((a, b) => b['rating'].compareTo(a['rating']));
+
       setState(() {
-        friendsList = List<String>.from(friends);
-        for (var friend in friendsList) {
-          selectedFriends[friend] = false;
+        friendsData = friendsWithRatings;
+        for (var friend in friendsData) {
+          selectedFriends[friend['username']] = false;
         }
       });
     }
@@ -47,7 +72,7 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         width: screenSize.width * 0.85,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.black),
+          border: Border.all(color: getInterpolatedColor(widget.rating)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -61,16 +86,16 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
                   )),
             ),
             Column(
-              children: friendsList
+              children: friendsData
                   .map((friend) => CheckboxListTile(
                         title: UserCard(
-                          username: friend,
+                          username: friend['username'],
                           showUsername: false,
                         ),
-                        value: selectedFriends[friend],
+                        value: selectedFriends[friend['username']],
                         onChanged: (bool? value) {
                           setState(() {
-                            selectedFriends[friend] = value!;
+                            selectedFriends[friend['username']] = value!;
                           });
                         },
                         controlAffinity: ListTileControlAffinity
