@@ -133,12 +133,10 @@ Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
 
       for (var phase in timeline) {
         Map<String, dynamic> phaseData = {
-          'startTime': phase['StartTime'].toDate().toString(),
+          'startTime': phase['StartTime'],
           'phaseName': phase['PhaseName'],
           'phaseLocation': phase['PhaseLocation'],
-          'endTime': phase.containsKey('EndTime')
-              ? phase['EndTime'].toDate().toString()
-              : null
+          'endTime': phase.containsKey('EndTime') ? phase['EndTime'] : null
         };
         timelineData.add(phaseData);
       }
