@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
+import 'package:rsvp_rally/widgets/widetextbox.dart';
 
 class AttendeeEntrySection extends StatefulWidget {
   final double rating;
@@ -20,7 +21,9 @@ class AttendeeEntrySection extends StatefulWidget {
 
 class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
   List<Map<String, dynamic>> friendsData = [];
+  List<Map<String, dynamic>> filteredFriends = [];
   Map<String, bool> selectedFriends = {};
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -54,6 +57,8 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
 
             friendsWithRatings.add({
               'username': friendUsername,
+              'firstName': friendData['FirstName'] ?? "",
+              'lastName': friendData['LastName'] ?? "",
               'rating': rating,
             });
           } else {
@@ -65,6 +70,7 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
 
         setState(() {
           friendsData = friendsWithRatings;
+          filteredFriends = friendsData;
           for (var friend in friendsData) {
             selectedFriends[friend['username']] = false;
           }
@@ -75,6 +81,60 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
       }
     } catch (e) {
       log('Error fetching friends: $e');
+    }
+  }
+
+  void filterFriends(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredFriends = friendsData;
+      });
+    } else {
+      String lowerCaseQuery = query.toLowerCase();
+
+      List<Map<String, dynamic>> temp = [];
+
+      if (query.length == 1) {
+        temp = friendsData.where((friend) {
+          return friend['username'].toLowerCase().startsWith(lowerCaseQuery) ||
+              friend['firstName'].toLowerCase().startsWith(lowerCaseQuery);
+        }).toList();
+      } else {
+        temp = friendsData.where((friend) {
+          return friend['username'].toLowerCase().contains(lowerCaseQuery) ||
+              friend['firstName'].toLowerCase().contains(lowerCaseQuery) ||
+              friend['lastName'].toLowerCase().contains(lowerCaseQuery);
+        }).toList();
+      }
+
+      temp.sort((a, b) {
+        bool aIsExactMatch = a['username'].toLowerCase() == lowerCaseQuery ||
+            a['firstName'].toLowerCase() == lowerCaseQuery ||
+            a['lastName'].toLowerCase() == lowerCaseQuery;
+        bool bIsExactMatch = b['username'].toLowerCase() == lowerCaseQuery ||
+            b['firstName'].toLowerCase() == lowerCaseQuery ||
+            b['lastName'].toLowerCase() == lowerCaseQuery;
+
+        if (aIsExactMatch && !bIsExactMatch) return -1;
+        if (!aIsExactMatch && bIsExactMatch) return 1;
+
+        int usernameCompare =
+            a['username'].toLowerCase().compareTo(b['username'].toLowerCase());
+        if (usernameCompare != 0) return usernameCompare;
+
+        int firstNameCompare = a['firstName']
+            .toLowerCase()
+            .compareTo(b['firstName'].toLowerCase());
+        if (firstNameCompare != 0) return firstNameCompare;
+
+        return a['lastName']
+            .toLowerCase()
+            .compareTo(b['lastName'].toLowerCase());
+      });
+
+      setState(() {
+        filteredFriends = temp;
+      });
     }
   }
 
@@ -98,8 +158,13 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
                     fontSize: 20,
                   )),
             ),
+            WideTextBox(
+              hintText: 'Search through your friends...',
+              controller: searchController,
+              onChanged: (value) => filterFriends(value),
+            ),
             Column(
-              children: friendsData
+              children: filteredFriends
                   .map((friend) => CheckboxListTile(
                         title: UserCard(
                           username: friend['username'],
