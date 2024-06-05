@@ -8,11 +8,13 @@ import 'package:rsvp_rally/widgets/widetextbox.dart';
 class AttendeeEntrySection extends StatefulWidget {
   final double rating;
   final String username;
+  final ValueChanged<List<String>> onAttendeesChanged;
 
   const AttendeeEntrySection({
     super.key,
     required this.rating,
     required this.username,
+    required this.onAttendeesChanged,
   });
 
   @override
@@ -138,50 +140,60 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
     }
   }
 
+  void updateSelectedFriends(String username, bool isSelected) {
+    setState(() {
+      selectedFriends[username] = isSelected;
+      widget.onAttendeesChanged(selectedFriends.entries
+          .where((entry) => entry.value)
+          .map((entry) => entry.key)
+          .toList());
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        width: screenSize.width * 0.85,
-        decoration: BoxDecoration(
-          border: Border.all(color: getInterpolatedColor(widget.rating)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
-              child: Text('Select Friends to Invite',
-                  style: TextStyle(
-                    fontSize: 20,
-                  )),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      width: screenSize.width * 0.85,
+      decoration: BoxDecoration(
+        border: Border.all(color: getInterpolatedColor(widget.rating)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(
+              'Select Friends to Invite',
+              style: TextStyle(
+                fontSize: 20,
+              ),
             ),
-            WideTextBox(
-              hintText: 'Search through your friends...',
-              controller: searchController,
-              onChanged: (value) => filterFriends(value),
-            ),
-            Column(
-              children: filteredFriends
-                  .map((friend) => CheckboxListTile(
-                        title: UserCard(
-                          username: friend['username'],
-                          showUsername: false,
-                        ),
-                        value: selectedFriends[friend['username']],
-                        onChanged: (bool? value) {
-                          setState(() {
-                            selectedFriends[friend['username']] = value!;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity
-                            .leading, // positions the checkbox at the beginning of the tile
-                      ))
-                  .toList(),
-            ),
-          ],
-        ));
+          ),
+          WideTextBox(
+            hintText: 'Search through your friends...',
+            controller: searchController,
+            onChanged: (value) => filterFriends(value),
+          ),
+          Column(
+            children: filteredFriends
+                .map((friend) => CheckboxListTile(
+                      title: UserCard(
+                        username: friend['username'],
+                        showUsername: false,
+                      ),
+                      value: selectedFriends[friend['username']],
+                      onChanged: (bool? value) {
+                        updateSelectedFriends(friend['username'], value!);
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ))
+                .toList(),
+          ),
+        ],
+      ),
+    );
   }
 }

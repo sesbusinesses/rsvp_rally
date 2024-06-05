@@ -230,12 +230,8 @@ class _SignUpState extends State<SignUpPage> {
                     ),
                     GestureDetector(
                         onTap: () {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => LogInPage()),
-                            (Route<dynamic> route) => false,
-                          );
+                          Navigator.popUntil(
+                              context, ModalRoute.withName('/LogInPage'));
                         },
                         child: Text(
                           " Login",

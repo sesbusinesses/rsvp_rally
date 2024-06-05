@@ -139,12 +139,8 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => LogInPage()),
-                                    (Route<dynamic> route) => false,
-                                  );
+                                  Navigator.popUntil(context,
+                                      ModalRoute.withName('/LogInPage'));
                                 },
                                 child: Container(
                                     alignment: Alignment.bottomRight,

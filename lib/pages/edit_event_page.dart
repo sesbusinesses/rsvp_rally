@@ -189,7 +189,14 @@ class EditEventPageState extends State<EditEventPage> {
                     ),
                     const SizedBox(height: 10),
                     AttendeeEntrySection(
-                        rating: widget.rating, username: widget.username),
+                      rating: widget.rating,
+                      username: widget.username,
+                      onAttendeesChanged: (newAttendees) {
+                        setState(() {
+                          var attendees = newAttendees;
+                        });
+                      },
+                    ),
                     const SizedBox(
                         height:
                             80), // Add some space at the bottom for better visibility
