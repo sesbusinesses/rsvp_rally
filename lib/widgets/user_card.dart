@@ -24,6 +24,14 @@ class UserCardState extends State<UserCard> {
     fetchUserData();
   }
 
+  @override
+  void didUpdateWidget(UserCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.username != widget.username) {
+      fetchUserData();
+    }
+  }
+
   Future<void> fetchUserData() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     DocumentSnapshot userDoc =

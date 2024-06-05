@@ -47,6 +47,8 @@ class FriendsPageState extends State<FriendsPage> {
                 friendDoc.data() as Map<String, dynamic>;
             friends.add({
               'username': friendUsername,
+              'firstName': friendData['FirstName'] ?? "",
+              'lastName': friendData['LastName'] ?? "",
               'rating': double.tryParse(friendData['Rating'].toString()) ?? 0.0,
             });
           }
@@ -73,10 +75,30 @@ class FriendsPageState extends State<FriendsPage> {
     } else {
       List<Map<String, dynamic>> temp = [];
       for (Map<String, dynamic> friend in friendsData) {
-        if (friend['username'].toLowerCase().contains(query.toLowerCase())) {
+        if (friend['username'].toLowerCase().contains(query.toLowerCase()) ||
+            friend['firstName'].toLowerCase().contains(query.toLowerCase()) ||
+            friend['lastName'].toLowerCase().contains(query.toLowerCase())) {
           temp.add(friend);
         }
       }
+
+      // it's sorted by username > firstName > lastName
+      temp.sort((a, b) {
+        int usernameCompare =
+            a['username'].toLowerCase().compareTo(b['username'].toLowerCase());
+        if (usernameCompare != 0) {
+          return usernameCompare;
+        }
+        int firstNameCompare = a['firstName']
+            .toLowerCase()
+            .compareTo(b['firstName'].toLowerCase());
+        if (firstNameCompare != 0) {
+          return firstNameCompare;
+        }
+        return a['lastName']
+            .toLowerCase()
+            .compareTo(b['lastName'].toLowerCase());
+      });
       setState(() {
         filteredFriends = temp;
       });
