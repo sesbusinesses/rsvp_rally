@@ -69,6 +69,23 @@ class AddFriendsPageState extends State<AddFriendsPage> {
         'Friends': friendsUsernames,
       });
 
+      // Add the current user to the friend's friend list if not already present
+      DocumentSnapshot friendDoc =
+          await firestore.collection('Users').doc(friendUsername).get();
+      if (friendDoc.exists) {
+        List<dynamic> friendFriendsList = friendDoc['Friends'] ?? [];
+        if (!friendFriendsList.contains(widget.username)) {
+          friendFriendsList.add(widget.username);
+          await firestore.collection('Users').doc(friendUsername).update({
+            'Friends': friendFriendsList,
+          });
+        }
+      } else {
+        await firestore.collection('Users').doc(friendUsername).set({
+          'Friends': [widget.username],
+        });
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('$friendUsername added to your friends list'),
       ));
@@ -98,8 +115,8 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                 Expanded(
                   child: TextField(
                     controller: searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Search for friends',
+                    decoration: const InputDecoration(
+                      labelText: 'Enter Username',
                       border: OutlineInputBorder(),
                     ),
                     onChanged: searchUsers,
