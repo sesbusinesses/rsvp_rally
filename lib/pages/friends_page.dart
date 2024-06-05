@@ -73,32 +73,48 @@ class FriendsPageState extends State<FriendsPage> {
         filteredFriends = friendsData;
       });
     } else {
+      String lowerCaseQuery = query.toLowerCase();
+
       List<Map<String, dynamic>> temp = [];
-      for (Map<String, dynamic> friend in friendsData) {
-        if (friend['username'].toLowerCase().contains(query.toLowerCase()) ||
-            friend['firstName'].toLowerCase().contains(query.toLowerCase()) ||
-            friend['lastName'].toLowerCase().contains(query.toLowerCase())) {
-          temp.add(friend);
-        }
+
+      if (query.length == 1) {
+        temp = friendsData.where((friend) {
+          return friend['username'].toLowerCase().startsWith(lowerCaseQuery) ||
+              friend['firstName'].toLowerCase().startsWith(lowerCaseQuery);
+        }).toList();
+      } else {
+        temp = friendsData.where((friend) {
+          return friend['username'].toLowerCase().contains(lowerCaseQuery) ||
+              friend['firstName'].toLowerCase().contains(lowerCaseQuery) ||
+              friend['lastName'].toLowerCase().contains(lowerCaseQuery);
+        }).toList();
       }
 
-      // it's sorted by username > firstName > lastName
       temp.sort((a, b) {
+        bool aIsExactMatch = a['username'].toLowerCase() == lowerCaseQuery ||
+            a['firstName'].toLowerCase() == lowerCaseQuery ||
+            a['lastName'].toLowerCase() == lowerCaseQuery;
+        bool bIsExactMatch = b['username'].toLowerCase() == lowerCaseQuery ||
+            b['firstName'].toLowerCase() == lowerCaseQuery ||
+            b['lastName'].toLowerCase() == lowerCaseQuery;
+
+        if (aIsExactMatch && !bIsExactMatch) return -1;
+        if (!aIsExactMatch && bIsExactMatch) return 1;
+
         int usernameCompare =
             a['username'].toLowerCase().compareTo(b['username'].toLowerCase());
-        if (usernameCompare != 0) {
-          return usernameCompare;
-        }
+        if (usernameCompare != 0) return usernameCompare;
+
         int firstNameCompare = a['firstName']
             .toLowerCase()
             .compareTo(b['firstName'].toLowerCase());
-        if (firstNameCompare != 0) {
-          return firstNameCompare;
-        }
+        if (firstNameCompare != 0) return firstNameCompare;
+
         return a['lastName']
             .toLowerCase()
             .compareTo(b['lastName'].toLowerCase());
       });
+
       setState(() {
         filteredFriends = temp;
       });
@@ -142,13 +158,11 @@ class FriendsPageState extends State<FriendsPage> {
                                 child: WideTextBox(
                                   hintText: 'Search through your friends...',
                                   controller: searchController,
+                                  onChanged: (value) =>
+                                      filterFriends(searchController.text),
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.search_rounded),
-                                onPressed: () =>
-                                    filterFriends(searchController.text),
-                              ),
+                              const Icon(Icons.search_rounded),
                             ],
                           ),
                           const SizedBox(height: 10),
