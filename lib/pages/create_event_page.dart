@@ -64,6 +64,23 @@ class CreateEventPageState extends State<CreateEventPage> {
   }
 
   Future<void> createEvent() async {
+    if (eventNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter the event name')),
+      );
+      return;
+    } else if (eventDetailsController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter the event details')),
+      );
+      return;
+    } else if (attendees.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please invite at least one person')),
+      );
+      return;
+    }
+
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     // Collect phases
