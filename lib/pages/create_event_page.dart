@@ -71,8 +71,10 @@ class CreateEventPageState extends State<CreateEventPage> {
       return {
         'PhaseName': controller['name']!.text,
         'PhaseLocation': controller['location']!.text,
-        'StartTime': controller['startTime']!.text,
-        'EndTime': controller['endTime']!.text,
+        'StartTime':
+            Timestamp.fromDate(DateTime.parse(controller['startTime']!.text)),
+        'EndTime':
+            Timestamp.fromDate(DateTime.parse(controller['endTime']!.text)),
       };
     }).toList();
 
@@ -81,7 +83,8 @@ class CreateEventPageState extends State<CreateEventPage> {
         notificationControllers.map((controller) {
       return {
         'NotificationText': controller['text']!.text,
-        'NotificationTime': controller['time']!.text,
+        'NotificationTime':
+            Timestamp.fromDate(DateTime.parse(controller['time']!.text)),
       };
     }).toList();
 

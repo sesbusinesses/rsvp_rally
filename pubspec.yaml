@@ -61,6 +61,7 @@ dependencies:
   diffutil_dart: any
   visibility_detector: any
   searchfield: ^1.0.3
+  flutter_time_picker_spinner: ^1.0.8
 
 
 
