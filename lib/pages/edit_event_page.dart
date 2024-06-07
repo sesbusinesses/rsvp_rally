@@ -1,24 +1,23 @@
-import 'dart:developer';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/phases_section.dart';
 import 'package:rsvp_rally/widgets/notifications_section.dart';
-import 'package:rsvp_rally/widgets/bottomnav.dart';
 
 class EditEventPage extends StatefulWidget {
-  final double rating;
-  final String username;
   final String eventID;
+  final String username;
+  final double rating;
 
-  const EditEventPage(
-      {super.key,
-      required this.rating,
-      required this.username,
-      required this.eventID});
+  const EditEventPage({
+    super.key,
+    required this.eventID,
+    required this.username,
+    required this.rating,
+  });
 
   @override
   EditEventPageState createState() => EditEventPageState();
@@ -29,6 +28,8 @@ class EditEventPageState extends State<EditEventPage> {
   final TextEditingController eventDetailsController = TextEditingController();
   List<Map<String, TextEditingController>> phaseControllers = [];
   List<Map<String, TextEditingController>> notificationControllers = [];
+  List<String> attendees = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -36,59 +37,173 @@ class EditEventPageState extends State<EditEventPage> {
     loadEventData();
   }
 
-  void loadEventData() async {
+  Future<void> loadEventData() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    DocumentSnapshot eventDoc =
+    DocumentSnapshot eventSnapshot =
         await firestore.collection('Events').doc(widget.eventID).get();
 
-    if (eventDoc.exists) {
-      Map<String, dynamic> eventData = eventDoc.data() as Map<String, dynamic>;
+    if (eventSnapshot.exists) {
+      Map<String, dynamic> eventData =
+          eventSnapshot.data() as Map<String, dynamic>;
 
-      log("Raw Event Document: $eventData");
+      setState(() {
+        eventNameController.text = eventData['EventName'] ?? '';
+        eventDetailsController.text = eventData['Details'] ?? '';
+        attendees = List<String>.from(eventData['Attendees'] ?? []);
 
-      eventNameController.text = eventData['EventName'] ?? "";
-      eventDetailsController.text = eventData['Details'] ?? "";
+        phaseControllers = (eventData['Timeline'] as List<dynamic>?)
+                ?.map((phase) {
+              return {
+                'name': TextEditingController(text: phase['PhaseName'] ?? ''),
+                'location':
+                    TextEditingController(text: phase['PhaseLocation'] ?? ''),
+                'startTime': TextEditingController(
+                    text: phase['StartTime'] != null
+                        ? (phase['StartTime'] as Timestamp).toDate().toString()
+                        : ''),
+                'endTime': TextEditingController(
+                    text: phase['EndTime'] != null
+                        ? (phase['EndTime'] as Timestamp).toDate().toString()
+                        : ''),
+              };
+            }).toList() ??
+            [];
 
-      List<dynamic> phases = eventData['Timeline'] ?? [];
-      List<dynamic> notifications = eventData['Notifications'] ?? [];
+        notificationControllers =
+            (eventData['Notifications'] as List<dynamic>?)?.map((notification) {
+                  return {
+                    'text': TextEditingController(
+                        text: notification['NotificationText'] ?? ''),
+                    'time': TextEditingController(
+                        text: notification['NotificationTime'] != null
+                            ? (notification['NotificationTime'] as Timestamp)
+                                .toDate()
+                                .toString()
+                            : ''),
+                  };
+                }).toList() ??
+                [];
 
-      phaseControllers.clear();
-      notificationControllers.clear();
-
-      for (var phase in phases) {
-        phaseControllers.add({
-          'name': TextEditingController(text: phase['PhaseName']),
-          'location': TextEditingController(text: phase['PhaseLocation']),
-          'startTime':
-              TextEditingController(text: _formatTimestamp(phase['StartTime'])),
-          'endTime':
-              TextEditingController(text: _formatTimestamp(phase['EndTime'])),
-        });
-      }
-
-      for (var notification in notifications) {
-        notificationControllers.add({
-          'text': TextEditingController(text: notification['NotificationText']),
-          'time': TextEditingController(
-              text: _formatTimestamp(notification['NotificationTime'])),
-        });
-      }
-
-      log("Loaded Event Name: ${eventNameController.text}");
-      log("Loaded Event Details: ${eventDetailsController.text}");
-      log("Loaded Phases: ${phaseControllers.map((pc) => pc.map((key, value) => MapEntry(key, value.text)))}");
-      log("Loaded Notifications: ${notificationControllers.map((nc) => nc.map((key, value) => MapEntry(key, value.text)))}");
-
-      setState(() {}); // Update the UI with the loaded data
-    } else {
-      log("No event found with ID ${widget.eventID}");
+        isLoading = false;
+      });
     }
   }
 
-  String _formatTimestamp(Timestamp? timestamp) {
-    if (timestamp == null) return "";
-    DateTime date = timestamp.toDate();
-    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+  void addPhase() {
+    setState(() {
+      phaseControllers.add({
+        'name': TextEditingController(),
+        'location': TextEditingController(),
+        'startTime': TextEditingController(),
+        'endTime': TextEditingController(),
+      });
+    });
+  }
+
+  void removePhase(int index) {
+    setState(() {
+      phaseControllers[index]['name']?.dispose();
+      phaseControllers[index]['location']?.dispose();
+      phaseControllers[index]['startTime']?.dispose();
+      phaseControllers[index]['endTime']?.dispose();
+      phaseControllers.removeAt(index);
+    });
+  }
+
+  void addNotification() {
+    setState(() {
+      notificationControllers.add({
+        'text': TextEditingController(),
+        'time': TextEditingController(),
+      });
+    });
+  }
+
+  void removeNotification(int index) {
+    setState(() {
+      notificationControllers[index]['text']?.dispose();
+      notificationControllers[index]['time']?.dispose();
+      notificationControllers.removeAt(index);
+    });
+  }
+
+  Future<void> updateEvent() async {
+    if (eventNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter the event name')),
+      );
+      return;
+    } else if (eventDetailsController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter the event details')),
+      );
+      return;
+    } else if (attendees.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please invite at least one person')),
+      );
+      return;
+    }
+
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    // Collect phases
+
+    List<Map<String, dynamic>> phases = phaseControllers.map((controller) {
+      final phaseData = {
+        'PhaseName': controller['name']!.text,
+        'PhaseLocation': controller['location']!.text,
+        'StartTime': controller['startTime']!.text.isNotEmpty
+            ? Timestamp.fromDate(DateTime.parse(controller['startTime']!.text))
+            : null,
+      };
+      if (controller['endTime']!.text.isNotEmpty) {
+        phaseData['EndTime'] =
+            Timestamp.fromDate(DateTime.parse(controller['endTime']!.text));
+      }
+      return phaseData;
+    }).toList();
+
+    // Collect notifications
+    List<Map<String, dynamic>> notifications =
+        notificationControllers.map((controller) {
+      return {
+        'NotificationText': controller['text']!.text,
+        'NotificationTime': controller['time']!.text.isNotEmpty
+            ? Timestamp.fromDate(DateTime.parse(controller['time']!.text))
+            : null,
+      };
+    }).toList();
+
+    // Update event data
+    Map<String, dynamic> eventData = {
+      'EventName': eventNameController.text,
+      'Details': eventDetailsController.text,
+      'HostName': widget.username,
+      'Attendees': attendees,
+      'Timeline': phases,
+      'Notifications': notifications,
+    };
+
+    try {
+      // Update event in Firestore
+      await firestore
+          .collection('Events')
+          .doc(widget.eventID)
+          .update(eventData);
+
+      // Show a confirmation message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event updated successfully')),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      // Show an error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update event: $e')),
+      );
+    }
   }
 
   @override
@@ -98,135 +213,123 @@ class EditEventPageState extends State<EditEventPage> {
       appBar: AppBar(
         title: const Text('Edit Event'),
         backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(
-                bottom: 70), // Add bottom padding to avoid overlap
-            child: Center(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        width: screenSize.width * 0.85,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: getInterpolatedColor(widget.rating)),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            const Text('Event Name',
-                                style: TextStyle(fontSize: 20)),
-                            WideTextBox(
-                              hintText: 'Event Name',
-                              controller: eventNameController,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
+              children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.only(
+                      bottom: 70), // Add bottom padding to avoid overlap
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            width: screenSize.width * 0.85,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: getInterpolatedColor(widget.rating)),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ],
-                        )),
-                    const SizedBox(height: 10),
-                    PhasesSection(
-                      rating: widget.rating,
-                      phaseControllers: phaseControllers,
-                      onAddPhase: () {
-                        setState(() {
-                          phaseControllers.add({
-                            'name': TextEditingController(),
-                            'location': TextEditingController(),
-                            'startTime': TextEditingController(),
-                            'endTime': TextEditingController(),
-                          });
-                        });
-                      },
-                      onRemovePhase: (index) {
-                        setState(() {
-                          phaseControllers.removeAt(index);
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        width: screenSize.width * 0.85,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: getInterpolatedColor(widget.rating)),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            const Text('Additional Details',
-                                style: TextStyle(fontSize: 20)),
-                            WideTextBox(
-                              hintText: 'Event Details',
-                              controller: eventDetailsController,
+                            child: Column(
+                              children: [
+                                const Text('Event Name',
+                                    style: TextStyle(fontSize: 20)),
+                                WideTextBox(
+                                  hintText: 'Event Name',
+                                  controller: eventNameController,
+                                ),
+                              ],
                             ),
-                          ],
-                        )),
-                    const SizedBox(height: 10),
-                    NotificationsSection(
-                      rating: widget.rating,
-                      notificationControllers: notificationControllers,
-                      onAddNotification: () {
-                        setState(() {
-                          notificationControllers.add({
-                            'text': TextEditingController(),
-                            'time': TextEditingController(),
-                          });
-                        });
-                      },
-                      onRemoveNotification: (index) {
-                        setState(() {
-                          notificationControllers.removeAt(index);
-                        });
-                      },
+                          ),
+                          const SizedBox(height: 10),
+                          PhasesSection(
+                            rating: widget.rating,
+                            phaseControllers: phaseControllers,
+                            onAddPhase: addPhase,
+                            onRemovePhase: removePhase,
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            width: screenSize.width * 0.85,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: getInterpolatedColor(widget.rating)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              children: [
+                                const Text('Additional Details',
+                                    style: TextStyle(fontSize: 20)),
+                                WideTextBox(
+                                  hintText: 'Event Details',
+                                  controller: eventDetailsController,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          NotificationsSection(
+                            rating: widget.rating,
+                            notificationControllers: notificationControllers,
+                            onAddNotification: addNotification,
+                            onRemoveNotification: removeNotification,
+                          ),
+                          const SizedBox(height: 10),
+                          AttendeeEntrySection(
+                            rating: widget.rating,
+                            username: widget.username,
+                            onAttendeesChanged: (newAttendees) {
+                              setState(() {
+                                attendees = newAttendees;
+                              });
+                            },
+                          ),
+                          const SizedBox(
+                              height:
+                                  80), // Add some space at the bottom for better visibility
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    AttendeeEntrySection(
-                      rating: widget.rating,
-                      username: widget.username,
-                      onAttendeesChanged: (newAttendees) {
-                        setState(() {
-                          var attendees = newAttendees;
-                        });
-                      },
-                    ),
-                    const SizedBox(
-                        height:
-                            80), // Add some space at the bottom for better visibility
-                  ],
+                  ),
                 ),
-              ),
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    height: 100,
+                    child: WideButton(
+                      rating: widget.rating,
+                      onPressed: updateEvent,
+                      buttonText: 'Update Event',
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              height: 100,
-              child: WideButton(
-                rating: widget.rating,
-                buttonText: 'Update Event',
-                onPressed: () {
-                  // Implement event update logic
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNav(
-        rating: widget.rating,
-        eventID: widget.eventID,
-        username: 'example_username', // Replace with actual username
-        selectedIndex: 3, // Index for DetailsPage
-      ),
     );
+  }
+
+  @override
+  void dispose() {
+    eventNameController.dispose();
+    eventDetailsController.dispose();
+    for (var controller in phaseControllers) {
+      controller['name']?.dispose();
+      controller['location']?.dispose();
+      controller['startTime']?.dispose();
+      controller['endTime']?.dispose();
+    }
+    for (var controller in notificationControllers) {
+      controller['text']?.dispose();
+      controller['time']?.dispose();
+    }
+    super.dispose();
   }
 }
