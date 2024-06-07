@@ -5,6 +5,8 @@ import 'package:rsvp_rally/widgets/eventcard.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
 import 'package:rsvp_rally/widgets/view_friends_button.dart';
+import 'package:rsvp_rally/pages/settings_page.dart';
+import 'package:rsvp_rally/widgets/view_settings_button.dart'; // Import the settings page
 
 class EventPage extends StatefulWidget {
   final String username;
@@ -39,6 +41,9 @@ class EventPageState extends State<EventPage> {
         title: const Text('RSVP Rally'),
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
+        leading: ViewSettingsButton(
+            username: widget.username,
+            userRating: userRating), // Use the new settings button
         actions: <Widget>[
           ViewFriendsButton(username: widget.username, userRating: userRating),
         ],

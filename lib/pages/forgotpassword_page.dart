@@ -51,19 +51,26 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             key: _formkey,
             child: Column(
               children: [
-                const Text(
-                  "Password Recovery",
-                  style: TextStyle(
-                      color: AppColors.dark,
-                      fontSize: 30.0,
-                      fontWeight: FontWeight.bold),
+                const SizedBox(
+                  height: 80,
                 ),
-                const SizedBox(height: 100.0),
+                Image(
+                    image: const AssetImage('assets/rsvp_rally.png'),
+                    width: screenSize.width * 0.4),
+                const SizedBox(height: 70),
+                const Text(
+                  "Recover your password below",
+                  style: TextStyle(
+                    color: AppColors.dark,
+                    fontSize: 16.0,
+                  ),
+                ),
+                const SizedBox(height: 10.0),
                 WideTextBox(
                   controller: mailcontroller,
                   hintText: "Enter your email address",
                 ),
-                const SizedBox(height: 20.0),
+                const SizedBox(height: 10.0),
                 WideButton(
                   buttonText: 'Send Password Reset Email',
                   onPressed: () {
@@ -75,32 +82,39 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                     }
                   },
                 ),
-                const SizedBox(height: 200.0),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const LogInPage()),
-                      (Route<dynamic> route) => false,
-                    );
-                  },
-                  child: const Text(
-                    "LogIn",
-                    style: TextStyle(
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.dark,
+                const SizedBox(height: 120.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Remember your password? ",
+                      style: TextStyle(fontSize: 16.0, color: AppColors.dark),
                     ),
-                  ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const LogInPage()),
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                      child: const Text("Login now",
+                          style: TextStyle(
+                            color: AppColors.link,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          )),
+                    )
+                  ],
                 ),
-                const SizedBox(height: 40.0),
+                const SizedBox(height: 120),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
                       "Don't have an account? ",
-                      style: TextStyle(fontSize: 18.0, color: AppColors.dark),
+                      style: TextStyle(fontSize: 16.0, color: AppColors.dark),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -110,11 +124,11 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 builder: (context) =>
                                     const EventPage(username: 'bossman5960')));
                       },
-                      child: const Text("Create\n(bossman)",
+                      child: const Text("Register now",
                           style: TextStyle(
-                            color: AppColors.dark,
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.w500,
+                            color: AppColors.link,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
                           )),
                     )
                   ],
