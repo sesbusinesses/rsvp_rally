@@ -43,20 +43,20 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
-      body: Center(
+        body: Stack(children: [
+      AppBar(),
+      Center(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
               vertical: 50.0, horizontal: screenSize.width * 0.075),
           child: Form(
             key: _formkey,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const SizedBox(
-                  height: 80,
-                ),
                 Image(
                     image: const AssetImage('assets/rsvp_rally.png'),
-                    width: screenSize.width * 0.4),
+                    width: screenSize.width * 0.5),
                 const SizedBox(height: 70),
                 const Text(
                   "Recover your password below",
@@ -81,32 +81,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                       resetPassword();
                     }
                   },
-                ),
-                const SizedBox(height: 120.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Remember your password? ",
-                      style: TextStyle(fontSize: 16.0, color: AppColors.dark),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const LogInPage()),
-                          (Route<dynamic> route) => false,
-                        );
-                      },
-                      child: const Text("Login now",
-                          style: TextStyle(
-                            color: AppColors.link,
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                          )),
-                    )
-                  ],
                 ),
                 const SizedBox(height: 120),
                 Row(
@@ -138,6 +112,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
           ),
         ),
       ),
-    );
+    ]));
   }
 }
