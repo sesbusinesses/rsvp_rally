@@ -96,10 +96,10 @@ class _PollCardState extends State<PollCard> {
               ),
               if (voterNames.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(top: 0, bottom: 10.0),
+                  padding: const EdgeInsets.only(top: 5, bottom: 10.0),
                   child: Text(
                     voterNames.join(', '),
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
             ],
@@ -119,8 +119,8 @@ class _PollCardState extends State<PollCard> {
         child: Container(
           width: MediaQuery.of(context).size.width * 0.85,
           decoration: BoxDecoration(
-            color: getInterpolatedDark(widget.userRating), // Dark background color
-            borderRadius: BorderRadius.circular(15),
+            color: Colors.white, // Light background color
+            borderRadius: BorderRadius.circular(12),
             boxShadow: const [
               BoxShadow(
                 color: Colors.black26,
@@ -139,7 +139,7 @@ class _PollCardState extends State<PollCard> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: getInterpolatedDark(widget.userRating),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -147,8 +147,8 @@ class _PollCardState extends State<PollCard> {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: getInterpolatedAccent(widget.userRating), // Button container color
-                    borderRadius: BorderRadius.circular(15),
+                    color: Colors.white, // Button container color
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
@@ -158,17 +158,18 @@ class _PollCardState extends State<PollCard> {
                     ],
                   ),
                   child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Column(children: [
-                        ...responseWidgets,
-                      ])),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Column(
+                      children: responseWidgets,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   "Poll responses locked at $formattedCloseTime",
                   style: TextStyle(
-                    // fontStyle: FontStyle.italic,
-                    color: Colors.white,
+                    fontStyle: FontStyle.italic,
+                    color: getInterpolatedDark(widget.userRating),
                   ),
                 ),
               ],
@@ -179,4 +180,3 @@ class _PollCardState extends State<PollCard> {
     );
   }
 }
-

@@ -49,19 +49,29 @@ class DetailsPageState extends State<DetailsPage> {
       appBar: AppBar(
         title: Text(eventName), // Dynamically set the title
       ),
-      body: CustomScrollView(
-        slivers: [
-          EventTimeline(eventID: widget.eventID),
-          SliverToBoxAdapter(child: DetailsCard(eventID: widget.eventID)),
-          SliverToBoxAdapter(child: AttendeesCard(eventID: widget.eventID)),
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              EventTimeline(eventID: widget.eventID),
+              SliverToBoxAdapter(child: DetailsCard(eventID: widget.eventID)),
+              SliverToBoxAdapter(child: AttendeesCard(eventID: widget.eventID)),
+            ],
+          ),
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: BottomNav(
+              rating: widget.userRating,
+              eventID: widget.eventID,
+              username: widget.username, // Replace with actual username
+              selectedIndex: 0, // Index for DetailsPage
+            ),
+          ),
         ],
-      ),
-      bottomNavigationBar: BottomNav(
-        rating: widget.userRating,
-        eventID: widget.eventID,
-        username: widget.username, // Replace with actual username
-        selectedIndex: 0, // Index for DetailsPage
       ),
     );
   }
 }
+
