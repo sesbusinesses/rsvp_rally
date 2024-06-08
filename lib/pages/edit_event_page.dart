@@ -92,127 +92,130 @@ class EditEventPageState extends State<EditEventPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    Size screenSize = MediaQuery.of(context).size;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Event'),
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(
-                bottom: 120), // Adjusted bottom padding to avoid overlap
-            child: Center(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      width: screenSize.width * 0.85,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color: getInterpolatedColor(widget.rating)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text('Event Name',
-                              style: TextStyle(fontSize: 20)),
-                          WideTextBox(
-                            hintText: 'Event Name',
-                            controller: eventNameController,
-                          ),
-                        ],
-                      ),
+Widget build(BuildContext context) {
+  Size screenSize = MediaQuery.of(context).size;
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Edit Event'),
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+    ),
+    body: Stack(
+      children: [
+        SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 120), // Padding for BottomNav
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    width: screenSize.width * 0.85,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: getInterpolatedColor(widget.rating)),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 10),
-                    PhasesSection(
-                      rating: widget.rating,
-                      phaseControllers: phaseControllers,
-                      onAddPhase: () {
-                        setState(() {
-                          phaseControllers.add({
-                            'name': TextEditingController(),
-                            'location': TextEditingController(),
-                            'startTime': TextEditingController(),
-                            'endTime': TextEditingController(),
-                          });
+                    child: Column(
+                      children: [
+                        const Text('Event Name', style: TextStyle(fontSize: 20)),
+                        WideTextBox(
+                          hintText: 'Event Name',
+                          controller: eventNameController,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  PhasesSection(
+                    rating: widget.rating,
+                    phaseControllers: phaseControllers,
+                    onAddPhase: () {
+                      setState(() {
+                        phaseControllers.add({
+                          'name': TextEditingController(),
+                          'location': TextEditingController(),
+                          'startTime': TextEditingController(),
+                          'endTime': TextEditingController(),
                         });
-                      },
-                      onRemovePhase: (index) {
-                        setState(() {
-                          phaseControllers.removeAt(index);
+                      });
+                    },
+                    onRemovePhase: (index) {
+                      setState(() {
+                        phaseControllers.removeAt(index);
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    width: screenSize.width * 0.85,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: getInterpolatedColor(widget.rating)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text('Additional Details', style: TextStyle(fontSize: 20)),
+                        WideTextBox(
+                          hintText: 'Event Details',
+                          controller: eventDetailsController,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  NotificationsSection(
+                    rating: widget.rating,
+                    notificationControllers: notificationControllers,
+                    onAddNotification: () {
+                      setState(() {
+                        notificationControllers.add({
+                          'text': TextEditingController(),
+                          'time': TextEditingController(),
                         });
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      width: screenSize.width * 0.85,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color: getInterpolatedColor(widget.rating)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text('Additional Details',
-                              style: TextStyle(fontSize: 20)),
-                          WideTextBox(
-                            hintText: 'Event Details',
-                            controller: eventDetailsController,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    NotificationsSection(
-                      rating: widget.rating,
-                      notificationControllers: notificationControllers,
-                      onAddNotification: () {
-                        setState(() {
-                          notificationControllers.add({
-                            'text': TextEditingController(),
-                            'time': TextEditingController(),
-                          });
-                        });
-                      },
-                      onRemoveNotification: (index) {
-                        setState(() {
-                          notificationControllers.removeAt(index);
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    AttendeeEntrySection(
-                      rating: widget.rating,
-                      username: widget.username,
-                    ),
-                    const SizedBox(height: 120), // Adjusted space at the bottom
-                  ],
-                ),
+                      });
+                    },
+                    onRemoveNotification: (index) {
+                      setState(() {
+                        notificationControllers.removeAt(index);
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  AttendeeEntrySection(
+                    rating: widget.rating,
+                    username: widget.username,
+                  ),
+                  const SizedBox(height: 10), // Add spacing before the button
+                  WideButton(
+                    rating: widget.rating,
+                    buttonText: 'Update Event',
+                    onPressed: () {
+                      // Implement event update logic
+                    },
+                  ),
+                  const SizedBox(height: 120), // Adjusted space at the bottom
+                ],
               ),
             ),
           ),
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: BottomNav(
-              rating: widget.rating,
-              eventID: widget.eventID,
-              username: widget.username,
-              selectedIndex: 3, // Index for EditEventPage
-            ),
+        ),
+        Positioned(
+          bottom: 20,
+          left: 0,
+          right: 0,
+          child: BottomNav(
+            rating: widget.rating,
+            eventID: widget.eventID,
+            username: widget.username,
+            selectedIndex: 3, // Index for EditEventPage
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
 }

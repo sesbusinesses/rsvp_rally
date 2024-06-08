@@ -36,7 +36,7 @@ class _BottomNavState extends State<BottomNav> with SingleTickerProviderStateMix
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 100),
       vsync: this,
     );
     _animation = CurvedAnimation(
@@ -53,7 +53,7 @@ class _BottomNavState extends State<BottomNav> with SingleTickerProviderStateMix
         _highlightedIndex = -1;
       });
 
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 100), () {
         switch (index) {
           case 0:
             Navigator.pushReplacement(
