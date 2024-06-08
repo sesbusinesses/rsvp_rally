@@ -1,5 +1,4 @@
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/pages/login_page.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -86,10 +85,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      "Don't have an account? ",
-                      style: TextStyle(fontSize: 16.0, color: AppColors.dark),
-                    ),
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -98,7 +93,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 builder: (context) =>
                                     const EventPage(username: 'bossman5960')));
                       },
-                      child: const Text("Register now",
+                      child: const Text("Create Bossman",
                           style: TextStyle(
                             color: AppColors.link,
                             fontSize: 16.0,

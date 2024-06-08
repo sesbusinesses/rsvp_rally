@@ -86,7 +86,6 @@ class _LogInState extends State<LogInPage> {
                 controller: userpasswordcontroller,
                 hintText: "Your Password",
               ),
-              const SizedBox(height: 5.0),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -100,13 +99,13 @@ class _LogInState extends State<LogInPage> {
                     child: const Text("Forgot Password?",
                         style: TextStyle(
                           color: AppColors.link,
-                          fontSize: 16.0,
+                          fontSize: 14.0,
                           fontWeight: FontWeight.bold,
                         )),
                   )
                 ],
               ),
-              const SizedBox(height: 5.0),
+              const SizedBox(height: 12.0),
               WideButton(
                   buttonText: 'Login',
                   onPressed: () {
@@ -133,8 +132,7 @@ class _LogInState extends State<LogInPage> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) =>
-                                  const EventPage(username: 'bossman5960')));
+                              builder: (context) => const SignUpPage()));
                     },
                     child: const Text("Register now",
                         style: TextStyle(
