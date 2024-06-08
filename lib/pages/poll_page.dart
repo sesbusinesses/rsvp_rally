@@ -33,67 +33,77 @@ class _PollPageState extends State<PollPage> {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Event Poll'),
         backgroundColor: Colors.transparent, // Transparent background for AppBar
+        surfaceTintColor: Colors.transparent,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.light,
-              getInterpolatedColor(userRating), // Use the interpolated color
-            ], // Light to dynamic color gradient
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: FutureBuilder<DocumentSnapshot>(
-          future: FirebaseFirestore.instance
-              .collection('Events')
-              .doc(widget.eventID)
-              .get(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              if (snapshot.hasData && snapshot.data != null) {
-                Map<String, dynamic> data =
-                    snapshot.data!.data() as Map<String, dynamic>;
-                Map<String, dynamic> polls =
-                    Map<String, dynamic>.from(data['Polls']);
+      body: Stack(
+        children: [
+          FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('Events')
+                .doc(widget.eventID)
+                .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasData && snapshot.data != null) {
+                  Map<String, dynamic> data =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  Map<String, dynamic> polls =
+                      Map<String, dynamic>.from(data['Polls']);
 
-                return ListView(
-                  children: polls.entries.map((entry) {
-                    return PollCard(
-                      userRating: userRating,
-                      eventID: widget.eventID,
-                      username: widget.username,
-                      pollData: {
-                        'question': entry.key,
-                        'responses': entry.value
-                      },
-                    );
-                  }).toList(),
-                );
-              } else if (snapshot.hasError) {
-                return Center(
-                    child: Text("Error fetching data: ${snapshot.error}"));
-              } else {
-                return const Center(
-                    child: Text("No data available for this event."));
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 120), // Padding to avoid overlap
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            ...polls.entries.map((entry) {
+                              return PollCard(
+                                userRating: userRating,
+                                eventID: widget.eventID,
+                                username: widget.username,
+                                pollData: {
+                                  'question': entry.key,
+                                  'responses': entry.value,
+                                },
+                              );
+                            }).toList(),
+                            const SizedBox(height: 80), // Space at the bottom
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(
+                      child: Text("Error fetching data: ${snapshot.error}"));
+                } else {
+                  return const Center(
+                      child: Text("No data available for this event."));
+                }
               }
-            }
-            return const Center(child: CircularProgressIndicator());
-          },
-        ),
-      ),
-      bottomNavigationBar: BottomNav(
-        rating: userRating,
-        eventID: widget.eventID,
-        username: widget.username,
-        selectedIndex: 1, // Index for PollPage
+              return const Center(child: CircularProgressIndicator());
+            },
+          ),
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: BottomNav(
+              rating: userRating,
+              eventID: widget.eventID,
+              username: widget.username,
+              selectedIndex: 1, // Index for PollPage
+            ),
+          ),
+        ],
       ),
     );
   }
 }
-

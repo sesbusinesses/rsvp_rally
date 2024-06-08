@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/models/colors.dart';
 
 class WideTextBox extends StatelessWidget {
   final String hintText;
@@ -14,23 +15,20 @@ class WideTextBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          border: Border.all(color: Colors.white),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20),
-          child: TextField(
-            controller: controller,
-            onChanged: onChanged,
-            decoration: InputDecoration(
-              hintText: hintText,
-              border: InputBorder.none,
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.accent,
+        border: Border.all(color: Colors.white),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10),
+        child: TextField(
+          controller: controller,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: hintText,
+            border: InputBorder.none,
           ),
         ),
       ),

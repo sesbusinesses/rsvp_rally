@@ -207,82 +207,77 @@ class EditEventPageState extends State<EditEventPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    Size screenSize = MediaQuery.of(context).size;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Event'),
-        backgroundColor: Colors.transparent,
-      ),
-      body: isLoading
+Widget build(BuildContext context) {
+  Size screenSize = MediaQuery.of(context).size;
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Edit Event'),
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+    ),
+    body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Stack(
-              children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.only(
-                      bottom: 70), // Add bottom padding to avoid overlap
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            width: screenSize.width * 0.85,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: getInterpolatedColor(widget.rating)),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                const Text('Event Name',
-                                    style: TextStyle(fontSize: 20)),
-                                WideTextBox(
-                                  hintText: 'Event Name',
-                                  controller: eventNameController,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          PhasesSection(
+      children: [
+        SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 120), // Padding for BottomNav
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    width: screenSize.width * 0.85,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: getInterpolatedColor(widget.rating)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text('Event Name', style: TextStyle(fontSize: 20)),
+                        WideTextBox(
+                          hintText: 'Event Name',
+                          controller: eventNameController,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  PhasesSection(
                             rating: widget.rating,
                             phaseControllers: phaseControllers,
                             onAddPhase: addPhase,
                             onRemovePhase: removePhase,
                           ),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            width: screenSize.width * 0.85,
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: getInterpolatedColor(widget.rating)),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                const Text('Additional Details',
-                                    style: TextStyle(fontSize: 20)),
-                                WideTextBox(
-                                  hintText: 'Event Details',
-                                  controller: eventDetailsController,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          NotificationsSection(
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    width: screenSize.width * 0.85,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: getInterpolatedColor(widget.rating)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text('Additional Details', style: TextStyle(fontSize: 20)),
+                        WideTextBox(
+                          hintText: 'Event Details',
+                          controller: eventDetailsController,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  NotificationsSection(
                             rating: widget.rating,
                             notificationControllers: notificationControllers,
                             onAddNotification: addNotification,
                             onRemoveNotification: removeNotification,
                           ),
-                          const SizedBox(height: 10),
-                          AttendeeEntrySection(
+                  const SizedBox(height: 10),
+                  AttendeeEntrySection(
                             rating: widget.rating,
                             username: widget.username,
                             onAttendeesChanged: (newAttendees) {
@@ -291,32 +286,35 @@ class EditEventPageState extends State<EditEventPage> {
                               });
                             },
                           ),
-                          const SizedBox(
-                              height:
-                                  80), // Add some space at the bottom for better visibility
-                        ],
-                      ),
-                    ),
+                  const SizedBox(height: 10), // Add spacing before the button
+                  WideButton(
+                    rating: widget.rating,
+                    buttonText: 'Update Event',
+                    onPressed: updateEvent,
                   ),
-                ),
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    height: 100,
-                    child: WideButton(
-                      rating: widget.rating,
-                      onPressed: updateEvent,
-                      buttonText: 'Update Event',
-                    ),
-                  ),
-                ),
-              ],
+                  const SizedBox(height: 120), // Adjusted space at the bottom
+                ],
+              ),
             ),
-    );
-  }
-
-  @override
+          ),
+        ),
+        Positioned(
+          bottom: 20,
+          left: 0,
+          right: 0,
+          child: BottomNav(
+            rating: widget.rating,
+            eventID: widget.eventID,
+            username: widget.username,
+            selectedIndex: 3, // Index for EditEventPage
+          ),
+        ),
+      ],
+    ),
+  );
+}
+  
+@override
   void dispose() {
     eventNameController.dispose();
     eventDetailsController.dispose();

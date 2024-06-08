@@ -1,10 +1,12 @@
-import 'package:rsvp_rally/pages/login_page.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/widgets/widebutton.dart';
+import 'package:rsvp_rally/widgets/widetextbox.dart';
 
 class ForgotPassword extends StatefulWidget {
-  ForgotPassword({Key? key}) : super(key: key);
+  const ForgotPassword({super.key});
 
   @override
   State<ForgotPassword> createState() => _ForgotPasswordState();
@@ -21,10 +23,10 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
-        "Password Reset Email has been sent !",
+        "Password Reset Email has been sent!",
         style: TextStyle(fontSize: 18.0),
       )));
-      //maybe push back to login page
+      // Optionally navigate to login page
     } on FirebaseAuthException catch (e) {
       if (e.code == "user-not-found") {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -38,161 +40,73 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: const Color.fromARGB(133, 60, 8, 8),
-      body: Container(
-        margin: const EdgeInsets.symmetric(vertical: 50.0),
-        child: Form(
-          key: _formkey,
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 70.0,
-              ),
-              Container(
-                alignment: Alignment.topCenter,
-                child: const Text(
-                  "Password Recovery",
+        body: Stack(children: [
+      AppBar(),
+      Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+              vertical: 50.0, horizontal: screenSize.width * 0.075),
+          child: Form(
+            key: _formkey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Image(
+                    image: const AssetImage('assets/rsvp_rally.png'),
+                    width: screenSize.width * 0.5),
+                const SizedBox(height: 70),
+                const Text(
+                  "Recover your password below",
                   style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 30.0,
-                      fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 10.0),
-              const Text(
-                "Enter your mail",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold),
-              ),
-              Expanded(
-                child: Form(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 20, horizontal: 30),
-                    child: ListView(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.only(left: 10.0),
-                          decoration: BoxDecoration(
-                              border:
-                                  Border.all(color: Colors.white70, width: 2.0),
-                              borderRadius: BorderRadius.circular(30)),
-                          child: TextFormField(
-                            controller: mailcontroller,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please Enter Email';
-                              }
-                              return null;
-                            },
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(
-                                hintText: "Email ",
-                                hintStyle: TextStyle(
-                                    fontSize: 18.0, color: Colors.white),
-                                prefixIcon: Icon(
-                                  Icons.person,
-                                  color: Colors.white70,
-                                  size: 30.0,
-                                ),
-                                border: InputBorder.none),
-                          ),
-                        ),
-                        const SizedBox(height: 40.0),
-                        Container(
-                          margin: const EdgeInsets.only(left: 60.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  if (_formkey.currentState!.validate()) {
-                                    setState(() {
-                                      email = mailcontroller.text;
-                                    });
-                                    resetPassword();
-                                  }
-                                },
-                                child: Container(
-                                    width: 140,
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                        color: const Color.fromARGB(
-                                            255, 184, 166, 6),
-                                        borderRadius:
-                                            BorderRadius.circular(10)),
-                                    child: const Center(
-                                      child: Text(
-                                        "Send Email",
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 18.0,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    )),
-                              ),
-                              const SizedBox(
-                                width: 20.0,
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.popUntil(context,
-                                      ModalRoute.withName('/LogInPage'));
-                                },
-                                child: Container(
-                                    alignment: Alignment.bottomRight,
-                                    child: const Text(
-                                      "LogIn",
-                                      style: TextStyle(
-                                        fontSize: 15.0,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.purple,
-                                      ),
-                                    )),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 50.0,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              "Don't have an account? ",
-                              style: TextStyle(
-                                  fontSize: 18.0, color: Colors.white),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => const EventPage(
-                                            username: 'bossman5960')));
-                              },
-                              child: const Text("Create\n(bossman)",
-                                  style: TextStyle(
-                                    color: Color.fromARGB(255, 184, 166, 6),
-                                    fontSize: 20.0,
-                                    fontWeight: FontWeight.w500,
-                                  )),
-                            )
-                          ],
-                        )
-                      ],
-                    ),
+                    color: AppColors.dark,
+                    fontSize: 16.0,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 10.0),
+                WideTextBox(
+                  controller: mailcontroller,
+                  hintText: "Enter your email address",
+                ),
+                const SizedBox(height: 10.0),
+                WideButton(
+                  buttonText: 'Send Password Reset Email',
+                  onPressed: () {
+                    if (_formkey.currentState!.validate()) {
+                      setState(() {
+                        email = mailcontroller.text;
+                      });
+                      resetPassword();
+                    }
+                  },
+                ),
+                const SizedBox(height: 120),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const EventPage(username: 'bossman5960')));
+                      },
+                      child: const Text("Create Bossman",
+                          style: TextStyle(
+                            color: AppColors.link,
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          )),
+                    )
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    );
+    ]));
   }
 }
