@@ -31,8 +31,19 @@ class AttendeesCard extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 width: screenSize.width * 0.85,
                 decoration: BoxDecoration(
-                  border: Border.all(color: getInterpolatedColor(rating)),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.light, // Dark background color
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: getInterpolatedColor(rating),
+                    width: AppColors.borderWidth,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.shadow,
+                      blurRadius: 10,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
