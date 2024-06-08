@@ -104,7 +104,7 @@ class EditEventPageState extends State<EditEventPage> {
         children: [
           SingleChildScrollView(
             padding: const EdgeInsets.only(
-                bottom: 70), // Add bottom padding to avoid overlap
+                bottom: 120), // Adjusted bottom padding to avoid overlap
             child: Center(
               child: Padding(
                 padding:
@@ -113,23 +113,24 @@ class EditEventPageState extends State<EditEventPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        width: screenSize.width * 0.85,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: getInterpolatedColor(widget.rating)),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            const Text('Event Name',
-                                style: TextStyle(fontSize: 20)),
-                            WideTextBox(
-                              hintText: 'Event Name',
-                              controller: eventNameController,
-                            ),
-                          ],
-                        )),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      width: screenSize.width * 0.85,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: getInterpolatedColor(widget.rating)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text('Event Name',
+                              style: TextStyle(fontSize: 20)),
+                          WideTextBox(
+                            hintText: 'Event Name',
+                            controller: eventNameController,
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     PhasesSection(
                       rating: widget.rating,
@@ -152,23 +153,24 @@ class EditEventPageState extends State<EditEventPage> {
                     ),
                     const SizedBox(height: 10),
                     Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        width: screenSize.width * 0.85,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: getInterpolatedColor(widget.rating)),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            const Text('Additional Details',
-                                style: TextStyle(fontSize: 20)),
-                            WideTextBox(
-                              hintText: 'Event Details',
-                              controller: eventDetailsController,
-                            ),
-                          ],
-                        )),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      width: screenSize.width * 0.85,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: getInterpolatedColor(widget.rating)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text('Additional Details',
+                              style: TextStyle(fontSize: 20)),
+                          WideTextBox(
+                            hintText: 'Event Details',
+                            controller: eventDetailsController,
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     NotificationsSection(
                       rating: widget.rating,
@@ -189,36 +191,27 @@ class EditEventPageState extends State<EditEventPage> {
                     ),
                     const SizedBox(height: 10),
                     AttendeeEntrySection(
-                        rating: widget.rating, username: widget.username),
-                    const SizedBox(
-                        height:
-                            80), // Add some space at the bottom for better visibility
+                      rating: widget.rating,
+                      username: widget.username,
+                    ),
+                    const SizedBox(height: 120), // Adjusted space at the bottom
                   ],
                 ),
               ),
             ),
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              height: 100,
-              child: WideButton(
-                rating: widget.rating,
-                buttonText: 'Update Event',
-                onPressed: () {
-                  // Implement event update logic
-                },
-              ),
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: BottomNav(
+              rating: widget.rating,
+              eventID: widget.eventID,
+              username: widget.username,
+              selectedIndex: 3, // Index for EditEventPage
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: BottomNav(
-        rating: widget.rating,
-        eventID: widget.eventID,
-        username: 'example_username', // Replace with actual username
-        selectedIndex: 3, // Index for DetailsPage
       ),
     );
   }

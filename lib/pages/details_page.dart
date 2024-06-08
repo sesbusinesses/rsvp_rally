@@ -50,7 +50,9 @@ class DetailsPageState extends State<DetailsPage> {
         title: Text(eventName), // Dynamically set the title
         surfaceTintColor: Colors.transparent,
       ),
-      body: CustomScrollView(
+      body: Stack(
+        children: [
+          CustomScrollView(
         slivers: [
           EventTimeline(eventID: widget.eventID, rating: widget.userRating),
           SliverToBoxAdapter(
@@ -59,14 +61,20 @@ class DetailsPageState extends State<DetailsPage> {
           SliverToBoxAdapter(
               child: AttendeesCard(
                   eventID: widget.eventID, rating: widget.userRating)),
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: BottomNav(
+              rating: widget.userRating,
+              eventID: widget.eventID,
+              username: widget.username, // Replace with actual username
+              selectedIndex: 0, // Index for DetailsPage
+            ),
+          ),
         ],
-      ),
-      bottomNavigationBar: BottomNav(
-        rating: widget.userRating,
-        eventID: widget.eventID,
-        username: widget.username, // Replace with actual username
-        selectedIndex: 0, // Index for DetailsPage
       ),
     );
   }
 }
+
