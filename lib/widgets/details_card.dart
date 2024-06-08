@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 
 class DetailsCard extends StatelessWidget {
+  final double rating;
   final String eventID;
 
-  const DetailsCard({super.key, required this.eventID});
+  const DetailsCard({super.key, required this.eventID, required this.rating});
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +22,19 @@ class DetailsCard extends StatelessWidget {
               child: Container(
                 width: screenSize.width * 0.85,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.light, // Dark background color
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: getInterpolatedColor(rating),
+                    width: AppColors.borderWidth,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.shadow,
+                      blurRadius: 10,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -33,8 +46,11 @@ class DetailsCard extends StatelessWidget {
                       Text('${snapshot.data!['eventName']} Details',
                           style: const TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold)),
-                      Text('Host: ${snapshot.data!['hostName']}',
-                          style: const TextStyle(fontSize: 12)),
+                      Text(
+                        'Host: ${snapshot.data!['hostName']}',
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.accent),
+                      ),
                       const SizedBox(height: 15),
                       Text(snapshot.data!['details'],
                           style: const TextStyle(fontSize: 16)),

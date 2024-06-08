@@ -48,16 +48,19 @@ class DetailsPageState extends State<DetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(eventName), // Dynamically set the title
+        surfaceTintColor: Colors.transparent,
       ),
       body: Stack(
         children: [
           CustomScrollView(
-            slivers: [
-              EventTimeline(eventID: widget.eventID),
-              SliverToBoxAdapter(child: DetailsCard(eventID: widget.eventID)),
-              SliverToBoxAdapter(child: AttendeesCard(eventID: widget.eventID)),
-            ],
-          ),
+        slivers: [
+          EventTimeline(eventID: widget.eventID, rating: widget.userRating),
+          SliverToBoxAdapter(
+              child: DetailsCard(
+                  eventID: widget.eventID, rating: widget.userRating)),
+          SliverToBoxAdapter(
+              child: AttendeesCard(
+                  eventID: widget.eventID, rating: widget.userRating)),
           Positioned(
             bottom: 20,
             left: 0,

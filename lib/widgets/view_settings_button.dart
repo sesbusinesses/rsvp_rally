@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/pages/friends_page.dart';
+import 'package:rsvp_rally/pages/settings_page.dart';
 
-class ViewFriendsButton extends StatelessWidget {
+class ViewSettingsButton extends StatelessWidget {
   final String username;
   final double userRating;
 
-  const ViewFriendsButton({
+  const ViewSettingsButton({
     super.key,
     required this.username,
     required this.userRating,
@@ -17,15 +17,15 @@ class ViewFriendsButton extends StatelessWidget {
     return IconButton(
       iconSize: 50,
       icon: Icon(
-        Icons.account_circle,
+        Icons.settings,
         color: getInterpolatedColor(userRating),
       ),
       onPressed: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => FriendsPage(
-              rating: userRating,
+            builder: (context) => SettingsPage(
+              userRating: userRating,
               username: username,
             ),
           ),

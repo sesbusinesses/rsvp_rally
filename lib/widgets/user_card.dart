@@ -42,7 +42,6 @@ class UserCardState extends State<UserCard> {
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
-    Color ratingColor = getInterpolatedColor(rating);
 
     return Container(
       width: screenSize.width * 0.85,
@@ -50,17 +49,17 @@ class UserCardState extends State<UserCard> {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       margin: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.light, // Light background color
+        color: AppColors.light, // Dark background color
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color: ratingColor,
-          width: 2,
+          color: getInterpolatedColor(rating),
+          width: AppColors.borderWidth,
         ),
-        borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadow,
-            blurRadius: 5,
-            offset: Offset(0, 3),
+            blurRadius: 10,
+            offset: Offset(0, 5),
           ),
         ],
       ),

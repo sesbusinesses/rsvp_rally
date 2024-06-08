@@ -66,26 +66,9 @@ class EventCardState extends State<EventCard> {
     return months[month - 1];
   }
 
-  Color getInterpolatedColor(double value) {
-    const List<Color> colors = [Colors.red, Colors.yellow, Colors.green];
-    const List<double> stops = [0.0, 0.5, 1.0];
-
-    if (value <= stops.first) return colors.first;
-    if (value >= stops.last) return colors.last;
-
-    for (int i = 0; i < stops.length - 1; i++) {
-      if (value >= stops[i] && value <= stops[i + 1]) {
-        final t = (value - stops[i]) / (stops[i + 1] - stops[i]);
-        return Color.lerp(colors[i], colors[i + 1], t)!;
-      }
-    }
-    return colors.last;
-  }
-
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
-    Color dynamicColor = getInterpolatedColor(widget.userRating);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -109,12 +92,12 @@ class EventCardState extends State<EventCard> {
             color: AppColors.light, // Dark background color
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
-              color: dynamicColor,
-              width: 2,
+              color: getInterpolatedColor(widget.userRating),
+              width: AppColors.borderWidth,
             ),
             boxShadow: const [
               BoxShadow(
-                color: Colors.black26,
+                color: AppColors.shadow,
                 blurRadius: 10,
                 offset: Offset(0, 5),
               ),
@@ -147,7 +130,8 @@ class EventCardState extends State<EventCard> {
                       ),
                     ],
                   ),
-                  Icon(Icons.arrow_forward_ios, color: dynamicColor),
+                  Icon(Icons.arrow_forward_ios,
+                      color: getInterpolatedColor(widget.userRating)),
                 ]),
           ),
         ),
