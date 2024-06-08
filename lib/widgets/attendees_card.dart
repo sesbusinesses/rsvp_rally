@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:rsvp_rally/models/database_puller.dart'; // Ensure this includes fetchEventAttendees
+import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/models/database_puller.dart';
+import 'package:rsvp_rally/widgets/rating_indicator.dart'; // Ensure this includes fetchEventAttendees
 
 class AttendeesCard extends StatelessWidget {
+  final double rating;
   final String eventID;
 
-  const AttendeesCard({super.key, required this.eventID});
+  const AttendeesCard({super.key, required this.eventID, required this.rating});
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +17,10 @@ class AttendeesCard extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+            List<Map<String, dynamic>> attendees = snapshot.data!;
+            // Sort attendees by rating
+            attendees.sort((a, b) => b['rating'].compareTo(a['rating']));
+
             return Padding(
               padding: EdgeInsets.only(
                   left: screenSize.width * 0.075,
@@ -24,8 +31,19 @@ class AttendeesCard extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 width: screenSize.width * 0.85,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.light, // Dark background color
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(
+                    color: getInterpolatedColor(rating),
+                    width: AppColors.borderWidth,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: AppColors.shadow,
+                      blurRadius: 10,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,7 +54,7 @@ class AttendeesCard extends StatelessWidget {
                     const SizedBox(
                         height:
                             15), // Space between the header and the first attendee
-                    ...snapshot.data!.map((attendee) {
+                    ...attendees.map((attendee) {
                       IconData iconData =
                           Icons.question_mark; // Default to maybe
                       switch (attendee['isComing']) {
@@ -58,37 +76,23 @@ class AttendeesCard extends StatelessWidget {
                           height: 40,
                           decoration: BoxDecoration(
                             border: Border.all(
-                                color: Color.lerp(Colors.red, Colors.green,
-                                        attendee['rating']) ??
-                                    Colors.red),
+                                color:
+                                    getInterpolatedColor(attendee['rating'])),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // Expanded(child: Text(attendee['username'])),
-                              Expanded(
-                                  child: Text(
-                                      "${attendee['firstName']} ${attendee['lastName']}",
-                                      style: TextStyle(
-                                          color: Color.lerp(
-                                                  Colors.red,
-                                                  Colors.green,
-                                                  attendee['rating']) ??
-                                              Colors.red))),
-                              Expanded(
-                                  child: Text(
-                                      "Rating: ${attendee['rating'].toString()}",
-                                      style: TextStyle(
-                                          color: Color.lerp(
-                                                  Colors.red,
-                                                  Colors.green,
-                                                  attendee['rating']) ??
-                                              Colors.red))),
+                              Text(
+                                "${attendee['firstName']} ${attendee['lastName']}",
+                                style: const TextStyle(
+                                  color: AppColors.dark,
+                                ),
+                              ),
+                              RatingIndicator(progress: attendee['rating']),
                               Icon(iconData,
-                                  color: Color.lerp(Colors.red, Colors.green,
-                                          attendee['rating']) ??
-                                      Colors.red),
+                                  color:
+                                      getInterpolatedColor(attendee['rating'])),
                             ],
                           ),
                         ),
