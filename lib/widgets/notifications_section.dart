@@ -9,12 +9,12 @@ class NotificationsSection extends StatelessWidget {
   final Function(int) onRemoveNotification;
 
   const NotificationsSection({
-    super.key,
+    Key? key,
     required this.rating,
     required this.notificationControllers,
     required this.onAddNotification,
     required this.onRemoveNotification,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
