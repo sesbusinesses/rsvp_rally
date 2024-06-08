@@ -42,7 +42,6 @@ class UserCardState extends State<UserCard> {
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
-    Color ratingColor = getInterpolatedColor(rating);
 
     return Container(
       width: screenSize.width * 0.85,
