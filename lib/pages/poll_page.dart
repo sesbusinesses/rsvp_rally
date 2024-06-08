@@ -42,43 +42,27 @@ class _PollPageState extends State<PollPage> {
       ),
       body: Stack(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.light,
-                  getInterpolatedColor(userRating), // Light to dynamic gradient
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-            child: FutureBuilder<DocumentSnapshot>(
-              future: FirebaseFirestore.instance
-                  .collection('Events')
-                  .doc(widget.eventID)
-                  .get(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasData && snapshot.data != null) {
-                    Map<String, dynamic> data =
-                        snapshot.data!.data() as Map<String, dynamic>;
-                    Map<String, dynamic> polls =
-                        Map<String, dynamic>.from(data['Polls']);
+          FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('Events')
+                .doc(widget.eventID)
+                .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasData && snapshot.data != null) {
+                  Map<String, dynamic> data =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  Map<String, dynamic> polls =
+                      Map<String, dynamic>.from(data['Polls']);
 
-                    return Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        width: screenSize.width * 0.85,
-                        decoration: BoxDecoration(
-                          color: Colors.white, // Light background color
-                          border: Border.all(color: Colors.transparent),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 120), // Padding to avoid overlap
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Text('Polls', style: TextStyle(fontSize: 20)),
-                            const SizedBox(height: 10),
                             ...polls.entries.map((entry) {
                               return PollCard(
                                 userRating: userRating,
@@ -90,25 +74,27 @@ class _PollPageState extends State<PollPage> {
                                 },
                               );
                             }).toList(),
-                            const SizedBox(height: 80), // Adjusted space at the bottom
+                            const SizedBox(height: 80), // Space at the bottom
                           ],
                         ),
                       ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                        child: Text("Error fetching data: ${snapshot.error}"));
-                  } else {
-                    return const Center(
-                        child: Text("No data available for this event."));
-                  }
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(
+                      child: Text("Error fetching data: ${snapshot.error}"));
+                } else {
+                  return const Center(
+                      child: Text("No data available for this event."));
                 }
-                return const Center(child: CircularProgressIndicator());
-              },
-            ),
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
             child: BottomNav(
               rating: userRating,
               eventID: widget.eventID,
