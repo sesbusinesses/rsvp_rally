@@ -39,11 +39,14 @@ class UserCardState extends State<UserCard> {
 
     if (userDoc.exists) {
       Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-      setState(() {
-        firstName = userData['FirstName'] ?? "";
-        lastName = userData['LastName'] ?? "";
-        rating = double.tryParse(userData['Rating'].toString()) ?? 0.0;
-      });
+      if (mounted) {
+        // Check if the widget is still mounted
+        setState(() {
+          firstName = userData['FirstName'] ?? "";
+          lastName = userData['LastName'] ?? "";
+          rating = double.tryParse(userData['Rating'].toString()) ?? 0.0;
+        });
+      }
     }
   }
 

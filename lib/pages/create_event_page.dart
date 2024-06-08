@@ -85,23 +85,42 @@ class CreateEventPageState extends State<CreateEventPage> {
 
     // Collect phases
     List<Map<String, dynamic>> phases = phaseControllers.map((controller) {
+      DateTime? startTime;
+      DateTime? endTime;
+      try {
+        startTime = DateTime.parse(controller['startTime']!.text);
+      } catch (e) {
+        startTime = null; // Handle invalid start time format
+      }
+      try {
+        endTime = DateTime.parse(controller['endTime']!.text);
+      } catch (e) {
+        endTime = null; // Handle invalid end time format
+      }
+
       return {
         'PhaseName': controller['name']!.text,
         'PhaseLocation': controller['location']!.text,
-        'StartTime':
-            Timestamp.fromDate(DateTime.parse(controller['startTime']!.text)),
-        'EndTime':
-            Timestamp.fromDate(DateTime.parse(controller['endTime']!.text)),
+        'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
+        'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
       };
     }).toList();
 
     // Collect notifications
     List<Map<String, dynamic>> notifications =
         notificationControllers.map((controller) {
+      DateTime? notificationTime;
+      try {
+        notificationTime = DateTime.parse(controller['time']!.text);
+      } catch (e) {
+        notificationTime = null; // Handle invalid notification time format
+      }
+
       return {
         'NotificationText': controller['text']!.text,
-        'NotificationTime':
-            Timestamp.fromDate(DateTime.parse(controller['time']!.text)),
+        'NotificationTime': notificationTime != null
+            ? Timestamp.fromDate(notificationTime)
+            : null,
       };
     }).toList();
 
@@ -116,8 +135,33 @@ class CreateEventPageState extends State<CreateEventPage> {
     };
 
     try {
-      // Add event to Firestore
-      await firestore.collection('Events').add(eventData);
+      // Add event to Firestore and get the document reference
+      DocumentReference eventDocRef =
+          await firestore.collection('Events').add(eventData);
+
+      // Get the event ID from the document reference
+      String eventID = eventDocRef.id;
+
+      // Add the event ID to the 'Events' field for the host and each attendee
+      WriteBatch batch = firestore.batch();
+      // Add event to host
+      DocumentReference hostDocRef =
+          firestore.collection('Users').doc(widget.username);
+      batch.update(hostDocRef, {
+        'Events': FieldValue.arrayUnion([eventID])
+      });
+
+      // Add event to attendees
+      for (String attendee in attendees) {
+        DocumentReference userDocRef =
+            firestore.collection('Users').doc(attendee);
+        batch.update(userDocRef, {
+          'Events': FieldValue.arrayUnion([eventID])
+        });
+      }
+
+      // Commit the batch
+      await batch.commit();
 
       // Show a confirmation message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -149,6 +193,7 @@ class CreateEventPageState extends State<CreateEventPage> {
       appBar: AppBar(
         title: const Text('Create New Event'),
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
       ),
       body: Stack(
         children: [
@@ -163,12 +208,23 @@ class CreateEventPageState extends State<CreateEventPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      width: screenSize.width * 0.85,
+                      padding: EdgeInsets.symmetric(
+                          vertical: 10, horizontal: screenSize.width * 0.05),
+                      width: screenSize.width * 0.95,
                       decoration: BoxDecoration(
+                        color: AppColors.light, // Dark background color
+                        borderRadius: BorderRadius.circular(15),
                         border: Border.all(
-                            color: getInterpolatedColor(widget.rating)),
-                        borderRadius: BorderRadius.circular(12),
+                          color: getInterpolatedColor(widget.rating),
+                          width: AppColors.borderWidth,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppColors.shadow,
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
                       ),
                       child: Column(
                         children: [
@@ -190,12 +246,23 @@ class CreateEventPageState extends State<CreateEventPage> {
                     ),
                     const SizedBox(height: 10),
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      width: screenSize.width * 0.85,
+                      padding: EdgeInsets.symmetric(
+                          vertical: 10, horizontal: screenSize.width * 0.05),
+                      width: screenSize.width * 0.95,
                       decoration: BoxDecoration(
+                        color: AppColors.light, // Dark background color
+                        borderRadius: BorderRadius.circular(15),
                         border: Border.all(
-                            color: getInterpolatedColor(widget.rating)),
-                        borderRadius: BorderRadius.circular(12),
+                          color: getInterpolatedColor(widget.rating),
+                          width: AppColors.borderWidth,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppColors.shadow,
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
                       ),
                       child: Column(
                         children: [

@@ -70,14 +70,16 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
 
         friendsWithRatings.sort((a, b) => b['rating'].compareTo(a['rating']));
 
-        setState(() {
-          friendsData = friendsWithRatings;
-          filteredFriends = friendsData;
-          for (var friend in friendsData) {
-            selectedFriends[friend['username']] = false;
-          }
-          log('Friends data with ratings: $friendsData');
-        });
+        if (mounted) {
+          setState(() {
+            friendsData = friendsWithRatings;
+            filteredFriends = friendsData;
+            for (var friend in friendsData) {
+              selectedFriends[friend['username']] = false;
+            }
+            log('Friends data with ratings: $friendsData');
+          });
+        }
       } else {
         log('User document does not exist: ${widget.username}');
       }
@@ -154,11 +156,23 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      width: screenSize.width * 0.85,
+      padding: EdgeInsets.symmetric(
+          vertical: 10, horizontal: screenSize.width * 0.05),
+      width: screenSize.width * 0.95,
       decoration: BoxDecoration(
-        border: Border.all(color: getInterpolatedColor(widget.rating)),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.light, // Dark background color
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: getInterpolatedColor(widget.rating),
+          width: AppColors.borderWidth,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,

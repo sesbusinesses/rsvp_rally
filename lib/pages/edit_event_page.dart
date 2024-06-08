@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
+import 'package:rsvp_rally/widgets/bottomnav.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/phases_section.dart';
@@ -207,77 +208,107 @@ class EditEventPageState extends State<EditEventPage> {
   }
 
   @override
-Widget build(BuildContext context) {
-  Size screenSize = MediaQuery.of(context).size;
-  return Scaffold(
-    appBar: AppBar(
-      title: const Text('Edit Event'),
-      backgroundColor: Colors.transparent,
-      surfaceTintColor: Colors.transparent,
-    ),
-    body: isLoading
+  Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Event'),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Stack(
-      children: [
-        SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 120), // Padding for BottomNav
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    width: screenSize.width * 0.85,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: getInterpolatedColor(widget.rating)),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        const Text('Event Name', style: TextStyle(fontSize: 20)),
-                        WideTextBox(
-                          hintText: 'Event Name',
-                          controller: eventNameController,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  PhasesSection(
+              children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.only(
+                      bottom: 120), // Padding for BottomNav
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: screenSize.width * 0.05),
+                            width: screenSize.width * 0.95,
+                            decoration: BoxDecoration(
+                              color: AppColors.light, // Dark background color
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(
+                                color: getInterpolatedColor(widget.rating),
+                                width: AppColors.borderWidth,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: AppColors.shadow,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                const Text('Event Name',
+                                    style: TextStyle(fontSize: 20)),
+                                WideTextBox(
+                                  hintText: 'Event Name',
+                                  controller: eventNameController,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          PhasesSection(
                             rating: widget.rating,
                             phaseControllers: phaseControllers,
                             onAddPhase: addPhase,
                             onRemovePhase: removePhase,
                           ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    width: screenSize.width * 0.85,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: getInterpolatedColor(widget.rating)),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        const Text('Additional Details', style: TextStyle(fontSize: 20)),
-                        WideTextBox(
-                          hintText: 'Event Details',
-                          controller: eventDetailsController,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  NotificationsSection(
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: screenSize.width * 0.05),
+                            width: screenSize.width * 0.95,
+                            decoration: BoxDecoration(
+                              color: AppColors.light, // Dark background color
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(
+                                color: getInterpolatedColor(widget.rating),
+                                width: AppColors.borderWidth,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: AppColors.shadow,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                const Text('Additional Details',
+                                    style: TextStyle(fontSize: 20)),
+                                WideTextBox(
+                                  hintText: 'Event Details',
+                                  controller: eventDetailsController,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          NotificationsSection(
                             rating: widget.rating,
                             notificationControllers: notificationControllers,
                             onAddNotification: addNotification,
                             onRemoveNotification: removeNotification,
                           ),
-                  const SizedBox(height: 10),
-                  AttendeeEntrySection(
+                          const SizedBox(height: 10),
+                          AttendeeEntrySection(
                             rating: widget.rating,
                             username: widget.username,
                             onAttendeesChanged: (newAttendees) {
@@ -286,35 +317,37 @@ Widget build(BuildContext context) {
                               });
                             },
                           ),
-                  const SizedBox(height: 10), // Add spacing before the button
-                  WideButton(
-                    rating: widget.rating,
-                    buttonText: 'Update Event',
-                    onPressed: updateEvent,
+                          const SizedBox(
+                              height: 10), // Add spacing before the button
+                          WideButton(
+                            rating: widget.rating,
+                            buttonText: 'Update Event',
+                            onPressed: updateEvent,
+                          ),
+                          const SizedBox(
+                              height: 120), // Adjusted space at the bottom
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 120), // Adjusted space at the bottom
-                ],
-              ),
+                ),
+                Positioned(
+                  bottom: 20,
+                  left: 0,
+                  right: 0,
+                  child: BottomNav(
+                    rating: widget.rating,
+                    eventID: widget.eventID,
+                    username: widget.username,
+                    selectedIndex: 3, // Index for EditEventPage
+                  ),
+                ),
+              ],
             ),
-          ),
-        ),
-        Positioned(
-          bottom: 20,
-          left: 0,
-          right: 0,
-          child: BottomNav(
-            rating: widget.rating,
-            eventID: widget.eventID,
-            username: widget.username,
-            selectedIndex: 3, // Index for EditEventPage
-          ),
-        ),
-      ],
-    ),
-  );
-}
-  
-@override
+    );
+  }
+
+  @override
   void dispose() {
     eventNameController.dispose();
     eventDetailsController.dispose();

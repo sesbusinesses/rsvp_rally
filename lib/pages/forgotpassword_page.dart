@@ -5,6 +5,24 @@ import 'package:flutter/material.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:developer' as developer;
+
+Future<void> logAllUsers() async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  try {
+    QuerySnapshot querySnapshot = await firestore.collection('Users').get();
+
+    for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+      Map<String, dynamic> userData = doc.data() as Map<String, dynamic>;
+      developer.log('User ID: ${doc.id}, User Data: $userData');
+    }
+  } catch (e) {
+    developer.log('Error fetching users collection: $e');
+  }
+}
+
 class ForgotPassword extends StatefulWidget {
   const ForgotPassword({super.key});
 
@@ -92,6 +110,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                             MaterialPageRoute(
                                 builder: (context) =>
                                     const EventPage(username: 'bossman5960')));
+                        logAllUsers();
                       },
                       child: const Text("Create Bossman",
                           style: TextStyle(

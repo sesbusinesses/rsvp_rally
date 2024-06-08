@@ -9,22 +9,34 @@ class NotificationsSection extends StatelessWidget {
   final Function(int) onRemoveNotification;
 
   const NotificationsSection({
-    Key? key,
+    super.key,
     required this.rating,
     required this.notificationControllers,
     required this.onAddNotification,
     required this.onRemoveNotification,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        width: screenSize.width * 0.85,
+        padding: EdgeInsets.symmetric(
+            vertical: 10, horizontal: screenSize.width * 0.05),
+        width: screenSize.width * 0.95,
         decoration: BoxDecoration(
-          border: Border.all(color: getInterpolatedColor(rating)),
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.light, // Dark background color
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: getInterpolatedColor(rating),
+            width: AppColors.borderWidth,
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadow,
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            ),
+          ],
         ),
         child: Column(
           children: [
