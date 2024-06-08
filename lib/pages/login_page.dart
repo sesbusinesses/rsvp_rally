@@ -16,8 +16,8 @@ class _LogInState extends State<LogInPage> {
 
   final _formkey = GlobalKey<FormState>();
 
-  TextEditingController useremailcontroller = new TextEditingController();
-  TextEditingController userpasswordcontroller = new TextEditingController();
+  TextEditingController useremailcontroller = TextEditingController();
+  TextEditingController userpasswordcontroller = TextEditingController();
 
   userLogin() async {
     try {
@@ -31,14 +31,14 @@ class _LogInState extends State<LogInPage> {
           MaterialPageRoute(builder: (context) => EventPage(username: name)));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
             "No User Found for that Email",
             style: TextStyle(fontSize: 18.0, color: Colors.black),
           ),
         ));
       } else if (e.code == 'wrong-password') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text(
           "Wrong Password Provided by User",
           style: TextStyle(fontSize: 18.0, color: Colors.black),
@@ -64,8 +64,8 @@ class _LogInState extends State<LogInPage> {
                   height: MediaQuery.of(context).size.height / 2.9,
                   fit: BoxFit.cover,
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20.0),
+                const Padding(
+                  padding: EdgeInsets.only(left: 20.0),
                   child: Text(
                     "Welcome\nBack",
                     style: TextStyle(
@@ -74,14 +74,14 @@ class _LogInState extends State<LogInPage> {
                         fontFamily: 'Pacifico'),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 30.0,
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 3.0),
-                  margin: EdgeInsets.symmetric(horizontal: 20.0),
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  margin: const EdgeInsets.symmetric(horizontal: 20.0),
                   decoration: BoxDecoration(
-                      color: Color.fromARGB(255, 147, 126, 207),
+                      color: const Color.fromARGB(255, 147, 126, 207),
                       borderRadius: BorderRadius.circular(22)),
                   child: TextFormField(
                     controller: useremailcontroller,
@@ -91,7 +91,7 @@ class _LogInState extends State<LogInPage> {
                       }
                       return null;
                     },
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                         border: InputBorder.none,
                         prefixIcon: Icon(
                           Icons.email,
@@ -99,17 +99,17 @@ class _LogInState extends State<LogInPage> {
                         ),
                         hintText: 'Your Email',
                         hintStyle: TextStyle(color: Colors.white60)),
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 30.0,
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 3.0),
-                  margin: EdgeInsets.symmetric(horizontal: 20.0),
+                  padding: const EdgeInsets.symmetric(vertical: 3.0),
+                  margin: const EdgeInsets.symmetric(horizontal: 20.0),
                   decoration: BoxDecoration(
-                      color: Color.fromARGB(255, 147, 126, 207),
+                      color: const Color.fromARGB(255, 147, 126, 207),
                       borderRadius: BorderRadius.circular(22)),
                   child: TextFormField(
                     controller: userpasswordcontroller,
@@ -119,7 +119,7 @@ class _LogInState extends State<LogInPage> {
                       }
                       return null;
                     },
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                         border: InputBorder.none,
                         prefixIcon: Icon(
                           Icons.password,
@@ -127,11 +127,11 @@ class _LogInState extends State<LogInPage> {
                         ),
                         hintText: 'Password',
                         hintStyle: TextStyle(color: Colors.white60)),
-                    style: TextStyle(color: Colors.white),
+                    style: const TextStyle(color: Colors.white),
                     obscureText: true,
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 15.0,
                 ),
                 GestureDetector(
@@ -139,18 +139,18 @@ class _LogInState extends State<LogInPage> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => ForgotPassword()));
+                            builder: (context) => const ForgotPassword()));
                   },
                   child: Container(
-                    padding: EdgeInsets.only(right: 24.0),
+                    padding: const EdgeInsets.only(right: 24.0),
                     alignment: Alignment.bottomRight,
-                    child: Text(
+                    child: const Text(
                       "Forgot password?",
                       style: TextStyle(color: Colors.white, fontSize: 18.0),
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 30.0,
                 ),
                 GestureDetector(
@@ -167,11 +167,11 @@ class _LogInState extends State<LogInPage> {
                     child: Container(
                       width: 150,
                       height: 55,
-                      padding: EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                          color: Color(0xFFf95f3b),
+                          color: const Color(0xFFf95f3b),
                           borderRadius: BorderRadius.circular(30)),
-                      child: Center(
+                      child: const Center(
                           child: Text(
                         "Login",
                         style: TextStyle(
@@ -182,17 +182,17 @@ class _LogInState extends State<LogInPage> {
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 40.0,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    const Text(
                       "New User?",
                       style: TextStyle(color: Colors.white, fontSize: 20.0),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       width: 5.0,
                     ),
                     GestureDetector(
@@ -200,9 +200,9 @@ class _LogInState extends State<LogInPage> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => SignUpPage()));
+                                  builder: (context) => const SignUpPage()));
                         },
-                        child: Text(
+                        child: const Text(
                           " Signup",
                           style: TextStyle(
                               color: Color(0xFFf95f3b),

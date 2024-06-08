@@ -10,11 +10,12 @@ class DetailsPage extends StatefulWidget {
   final String eventID;
   final double userRating;
 
-  const DetailsPage(
-      {super.key,
-      required this.eventID,
-      required this.userRating,
-      required this.username});
+  const DetailsPage({
+    super.key,
+    required this.eventID,
+    required this.userRating,
+    required this.username,
+  });
 
   @override
   DetailsPageState createState() => DetailsPageState();
@@ -46,33 +47,38 @@ class DetailsPageState extends State<DetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(eventName), // Dynamically set the title
-          surfaceTintColor: Colors.transparent,
-        ),
-        body: Stack(children: [
+      appBar: AppBar(
+        title: Text(eventName), // Dynamically set the title
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: Stack(
+        children: [
           CustomScrollView(
             slivers: [
               EventTimeline(eventID: widget.eventID, rating: widget.userRating),
               SliverToBoxAdapter(
-                  child: DetailsCard(
-                      eventID: widget.eventID, rating: widget.userRating)),
+                child: DetailsCard(
+                    eventID: widget.eventID, rating: widget.userRating),
+              ),
               SliverToBoxAdapter(
-                  child: AttendeesCard(
-                      eventID: widget.eventID, rating: widget.userRating)),
-              Positioned(
-                bottom: 20,
-                left: 0,
-                right: 0,
-                child: BottomNav(
-                  rating: widget.userRating,
-                  eventID: widget.eventID,
-                  username: widget.username, // Replace with actual username
-                  selectedIndex: 0, // Index for DetailsPage
-                ),
+                child: AttendeesCard(
+                    eventID: widget.eventID, rating: widget.userRating),
               ),
             ],
           ),
-        ]));
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: BottomNav(
+              rating: widget.userRating,
+              eventID: widget.eventID,
+              username: widget.username,
+              selectedIndex: 0, // Index for DetailsPage
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
