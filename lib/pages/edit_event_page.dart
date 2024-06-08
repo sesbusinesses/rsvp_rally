@@ -149,29 +149,42 @@ class EditEventPageState extends State<EditEventPage> {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     // Collect phases
-
     List<Map<String, dynamic>> phases = phaseControllers.map((controller) {
-      final phaseData = {
+      DateTime? startTime;
+      DateTime? endTime;
+      try {
+        startTime = DateTime.parse(controller['startTime']!.text);
+      } catch (e) {
+        startTime = null; // Handle invalid start time format
+      }
+      try {
+        endTime = DateTime.parse(controller['endTime']!.text);
+      } catch (e) {
+        endTime = null; // Handle invalid end time format
+      }
+
+      return {
         'PhaseName': controller['name']!.text,
         'PhaseLocation': controller['location']!.text,
-        'StartTime': controller['startTime']!.text.isNotEmpty
-            ? Timestamp.fromDate(DateTime.parse(controller['startTime']!.text))
-            : null,
+        'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
+        'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
       };
-      if (controller['endTime']!.text.isNotEmpty) {
-        phaseData['EndTime'] =
-            Timestamp.fromDate(DateTime.parse(controller['endTime']!.text));
-      }
-      return phaseData;
     }).toList();
 
     // Collect notifications
     List<Map<String, dynamic>> notifications =
         notificationControllers.map((controller) {
+      DateTime? notificationTime;
+      try {
+        notificationTime = DateTime.parse(controller['time']!.text);
+      } catch (e) {
+        notificationTime = null; // Handle invalid notification time format
+      }
+
       return {
         'NotificationText': controller['text']!.text,
-        'NotificationTime': controller['time']!.text.isNotEmpty
-            ? Timestamp.fromDate(DateTime.parse(controller['time']!.text))
+        'NotificationTime': notificationTime != null
+            ? Timestamp.fromDate(notificationTime)
             : null,
       };
     }).toList();
@@ -192,6 +205,28 @@ class EditEventPageState extends State<EditEventPage> {
           .collection('Events')
           .doc(widget.eventID)
           .update(eventData);
+
+      // Add the event ID to the 'Events' field for the host and each attendee
+      WriteBatch batch = firestore.batch();
+
+      // Add event to host
+      DocumentReference hostDocRef =
+          firestore.collection('Users').doc(widget.username);
+      batch.update(hostDocRef, {
+        'Events': FieldValue.arrayUnion([widget.eventID])
+      });
+
+      // Add event to attendees
+      for (String attendee in attendees) {
+        DocumentReference userDocRef =
+            firestore.collection('Users').doc(attendee);
+        batch.update(userDocRef, {
+          'Events': FieldValue.arrayUnion([widget.eventID])
+        });
+      }
+
+      // Commit the batch
+      await batch.commit();
 
       // Show a confirmation message
       ScaffoldMessenger.of(context).showSnackBar(
