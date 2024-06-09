@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/pages/settings_page.dart';
+import 'package:rsvp_rally/pages/inbox_page.dart';
 
-class ViewSettingsButton extends StatelessWidget {
+class ViewInboxButton extends StatelessWidget {
   final String username;
   final double userRating;
 
-  const ViewSettingsButton({
+  const ViewInboxButton({
     super.key,
     required this.username,
     required this.userRating,
@@ -17,14 +17,14 @@ class ViewSettingsButton extends StatelessWidget {
     return IconButton(
       iconSize: 50,
       icon: Icon(
-        Icons.settings,
+        Icons.mail,
         color: getInterpolatedColor(userRating),
       ),
       onPressed: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => SettingsPage(
+            builder: (context) => InboxPage(
               userRating: userRating,
               username: username,
             ),

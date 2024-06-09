@@ -24,7 +24,8 @@ class BottomNav extends StatefulWidget {
   _BottomNavState createState() => _BottomNavState();
 }
 
-class _BottomNavState extends State<BottomNav> with SingleTickerProviderStateMixin {
+class _BottomNavState extends State<BottomNav>
+    with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
   bool _isDragging = false;
   late AnimationController _controller;
@@ -74,6 +75,7 @@ class _BottomNavState extends State<BottomNav> with SingleTickerProviderStateMix
                 builder: (context) => PollPage(
                   eventID: widget.eventID,
                   username: widget.username,
+                  rating: widget.rating,
                 ),
               ),
             );
@@ -154,10 +156,14 @@ class _BottomNavState extends State<BottomNav> with SingleTickerProviderStateMix
   int _calculateClosestIcon() {
     double radius = 40;
     List<Offset> iconPositions = [
-      Offset(radius + radius * cos(144 * pi / 180.0), radius + radius * sin(144 * pi / 180.0) - 220),
-      Offset(radius + radius * cos(36 * pi / 180.0), radius + radius * sin(36 * pi / 180.0) - 220),
-      Offset(radius + radius * cos(72 * pi / 180.0), radius + radius * sin(72 * pi / 180.0) - 220),
-      Offset(radius + radius * cos(108 * pi / 180.0), radius + radius * sin(108 * pi / 180.0) - 220),
+      Offset(radius + radius * cos(144 * pi / 180.0),
+          radius + radius * sin(144 * pi / 180.0) - 220),
+      Offset(radius + radius * cos(36 * pi / 180.0),
+          radius + radius * sin(36 * pi / 180.0) - 220),
+      Offset(radius + radius * cos(72 * pi / 180.0),
+          radius + radius * sin(72 * pi / 180.0) - 220),
+      Offset(radius + radius * cos(108 * pi / 180.0),
+          radius + radius * sin(108 * pi / 180.0) - 220),
     ];
 
     double minDistance = double.infinity;
@@ -227,7 +233,7 @@ class ArcNav extends StatelessWidget {
 
     return FadeTransition(
       opacity: animation,
-      child: Container(
+      child: SizedBox(
         width: 2 * radius,
         height: radius + 60, // Extra space for positioning
         child: Stack(
@@ -244,7 +250,8 @@ class ArcNav extends StatelessWidget {
     );
   }
 
-  Widget _buildIcon(BuildContext context, IconData icon, int index, double angle, double radius) {
+  Widget _buildIcon(BuildContext context, IconData icon, int index,
+      double angle, double radius) {
     double rad = angle * (pi / 180.0);
     return Positioned(
       left: radius + radius * cos(rad) - 25, // Center horizontally

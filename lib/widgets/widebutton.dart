@@ -22,10 +22,16 @@ class WideButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color:
-                rating != null ? getInterpolatedColor(rating!) : Colors.black,
-            borderRadius: BorderRadius.circular(12),
-          ),
+              color:
+                  rating != null ? getInterpolatedColor(rating!) : Colors.black,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: const [
+                BoxShadow(
+                  color: AppColors.shadow,
+                  blurRadius: 10,
+                  offset: Offset(0, 5),
+                ),
+              ]),
           child: Center(
             child: Text(
               buttonText,

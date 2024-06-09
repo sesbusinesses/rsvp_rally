@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
@@ -83,6 +84,12 @@ class CreateEventPageState extends State<CreateEventPage> {
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+    // Fetch host's first name and last name
+    DocumentSnapshot hostDoc =
+        await firestore.collection('Users').doc(widget.username).get();
+    String hostFirstName = hostDoc['FirstName'] ?? widget.username;
+    String hostLastName = hostDoc['LastName'] ?? '';
+
     // Collect phases
     List<Map<String, dynamic>> phases = phaseControllers.map((controller) {
       DateTime? startTime;
@@ -124,6 +131,18 @@ class CreateEventPageState extends State<CreateEventPage> {
       };
     }).toList();
 
+    // Create polls for each phase
+    Map<String, dynamic> polls = {};
+    for (var phase in phases) {
+      String pollQuestion = 'RSVP for ${phase['PhaseName']}';
+      polls[pollQuestion] = {
+        'Yes': [],
+        'No': [],
+        'CloseTime': Timestamp.fromDate(
+            DateTime.now().add(const Duration(days: 1))) // Example close time
+      };
+    }
+
     // Create event data
     Map<String, dynamic> eventData = {
       'EventName': eventNameController.text,
@@ -132,23 +151,25 @@ class CreateEventPageState extends State<CreateEventPage> {
       'Attendees': attendees,
       'Timeline': phases,
       'Notifications': notifications,
+      'Polls': polls,
     };
 
     try {
-      // Add event to Firestore and get the document reference
+      // Add event to Firestore
       DocumentReference eventDocRef =
           await firestore.collection('Events').add(eventData);
-
-      // Get the event ID from the document reference
       String eventID = eventDocRef.id;
 
       // Add the event ID to the 'Events' field for the host and each attendee
       WriteBatch batch = firestore.batch();
+
       // Add event to host
       DocumentReference hostDocRef =
           firestore.collection('Users').doc(widget.username);
       batch.update(hostDocRef, {
-        'Events': FieldValue.arrayUnion([eventID])
+        'Events': FieldValue.arrayUnion([eventID]),
+        'Messages': FieldValue.arrayUnion(
+            ['You have created event ${eventNameController.text}.'])
       });
 
       // Add event to attendees
@@ -156,7 +177,10 @@ class CreateEventPageState extends State<CreateEventPage> {
         DocumentReference userDocRef =
             firestore.collection('Users').doc(attendee);
         batch.update(userDocRef, {
-          'Events': FieldValue.arrayUnion([eventID])
+          'Events': FieldValue.arrayUnion([eventID]),
+          'Messages': FieldValue.arrayUnion([
+            '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!'
+          ])
         });
       }
 
@@ -178,6 +202,12 @@ class CreateEventPageState extends State<CreateEventPage> {
       });
 
       Navigator.pop(context);
+      Navigator.pop(context);
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return EventPage(
+          username: widget.username,
+        );
+      }));
     } catch (e) {
       // Show an error message
       ScaffoldMessenger.of(context).showSnackBar(
