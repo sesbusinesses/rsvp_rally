@@ -21,6 +21,25 @@ class _LogInState extends State<LogInPage> {
 
   TextEditingController useremailcontroller = TextEditingController();
   TextEditingController userpasswordcontroller = TextEditingController();
+  bool isLogin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    checkIfLogin();
+  }
+
+  void checkIfLogin() async {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user != null && mounted) {
+        final name = user.displayName ?? 'User';
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => EventPage(username: name)),
+        );
+      }
+    });
+  }
 
   userLogin() async {
     try {
@@ -30,7 +49,7 @@ class _LogInState extends State<LogInPage> {
       User? user = userCredential.user;
       final name = user?.displayName ?? 'User';
 
-      Navigator.push(context,
+      Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) => EventPage(username: name)));
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
