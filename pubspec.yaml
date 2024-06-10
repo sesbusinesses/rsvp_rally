@@ -63,6 +63,11 @@ dependencies:
   searchfield: ^1.0.3
   flutter_time_picker_spinner: ^2.0.0
 
+  #location
+  syncfusion_flutter_maps: ^25.2.7
+  permission_handler: ^8.2.5
+  geolocator: ^7.0.3
+
 
 
 dev_dependencies:
