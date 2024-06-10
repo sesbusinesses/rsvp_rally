@@ -351,6 +351,7 @@ class EditEventPageState extends State<EditEventPage> {
                                 attendees = newAttendees;
                               });
                             },
+                            existingAttendees: attendees,
                           ),
                           const SizedBox(
                               height: 10), // Add spacing before the button
