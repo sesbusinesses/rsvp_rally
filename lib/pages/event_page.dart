@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/create_event_button.dart';
 import 'package:rsvp_rally/widgets/eventcard.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
 import 'package:rsvp_rally/widgets/view_friends_button.dart';
-import 'package:rsvp_rally/pages/settings_page.dart';
 import 'package:rsvp_rally/widgets/view_settings_button.dart'; // Import the settings page
 
 class EventPage extends StatefulWidget {

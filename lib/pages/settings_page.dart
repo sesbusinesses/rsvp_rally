@@ -1,4 +1,7 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -102,7 +105,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _requestPermission() async {
     var status = await Permission.location.request();
     if (status.isGranted) {
-      print('Location permission granted');
+      if (kDebugMode) {
+        print('Location permission granted');
+      }
     } else if (status.isDenied) {
       _requestPermission();
     } else if (status.isPermanentlyDenied) {

@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/widgets/poll_card.dart';
 import 'package:rsvp_rally/widgets/bottomnav.dart';
-import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 
 class PollPage extends StatefulWidget {
@@ -33,11 +32,11 @@ class _PollPageState extends State<PollPage> {
 
   @override
   Widget build(BuildContext context) {
-    Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Event Poll'),
-        backgroundColor: Colors.transparent, // Transparent background for AppBar
+        backgroundColor:
+            Colors.transparent, // Transparent background for AppBar
         surfaceTintColor: Colors.transparent,
       ),
       body: Stack(
@@ -56,10 +55,12 @@ class _PollPageState extends State<PollPage> {
                       Map<String, dynamic>.from(data['Polls']);
 
                   return SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 120), // Padding to avoid overlap
+                    padding: const EdgeInsets.only(
+                        bottom: 120), // Padding to avoid overlap
                     child: Center(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -73,7 +74,7 @@ class _PollPageState extends State<PollPage> {
                                   'responses': entry.value,
                                 },
                               );
-                            }).toList(),
+                            }),
                             const SizedBox(height: 80), // Space at the bottom
                           ],
                         ),
