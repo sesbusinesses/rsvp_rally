@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rsvp_rally/pages/login_page.dart';
+import 'package:rsvp_rally/widgets/widebutton.dart';
 
 class SettingsPage extends StatefulWidget {
   final String username;
@@ -83,11 +84,19 @@ class _SettingsPageState extends State<SettingsPage> {
         'location': GeoPoint(position.latitude, position.longitude),
       }, SetOptions(merge: true));
     });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Location tracking enabled.')),
+    );
   }
 
   void _stopLocationTracking() {
     _positionStreamSubscription?.cancel();
     _positionStreamSubscription = null;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Location tracking stopped.')),
+    );
   }
 
   Future<void> _requestPermission() async {
@@ -147,19 +156,19 @@ class _SettingsPageState extends State<SettingsPage> {
               Center(
                 child: Column(
                   children: [
-                    ElevatedButton(
+                    WideButton(
+                      buttonText: 'Enable location tracking',
                       onPressed: _enableLocationTracking,
-                      child: const Text('Enable location tracking'),
                     ),
                     const SizedBox(height: 10),
-                    ElevatedButton(
+                    WideButton(
+                      buttonText: 'Stop location tracking',
                       onPressed: _stopLocationTracking,
-                      child: const Text('Stop location tracking'),
                     ),
                     const SizedBox(height: 10),
-                    ElevatedButton(
+                    WideButton(
+                      buttonText: 'Sign Out',
                       onPressed: _signOut,
-                      child: const Text('Sign Out'),
                     ),
                   ],
                 ),
