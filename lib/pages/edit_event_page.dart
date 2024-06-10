@@ -272,7 +272,8 @@ class EditEventPageState extends State<EditEventPage> {
             'Events': FieldValue.arrayRemove([eventID]),
             'Messages': FieldValue.arrayUnion([
               '$hostFirstName $hostLastName has cancelled ${eventNameController.text}.'
-            ])
+            ]),
+            'NewMessages': true,
           });
         }
 
@@ -283,7 +284,8 @@ class EditEventPageState extends State<EditEventPage> {
         batch.update(hostDocRef, {
           'Events': FieldValue.arrayRemove([eventID]),
           'Messages': FieldValue.arrayUnion(
-              ['You have deleted event ${eventNameController.text}.'])
+              ['You have deleted event ${eventNameController.text}.']),
+          'NewMessages': true,
         });
 
         // Delete the event document

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/widgets/message_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -53,58 +54,67 @@ class InboxPageState extends State<InboxPage> {
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inbox'),
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(
-                bottom: 70), // Add bottom padding to avoid overlap
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                return MessageCard(
-                  username: widget.username,
-                  rating: widget.userRating,
-                  message: messages[index],
-                );
-              },
-            ),
+    return PopScope(
+        onPopInvoked: (bool didPop) {
+          Future.delayed(Duration.zero, () {
+            Navigator.pop(context, true);
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return EventPage(username: widget.username);
+            }));
+          });
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Inbox'),
+            surfaceTintColor: Colors.transparent,
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              color: AppColors
-                  .light, // Light background color for the bottom section
-              padding: const EdgeInsets.only(bottom: 40.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Have any questions? ",
-                    style: TextStyle(fontSize: 16.0, color: AppColors.dark),
-                  ),
-                  GestureDetector(
-                    onTap: _launchURL,
-                    child: Text(
-                      "Visit our website",
-                      style: TextStyle(
-                        color: getInterpolatedColor(widget.userRating),
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  )
-                ],
+          body: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                    bottom: 70), // Add bottom padding to avoid overlap
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    return MessageCard(
+                      username: widget.username,
+                      rating: widget.userRating,
+                      message: messages[index],
+                    );
+                  },
+                ),
               ),
-            ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  color: AppColors
+                      .light, // Light background color for the bottom section
+                  padding: const EdgeInsets.only(bottom: 40.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Have any questions? ",
+                        style: TextStyle(fontSize: 16.0, color: AppColors.dark),
+                      ),
+                      GestureDetector(
+                        onTap: _launchURL,
+                        child: Text(
+                          "Visit our website",
+                          style: TextStyle(
+                            color: getInterpolatedColor(widget.userRating),
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        ));
   }
 }

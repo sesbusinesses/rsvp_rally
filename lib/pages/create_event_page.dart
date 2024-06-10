@@ -169,7 +169,8 @@ class CreateEventPageState extends State<CreateEventPage> {
       batch.update(hostDocRef, {
         'Events': FieldValue.arrayUnion([eventID]),
         'Messages': FieldValue.arrayUnion(
-            ['You have created event ${eventNameController.text}.'])
+            ['You\'ve successfully created ${eventNameController.text}.']),
+        'NewMessages': true,
       });
 
       // Add event to attendees
@@ -180,7 +181,8 @@ class CreateEventPageState extends State<CreateEventPage> {
           'Events': FieldValue.arrayUnion([eventID]),
           'Messages': FieldValue.arrayUnion([
             '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!'
-          ])
+          ]),
+          'NewMessages': true,
         });
       }
 
