@@ -9,8 +9,12 @@ class DataPusher {
       'FirstName': firstName,
       'LastName': lastName,
       'Rating': 0.99,
-      'Events': ['EAO5TLf41xsNEoL7FOVm'],
-      'Friends': ['spark259', 'sherwinnw22']
+      'Events': [],
+      'Friends': [],
+      'Messages': [
+        'Account created at ${DateTime.now()}! Welcome to RSVP Rally!'
+      ],
+      'NewMessages': true,
     };
     await _firestore.collection('Users').doc(username).set(newUser);
   }
