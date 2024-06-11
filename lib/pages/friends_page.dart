@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
+import 'package:rsvp_rally/widgets/view_settings_button.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/pages/add_friends_page.dart';
@@ -131,6 +132,11 @@ class FriendsPageState extends State<FriendsPage> {
           title: const Text('Your Profile'),
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
+          actions: <Widget>[
+            ViewSettingsButton(
+                username: widget.username,
+                userRating: 0.0), // Use the new settings button
+          ],
         ),
         body: Stack(children: [
           Center(
