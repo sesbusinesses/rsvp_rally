@@ -154,27 +154,6 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Have any questions? ",
-                    style: TextStyle(fontSize: 16.0, color: AppColors.dark),
-                  ),
-                  GestureDetector(
-                    onTap: _launchURL,
-                    child: Text(
-                      "Visit our website",
-                      style: TextStyle(
-                        color: getInterpolatedColor(widget.userRating),
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
               Center(
                 child: Column(
                   children: [
@@ -183,14 +162,32 @@ class _SettingsPageState extends State<SettingsPage> {
                       onPressed: _enableLocationTracking,
                     ),
                     const SizedBox(height: 10),
-                    WideButton(
-                      buttonText: 'Stop location tracking',
-                      onPressed: _stopLocationTracking,
-                    ),
                     const SizedBox(height: 10),
                     WideButton(
                       buttonText: 'Sign Out',
                       onPressed: _signOut,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Have any questions? ",
+                          style:
+                              TextStyle(fontSize: 16.0, color: AppColors.dark),
+                        ),
+                        GestureDetector(
+                          onTap: _launchURL,
+                          child: Text(
+                            "Visit our website",
+                            style: TextStyle(
+                              color: getInterpolatedColor(widget.userRating),
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
