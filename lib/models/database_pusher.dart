@@ -15,3 +15,28 @@ class DataPusher {
     await _firestore.collection('Users').doc(username).set(newUser);
   }
 }
+
+Future<void> sendMessage(String eventID, String username, String message) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DocumentReference chatRef = firestore.collection('Chats').doc(eventID);
+
+  try {
+    DocumentSnapshot chatSnapshot = await chatRef.get();
+
+    if (!chatSnapshot.exists) {
+      // Create a new document if it doesn't exist
+      await chatRef.set({
+        'EventID': eventID,
+        'Messages': []
+      });
+    }
+
+    // Update the Messages array
+    await chatRef.update({
+      'Messages': FieldValue.arrayUnion([{'$username': message}])
+    });
+  } catch (e) {
+    print('Error sending message: $e');
+  }
+}
+
