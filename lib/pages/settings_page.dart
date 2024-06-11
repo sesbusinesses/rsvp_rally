@@ -35,6 +35,11 @@ class _SettingsPageState extends State<SettingsPage> {
     _requestPermission();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  }
+
   Future<void> _launchURL() async {
     final Uri url = Uri.parse('https://sesbusinesses.me');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
@@ -88,18 +93,28 @@ class _SettingsPageState extends State<SettingsPage> {
       }, SetOptions(merge: true));
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Location tracking enabled.')),
-    );
+    if (mounted) {
+      _showSnackBar('Location tracking enabled.');
+    }
   }
 
   void _stopLocationTracking() {
     _positionStreamSubscription?.cancel();
     _positionStreamSubscription = null;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Location tracking stopped.')),
-    );
+    if (mounted) {
+      _showSnackBar('Location tracking stopped.');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    });
   }
 
   Future<void> _requestPermission() async {
@@ -117,11 +132,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _signOut() async {
     await FirebaseAuth.instance.signOut();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const LogInPage()),
-      (Route<dynamic> route) => false,
-    );
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LogInPage()),
+        (Route<dynamic> route) => false,
+      );
+    }
   }
 
   @override
@@ -187,7 +204,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void dispose() {
-    _stopLocationTracking();
+    _positionStreamSubscription?.cancel();
     super.dispose();
   }
 }
