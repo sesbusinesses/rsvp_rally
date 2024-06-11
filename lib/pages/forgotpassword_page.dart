@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';

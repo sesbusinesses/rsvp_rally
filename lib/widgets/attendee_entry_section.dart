@@ -9,12 +9,14 @@ class AttendeeEntrySection extends StatefulWidget {
   final double rating;
   final String username;
   final ValueChanged<List<String>> onAttendeesChanged;
+  final List<String>? existingAttendees;
 
   const AttendeeEntrySection({
     super.key,
     required this.rating,
     required this.username,
     required this.onAttendeesChanged,
+    this.existingAttendees,
   });
 
   @override
@@ -75,7 +77,9 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
             friendsData = friendsWithRatings;
             filteredFriends = friendsData;
             for (var friend in friendsData) {
-              selectedFriends[friend['username']] = false;
+              selectedFriends[friend['username']] =
+                  widget.existingAttendees?.contains(friend['username']) ??
+                      false;
             }
             log('Friends data with ratings: $friendsData');
           });

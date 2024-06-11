@@ -38,6 +38,7 @@ class _BottomNavState extends State<BottomNav> {
                 eventID: widget.eventID,
                 userRating: widget.rating,
               ),
+
             ),
           );
           break;
@@ -160,6 +161,7 @@ class _BottomNavState extends State<BottomNav> {
             color: selected ? Colors.grey[900] : Colors.grey[500],
           ),
         ],
+
       ),
     );
   }

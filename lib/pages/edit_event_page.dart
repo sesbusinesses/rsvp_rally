@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
@@ -423,6 +425,7 @@ class EditEventPageState extends State<EditEventPage> {
                                 attendees = newAttendees;
                               });
                             },
+                            existingAttendees: attendees,
                           ),
                           const SizedBox(
                               height: 10), // Add spacing before the button
