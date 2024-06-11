@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
 import 'package:rsvp_rally/widgets/bottomnav.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
@@ -244,6 +245,77 @@ class EditEventPageState extends State<EditEventPage> {
     }
   }
 
+  Future<void> deleteEvent(String eventID) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    // Fetch host's first name and last name
+    DocumentSnapshot hostDoc =
+        await firestore.collection('Users').doc(widget.username).get();
+    String hostFirstName = hostDoc['FirstName'] ?? widget.username;
+    String hostLastName = hostDoc['LastName'] ?? '';
+
+    try {
+      // Get the event document
+      DocumentSnapshot eventDoc =
+          await firestore.collection('Events').doc(eventID).get();
+
+      if (eventDoc.exists) {
+        Map<String, dynamic> eventData =
+            eventDoc.data() as Map<String, dynamic>;
+        List<dynamic> attendees = eventData['Attendees'] ?? [];
+
+        WriteBatch batch = firestore.batch();
+
+        // Remove the event ID from each attendee's event list
+        for (String attendee in attendees) {
+          DocumentReference userDocRef =
+              firestore.collection('Users').doc(attendee);
+          batch.update(userDocRef, {
+            'Events': FieldValue.arrayRemove([eventID]),
+            'Messages': FieldValue.arrayUnion([
+              '$hostFirstName $hostLastName has cancelled ${eventNameController.text}.'
+            ]),
+            'NewMessages': true,
+          });
+        }
+
+        // Remove the event ID from the host's event list
+        String hostName = eventData['HostName'];
+        DocumentReference hostDocRef =
+            firestore.collection('Users').doc(hostName);
+        batch.update(hostDocRef, {
+          'Events': FieldValue.arrayRemove([eventID]),
+          'Messages': FieldValue.arrayUnion(
+              ['You have deleted event ${eventNameController.text}.']),
+          'NewMessages': true,
+        });
+
+        // Delete the event document
+        DocumentReference eventDocRef =
+            firestore.collection('Events').doc(eventID);
+        batch.delete(eventDocRef);
+
+        // Commit the batch operation
+        await batch.commit();
+
+        Navigator.pop(context);
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EventPage(username: widget.username),
+          ),
+        );
+
+        print('Event deleted successfully.');
+      } else {
+        print('Event not found.');
+      }
+    } catch (e) {
+      print('Failed to delete event: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
@@ -361,6 +433,14 @@ class EditEventPageState extends State<EditEventPage> {
                             rating: widget.rating,
                             buttonText: 'Update Event',
                             onPressed: updateEvent,
+                          ),
+                          const SizedBox(height: 10),
+                          WideButton(
+                            rating: widget.rating,
+                            buttonText: 'Delete Event',
+                            onPressed: () async {
+                              await deleteEvent(widget.eventID);
+                            },
                           ),
                           const SizedBox(
                               height: 120), // Adjusted space at the bottom

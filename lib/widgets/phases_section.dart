@@ -54,6 +54,7 @@ class PhasesSection extends StatelessWidget {
             ),
             ...List.generate(phaseControllers.length, (index) {
               return PhaseEntryWidget(
+                rating: rating,
                 nameController: phaseControllers[index]['name']!,
                 locationController: phaseControllers[index]['location']!,
                 startTimeController: phaseControllers[index]['startTime']!,

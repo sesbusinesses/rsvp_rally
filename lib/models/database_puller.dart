@@ -2,6 +2,20 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+Future<List<Map<String, String>>> fetchChatMessages(String eventID) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  try {
+    DocumentSnapshot chatDoc = await firestore.collection('Chats').doc(eventID).get();
+    if (chatDoc.exists) {
+      List<dynamic> messages = chatDoc.get('Messages');
+      return messages.map((msg) => Map<String, String>.from(msg)).toList();
+    }
+  } catch (e) {
+    print('Error fetching chat messages: $e');
+  }
+  return [];
+}
+
 void fetchDataFromFirestore() async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 

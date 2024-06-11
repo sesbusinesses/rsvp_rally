@@ -129,7 +129,6 @@ class FriendsPageState extends State<FriendsPage> {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Your Profile'),
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           actions: <Widget>[

@@ -1,31 +1,26 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:omni_datetime_picker/omni_datetime_picker.dart';
+import 'package:rsvp_rally/models/colors.dart';
 
-Future<DateTime?> selectDateTime(BuildContext context) async {
-  final DateTime? pickedDate = await showDatePicker(
+Future<DateTime?> selectDateTime(BuildContext context, rating) async {
+  final DateTime? pickedDateTime = await showOmniDateTimePicker(
     context: context,
     initialDate: DateTime.now(),
-    firstDate: DateTime(2000),
+    firstDate: DateTime.now(),
     lastDate: DateTime(2101),
+    is24HourMode: false,
+    theme: ThemeData(
+      colorScheme: ColorScheme.fromSwatch().copyWith(
+        primary: getInterpolatedColor(rating),
+        onPrimary: AppColors.dark,
+        onSurface: AppColors.dark,
+        background: Colors.white,
+        surfaceTint: getInterpolatedColor(rating),
+      ),
+    ),
   );
 
-  if (pickedDate != null) {
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (pickedTime != null) {
-      return DateTime(
-        pickedDate.year,
-        pickedDate.month,
-        pickedDate.day,
-        pickedTime.hour,
-        pickedTime.minute,
-      );
-    }
-  }
-
-  return null;
+  return pickedDateTime;
 }
