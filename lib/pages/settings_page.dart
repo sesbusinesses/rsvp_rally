@@ -124,9 +124,13 @@ class _SettingsPageState extends State<SettingsPage> {
         print('Location permission granted');
       }
     } else if (status.isDenied) {
-      _requestPermission();
-    } else if (status.isPermanentlyDenied) {
-      openAppSettings();
+      try {
+        _requestPermission();
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error requesting location permission: $e');
+        }
+      }
     }
   }
 
