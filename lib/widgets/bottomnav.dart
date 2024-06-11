@@ -46,6 +46,7 @@ class _BottomNavState extends State<BottomNav> {
             context,
             MaterialPageRoute(
               builder: (context) => PollPage(
+                rating: widget.rating,
                 eventID: widget.eventID,
                 username: widget.username,
               ),
