@@ -54,6 +54,7 @@ class NotificationsSection extends StatelessWidget {
                 textController: notificationControllers[index]['text']!,
                 timeController: notificationControllers[index]['time']!,
                 onRemove: () => onRemoveNotification(index),
+                rating: rating,
               );
             }),
           ],

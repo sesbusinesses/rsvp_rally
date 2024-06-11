@@ -3,16 +3,18 @@ import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/time_picker.dart';
 
 class NotificationEntryWidget extends StatefulWidget {
+  final double rating;
   final TextEditingController textController;
   final TextEditingController timeController;
   final VoidCallback onRemove;
 
   const NotificationEntryWidget({
-    Key? key,
+    super.key,
+    required this.rating,
     required this.textController,
     required this.timeController,
     required this.onRemove,
-  }) : super(key: key);
+  });
 
   @override
   _NotificationEntryWidgetState createState() =>
@@ -30,11 +32,16 @@ class _NotificationEntryWidgetState extends State<NotificationEntryWidget> {
             hintText: 'Notification Text', controller: widget.textController),
         InkWell(
           onTap: () async {
-            DateTime? dateTime = await selectDateTime(context);
+            print('selecting date time');
+            DateTime? dateTime = await selectDateTime(context, widget.rating);
+            print('dateTime is $dateTime');
             if (dateTime != null) {
               setState(() {
                 selectedDateTime = dateTime;
+                print(
+                    'setting timeController to ${dateTime.toIso8601String()}');
                 widget.timeController.text = dateTime.toIso8601String();
+                print('timeController is now ${widget.timeController.text}');
               });
             }
           },

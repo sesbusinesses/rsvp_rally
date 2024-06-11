@@ -21,8 +21,7 @@ class UserRatingIndicator extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        boxShadow: const [
-        ],
+        boxShadow: const [],
       ),
       child: Stack(
         alignment: Alignment.center,

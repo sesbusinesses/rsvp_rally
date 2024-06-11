@@ -3,6 +3,7 @@ import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/time_picker.dart';
 
 class PhaseEntryWidget extends StatelessWidget {
+  final double rating;
   final TextEditingController nameController;
   final TextEditingController locationController;
   final TextEditingController startTimeController;
@@ -12,6 +13,7 @@ class PhaseEntryWidget extends StatelessWidget {
 
   const PhaseEntryWidget({
     super.key,
+    required this.rating,
     required this.nameController,
     required this.locationController,
     required this.startTimeController,
@@ -21,14 +23,14 @@ class PhaseEntryWidget extends StatelessWidget {
   });
 
   Future<void> _selectStartTime(BuildContext context) async {
-    DateTime? dateTime = await selectDateTime(context);
+    DateTime? dateTime = await selectDateTime(context, rating);
     if (dateTime != null) {
       startTimeController.text = dateTime.toIso8601String();
     }
   }
 
   Future<void> _selectEndTime(BuildContext context) async {
-    DateTime? dateTime = await selectDateTime(context);
+    DateTime? dateTime = await selectDateTime(context, rating);
     if (dateTime != null) {
       endTimeController.text = dateTime.toIso8601String();
     }
