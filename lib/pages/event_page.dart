@@ -4,7 +4,7 @@ import 'package:rsvp_rally/widgets/eventcard.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
 import 'package:rsvp_rally/widgets/view_friends_button.dart';
-import 'package:rsvp_rally/widgets/view_settings_button.dart'; // Import the settings page
+import 'package:rsvp_rally/widgets/view_inbox_button.dart'; // Import the settings page
 
 class EventPage extends StatefulWidget {
   final String username;
@@ -39,7 +39,8 @@ class EventPageState extends State<EventPage> {
         title: const Text('RSVP Rally'),
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
-        leading: ViewSettingsButton(
+        surfaceTintColor: Colors.transparent,
+        leading: ViewInboxButton(
             username: widget.username,
             userRating: userRating), // Use the new settings button
         actions: <Widget>[
@@ -58,17 +59,18 @@ class EventPageState extends State<EventPage> {
                       userRating), // This remains at the top, not scrollable
               Expanded(
                 child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: eventIds
-                        .map((eventId) => EventCard(
-                            eventID: eventId,
-                            userRating: userRating,
-                            username: widget.username))
-                        .toList(),
-                  ),
-                ),
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ...eventIds.map((eventId) => EventCard(
+                          eventID: eventId,
+                          userRating: userRating,
+                          username: widget.username,
+                        )),
+                    const SizedBox(height: 40),
+                  ],
+                )),
               ),
             ],
           ),
