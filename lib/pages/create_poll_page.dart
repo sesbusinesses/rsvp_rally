@@ -81,6 +81,33 @@ class CreatePollPageState extends State<CreatePollPage> {
           firestore.collection('Events').doc(widget.eventID);
       await eventDocRef.update({'Polls.$pollQuestion': pollData});
 
+      // Fetch the event data to get the attendees
+      DocumentSnapshot eventDoc = await eventDocRef.get();
+      Map<String, dynamic> eventData = eventDoc.data() as Map<String, dynamic>;
+      List<String> attendees = List<String>.from(eventData['Attendees'] ?? []);
+
+      // Create a message for the poll creation
+      Map<String, dynamic> pollMessage = {
+        'text':
+            'A new poll "$pollQuestion" has been created for the event "${eventData['EventName']}".',
+        'type': 'poll reminder',
+        'eventID': widget.eventID
+      };
+
+      // Send the message to each attendee
+      WriteBatch batch = firestore.batch();
+      for (String attendee in attendees) {
+        DocumentReference userDocRef =
+            firestore.collection('Users').doc(attendee);
+        batch.update(userDocRef, {
+          'Messages': FieldValue.arrayUnion([pollMessage]),
+          'NewMessages': true,
+        });
+      }
+
+      // Commit the batch
+      await batch.commit();
+
       // Show a confirmation message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Poll created successfully')),

@@ -28,8 +28,21 @@ class ViewInboxButton extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Icon(
-            Icons.mark_email_unread_rounded,
+            Icons.mark_email_read_rounded,
             color: getInterpolatedColor(userRating),
+            size: 50,
+          );
+        } else if (snapshot.hasError) {
+          return Icon(
+            Icons.error,
+            color: getInterpolatedColor(userRating),
+            size: 50,
+          );
+        } else if (!snapshot.hasData || !snapshot.data!.exists) {
+          return Icon(
+            Icons.mark_email_read_rounded,
+            color: getInterpolatedColor(userRating),
+            size: 50,
           );
         } else {
           DocumentSnapshot hostDoc = snapshot.data!;
@@ -51,8 +64,7 @@ class ViewInboxButton extends StatelessWidget {
                     username: username,
                   ),
                 ),
-              );
-              setNewMessagesFalse(context);
+              ).then((_) => setNewMessagesFalse(context));
             },
           );
         }

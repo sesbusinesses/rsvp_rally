@@ -273,7 +273,12 @@ class EditEventPageState extends State<EditEventPage> {
           batch.update(userDocRef, {
             'Events': FieldValue.arrayRemove([eventID]),
             'Messages': FieldValue.arrayUnion([
-              '$hostFirstName $hostLastName has cancelled ${eventNameController.text}.'
+              {
+                'text':
+                    '$hostFirstName $hostLastName has cancelled ${eventData['EventName']}.',
+                'type': 'event cancelled',
+                'eventID': eventID,
+              }
             ]),
             'NewMessages': true,
           });
@@ -285,8 +290,13 @@ class EditEventPageState extends State<EditEventPage> {
             firestore.collection('Users').doc(hostName);
         batch.update(hostDocRef, {
           'Events': FieldValue.arrayRemove([eventID]),
-          'Messages': FieldValue.arrayUnion(
-              ['You have deleted event ${eventNameController.text}.']),
+          'Messages': FieldValue.arrayUnion([
+            {
+              'text': 'You have deleted event ${eventData['EventName']}.',
+              'type': 'event cancelled',
+              'eventID': eventID,
+            }
+          ]),
           'NewMessages': true,
         });
 
