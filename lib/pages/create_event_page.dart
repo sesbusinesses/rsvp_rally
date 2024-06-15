@@ -162,6 +162,9 @@ class CreateEventPageState extends State<CreateEventPage> {
           await firestore.collection('Events').add(eventData);
       String eventID = eventDocRef.id;
 
+      // Create timestamp
+      Timestamp timestamp = Timestamp.now();
+
       // Add the event ID to the 'Events' field for the host and each attendee
       WriteBatch batch = firestore.batch();
 
@@ -174,13 +177,13 @@ class CreateEventPageState extends State<CreateEventPage> {
           {
             'text': 'You\'ve successfully created ${eventNameController.text}.',
             'type': 'event created',
-            'timestamp': FieldValue.serverTimestamp()
+            'timestamp': timestamp
           }
         ]),
         'NewMessages': true,
       });
 
-// Add event to attendees
+      // Add event to attendees
       for (String attendee in attendees) {
         DocumentReference userDocRef =
             firestore.collection('Users').doc(attendee);
@@ -192,7 +195,7 @@ class CreateEventPageState extends State<CreateEventPage> {
                   '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!',
               'type': 'event invitation',
               'eventID': eventID,
-              'timestamp': FieldValue.serverTimestamp()
+              'timestamp': timestamp
             }
           ]),
           'NewMessages': true,

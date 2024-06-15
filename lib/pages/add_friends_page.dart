@@ -70,6 +70,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
   Future<void> addFriend(String friendUsername) async {
     if (!friendsUsernames.contains(friendUsername)) {
       FirebaseFirestore firestore = FirebaseFirestore.instance;
+      Timestamp timestamp = Timestamp.now();
 
       // Add the current user to the friend's request list if not already present
       DocumentSnapshot friendDoc =
@@ -85,7 +86,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                 'text': 'Someone sent you a friend request!',
                 'type': 'friend request received',
                 'username': widget.username,
-                'timestamp': FieldValue.serverTimestamp()
+                'timestamp': timestamp,
               }
             ]),
             'NewMessages': true,
@@ -99,7 +100,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
               'text': 'Someone sent you a friend request!',
               'type': 'friend request received',
               'username': widget.username,
-              'timestamp': FieldValue.serverTimestamp()
+              'timestamp': timestamp,
             }
           ],
           'NewMessages': true,
@@ -115,7 +116,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
             'text': 'You sent a friend request to $friendUsername.',
             'type': 'friend request sent',
             'username': friendUsername,
-            'timestamp': FieldValue.serverTimestamp()
+            'timestamp': timestamp,
           }
         ]),
         'NewMessages': true,

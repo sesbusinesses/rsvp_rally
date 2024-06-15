@@ -25,6 +25,7 @@ class MessageCard extends StatefulWidget {
 class MessageCardState extends State<MessageCard> {
   Future<void> acceptFriendRequest(String friendUsername) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
+    Timestamp timestamp = Timestamp.now();
 
     // Add friend to user's friend list and send acceptance message
     DocumentReference userDocRef =
@@ -36,7 +37,7 @@ class MessageCardState extends State<MessageCard> {
           'text': 'You accepted the friend request from $friendUsername!',
           'type': 'friend request update',
           'username': friendUsername,
-          'timestamp': FieldValue.serverTimestamp()
+          'timestamp': timestamp,
         }
       ]),
       'Requests': FieldValue.arrayRemove([friendUsername]),
@@ -52,7 +53,7 @@ class MessageCardState extends State<MessageCard> {
           'text': '${widget.username} accepted your friend request!',
           'type': 'friend request update',
           'username': widget.username,
-          'timestamp': FieldValue.serverTimestamp()
+          'timestamp': timestamp,
         }
       ]),
       'Requests': FieldValue.arrayRemove([widget.username]),
@@ -64,6 +65,7 @@ class MessageCardState extends State<MessageCard> {
 
   Future<void> declineFriendRequest(String friendUsername) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
+    Timestamp timestamp = Timestamp.now();
 
     // Remove the friend request message from user's messages
     DocumentReference userDocRef =
@@ -74,7 +76,7 @@ class MessageCardState extends State<MessageCard> {
           'text': 'You have declined the friend request from $friendUsername.',
           'type': 'friend request update',
           'username': friendUsername,
-          'timestamp': FieldValue.serverTimestamp()
+          'timestamp': timestamp,
         }
       ]),
       'Requests': FieldValue.arrayRemove([friendUsername]),
@@ -89,7 +91,7 @@ class MessageCardState extends State<MessageCard> {
           'text': '${widget.username} has declined your friend request.',
           'type': 'friend request update',
           'username': widget.username,
-          'timestamp': FieldValue.serverTimestamp()
+          'timestamp': timestamp,
         }
       ]),
     });

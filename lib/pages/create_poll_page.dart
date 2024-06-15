@@ -87,12 +87,13 @@ class CreatePollPageState extends State<CreatePollPage> {
       List<String> attendees = List<String>.from(eventData['Attendees'] ?? []);
 
       // Create a message for the poll creation
+      Timestamp timestamp = Timestamp.now();
       Map<String, dynamic> pollMessage = {
         'text':
             'A new poll "$pollQuestion" has been created for the event "${eventData['EventName']}".',
         'type': 'poll reminder',
         'eventID': widget.eventID,
-        'timestamp': FieldValue.serverTimestamp()
+        'timestamp': timestamp
       };
 
       // Send the message to each attendee
