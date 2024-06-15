@@ -173,7 +173,8 @@ class CreateEventPageState extends State<CreateEventPage> {
         'Messages': FieldValue.arrayUnion([
           {
             'text': 'You\'ve successfully created ${eventNameController.text}.',
-            'type': 'event created'
+            'type': 'event created',
+            'timestamp': FieldValue.serverTimestamp()
           }
         ]),
         'NewMessages': true,
@@ -190,7 +191,8 @@ class CreateEventPageState extends State<CreateEventPage> {
               'text':
                   '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!',
               'type': 'event invitation',
-              'eventID': eventID
+              'eventID': eventID,
+              'timestamp': FieldValue.serverTimestamp()
             }
           ]),
           'NewMessages': true,

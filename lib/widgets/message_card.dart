@@ -36,6 +36,7 @@ class MessageCardState extends State<MessageCard> {
           'text': 'You accepted the friend request from $friendUsername!',
           'type': 'friend request update',
           'username': friendUsername,
+          'timestamp': FieldValue.serverTimestamp()
         }
       ]),
       'Requests': FieldValue.arrayRemove([friendUsername]),
@@ -51,6 +52,7 @@ class MessageCardState extends State<MessageCard> {
           'text': '${widget.username} accepted your friend request!',
           'type': 'friend request update',
           'username': widget.username,
+          'timestamp': FieldValue.serverTimestamp()
         }
       ]),
       'Requests': FieldValue.arrayRemove([widget.username]),
@@ -72,6 +74,7 @@ class MessageCardState extends State<MessageCard> {
           'text': 'You have declined the friend request from $friendUsername.',
           'type': 'friend request update',
           'username': friendUsername,
+          'timestamp': FieldValue.serverTimestamp()
         }
       ]),
       'Requests': FieldValue.arrayRemove([friendUsername]),
@@ -86,6 +89,7 @@ class MessageCardState extends State<MessageCard> {
           'text': '${widget.username} has declined your friend request.',
           'type': 'friend request update',
           'username': widget.username,
+          'timestamp': FieldValue.serverTimestamp()
         }
       ]),
     });
@@ -163,11 +167,17 @@ class MessageCardState extends State<MessageCard> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PollPage(
-                      username: widget.username,
-                      rating: widget.rating,
-                      eventID: widget.messageData['eventID'],
-                    ),
+                    builder: (context) => messageType == 'event invitation'
+                        ? DetailsPage(
+                            username: widget.username,
+                            userRating: widget.rating,
+                            eventID: widget.messageData['eventID'],
+                          )
+                        : PollPage(
+                            username: widget.username,
+                            rating: widget.rating,
+                            eventID: widget.messageData['eventID'],
+                          ),
                   ),
                 );
               },
@@ -194,18 +204,21 @@ class MessageCardState extends State<MessageCard> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                WideButton(
+                                Expanded(
+                                    child: WideButton(
                                   buttonText: 'Accept',
                                   rating: widget.rating,
                                   onPressed: () => acceptFriendRequest(
                                       widget.messageData['username']),
-                                ),
-                                WideButton(
+                                )),
+                                const SizedBox(width: 15),
+                                Expanded(
+                                    child: WideButton(
                                   buttonText: 'Decline',
                                   rating: widget.rating,
                                   onPressed: () => declineFriendRequest(
                                       widget.messageData['username']),
-                                ),
+                                )),
                               ],
                             ),
                           ],

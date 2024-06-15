@@ -91,7 +91,8 @@ class CreatePollPageState extends State<CreatePollPage> {
         'text':
             'A new poll "$pollQuestion" has been created for the event "${eventData['EventName']}".',
         'type': 'poll reminder',
-        'eventID': widget.eventID
+        'eventID': widget.eventID,
+        'timestamp': FieldValue.serverTimestamp()
       };
 
       // Send the message to each attendee

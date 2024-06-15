@@ -78,9 +78,10 @@ class AddFriendsPageState extends State<AddFriendsPage> {
             'Requests': friendRequestsList,
             'Messages': FieldValue.arrayUnion([
               {
-                'text': '${widget.username} sent you a friend request!',
+                'text': 'Someone sent you a friend request!',
                 'type': 'friend request received',
                 'username': widget.username,
+                'timestamp': FieldValue.serverTimestamp()
               }
             ]),
             'NewMessages': true,
@@ -91,9 +92,10 @@ class AddFriendsPageState extends State<AddFriendsPage> {
           'Requests': [widget.username],
           'Messages': [
             {
-              'text': '${widget.username} sent you a friend request!',
+              'text': 'Someone sent you a friend request!',
               'type': 'friend request received',
               'username': widget.username,
+              'timestamp': FieldValue.serverTimestamp()
             }
           ],
           'NewMessages': true,
@@ -109,6 +111,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
             'text': 'You sent a friend request to $friendUsername.',
             'type': 'friend request sent',
             'username': friendUsername,
+            'timestamp': FieldValue.serverTimestamp()
           }
         ]),
         'NewMessages': true,
@@ -145,14 +148,6 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                     hintText: 'Enter Username',
                     controller: searchController,
                   ),
-                  // TextField(
-                  //   controller: searchController,
-                  //   decoration: const InputDecoration(
-                  //     labelText: 'Enter Username',
-                  //     border: OutlineInputBorder(),
-                  //   ),
-                  //   onChanged: searchUsers,
-                  // ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.search),
