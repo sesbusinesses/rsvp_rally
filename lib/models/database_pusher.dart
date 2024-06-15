@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'dart:developer' as developer;
 
@@ -53,7 +55,8 @@ Future<String?> uploadChatPhotoBase64(XFile image) async {
   }
 }
 
-Future<void> sendMessageWithPhotoBase64(String eventID, String username, XFile image) async {
+Future<void> sendMessageWithPhotoBase64(
+    String eventID, String username, XFile image) async {
   String? base64Image = await uploadChatPhotoBase64(image);
   if (base64Image != null) {
     await FirebaseFirestore.instance.collection('Chats').doc(eventID).update({
@@ -77,10 +80,9 @@ Future<String?> uploadChatPhoto(String eventID, XFile image) async {
 
     // Create a unique reference in Firebase Storage
     String fileName = '${DateTime.now().millisecondsSinceEpoch}_${image.name}';
-    Reference storageRef = FirebaseStorage.instance
-        .ref()
-        .child('chat_photos/$eventID/$fileName');
-    
+    Reference storageRef =
+        FirebaseStorage.instance.ref().child('chat_photos/$eventID/$fileName');
+
     // Upload the file to Firebase Storage
     UploadTask uploadTask = storageRef.putFile(file);
     TaskSnapshot snapshot = await uploadTask.whenComplete(() {});
@@ -99,7 +101,8 @@ Future<String?> uploadChatPhoto(String eventID, XFile image) async {
   }
 }
 
-Future<void> sendMessageWithPhoto(String eventID, String username, XFile image) async {
+Future<void> sendMessageWithPhoto(
+    String eventID, String username, XFile image) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   DocumentReference chatRef = firestore.collection('Chats').doc(eventID);
 
@@ -112,25 +115,19 @@ Future<void> sendMessageWithPhoto(String eventID, String username, XFile image) 
 
     // Read the image file as a base64-encoded string
     String base64Image = base64Encode(await file.readAsBytes());
-    String photoDataUrl = 'data:image/${image.mimeType?.split('/')[1] ?? 'jpeg'};base64,$base64Image';
+    String photoDataUrl =
+        'data:image/${image.mimeType?.split('/')[1] ?? 'jpeg'};base64,$base64Image';
 
     // Check if the chat document exists, if not create it
     DocumentSnapshot chatSnapshot = await chatRef.get();
     if (!chatSnapshot.exists) {
-      await chatRef.set({
-        'EventID': eventID,
-        'Messages': []
-      });
+      await chatRef.set({'EventID': eventID, 'Messages': []});
     }
 
     // Add the photo data URL to the Messages array
     await chatRef.update({
       'Messages': FieldValue.arrayUnion([
-        {
-          'username': username,
-          'photoDataUrl': photoDataUrl,
-          'type': 'photo'
-        }
+        {'username': username, 'photoDataUrl': photoDataUrl, 'type': 'photo'}
       ])
     });
 
@@ -140,8 +137,8 @@ Future<void> sendMessageWithPhoto(String eventID, String username, XFile image) 
   }
 }
 
-
-Future<void> sendMessage(String eventID, String username, String message) async {
+Future<void> sendMessage(
+    String eventID, String username, String message) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   DocumentReference chatRef = firestore.collection('Chats').doc(eventID);
 

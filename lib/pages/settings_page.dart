@@ -23,6 +23,7 @@ class SettingsPage extends StatefulWidget {
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _SettingsPageState createState() => _SettingsPageState();
 }
 
@@ -95,15 +96,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (mounted) {
       _showSnackBar('Location tracking enabled.');
-    }
-  }
-
-  void _stopLocationTracking() {
-    _positionStreamSubscription?.cancel();
-    _positionStreamSubscription = null;
-
-    if (mounted) {
-      _showSnackBar('Location tracking stopped.');
     }
   }
 
