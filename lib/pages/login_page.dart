@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 
+bool isNavigating = false;
+
 class LogInPage extends StatefulWidget {
   const LogInPage({super.key});
 
@@ -33,7 +35,7 @@ class _LogInState extends State<LogInPage> {
 
   void checkIfLogin() async {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user != null && mounted) {
+      if (user != null && mounted && !isNavigating) {
         final name = user.displayName ?? 'User';
         Navigator.pushReplacement(
           context,
@@ -150,6 +152,9 @@ class _LogInState extends State<LogInPage> {
                   ),
                   GestureDetector(
                     onTap: () {
+                      setState(() {
+                        isNavigating = true;
+                      });
                       Navigator.push(
                           context,
                           MaterialPageRoute(
