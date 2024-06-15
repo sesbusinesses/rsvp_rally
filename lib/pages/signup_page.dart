@@ -5,6 +5,7 @@ import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/database_pusher.dart';
+import 'package:rsvp_rally/pages/login_page.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 
@@ -29,6 +30,17 @@ class _SignUpState extends State<SignUpPage> {
 
   final _formkey = GlobalKey<FormState>();
   final DataPusher _dataPusher = DataPusher();
+
+  @override
+  void dispose() {
+    isNavigating = false; // Reset the navigation flag
+    usernameController.dispose();
+    passwordController.dispose();
+    emailController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
+    super.dispose();
+  }
 
   registration() async {
     try {
