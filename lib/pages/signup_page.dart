@@ -31,7 +31,6 @@ class _SignUpState extends State<SignUpPage> {
   final DataPusher _dataPusher = DataPusher();
 
   registration() async {
-    // is this if really neccessary?
     try {
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
@@ -44,40 +43,44 @@ class _SignUpState extends State<SignUpPage> {
         // Call the method from DataPusher to create a new user in Firestore
         await _dataPusher.createNewUser(username, firstName, lastName);
 
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            backgroundColor: Colors.redAccent,
-            content: Text(
-              "Registered Successfully",
-              style: TextStyle(fontSize: 20.0),
-            )));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              backgroundColor: Colors.redAccent,
+              content: Text(
+                "Registered Successfully",
+                style: TextStyle(fontSize: 20.0),
+              )));
+        }
 
-        Navigator.push(
+        Navigator.pushReplacement(
             context,
             MaterialPageRoute(
                 builder: (context) => EventPage(username: username)));
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            backgroundColor: Colors.orangeAccent,
-            content: Text(
-              "Password has to be at least 6 characters",
-              style: TextStyle(fontSize: 18.0),
-            )));
-      } else if (e.code == "email-already-in-use") {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            backgroundColor: Colors.orangeAccent,
-            content: Text(
-              "Account Already exists",
-              style: TextStyle(fontSize: 18.0),
-            )));
-      } else if (e.code == "invalid-email") {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            backgroundColor: Colors.orangeAccent,
-            content: Text(
-              "The email address is badly formatted",
-              style: TextStyle(fontSize: 18.0),
-            )));
+      if (mounted) {
+        if (e.code == 'weak-password') {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              backgroundColor: Colors.orangeAccent,
+              content: Text(
+                "Password has to be at least 6 characters",
+                style: TextStyle(fontSize: 18.0),
+              )));
+        } else if (e.code == "email-already-in-use") {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              backgroundColor: Colors.orangeAccent,
+              content: Text(
+                "Account Already exists",
+                style: TextStyle(fontSize: 18.0),
+              )));
+        } else if (e.code == "invalid-email") {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              backgroundColor: Colors.orangeAccent,
+              content: Text(
+                "The email address is badly formatted",
+                style: TextStyle(fontSize: 18.0),
+              )));
+        }
       }
     }
   }
@@ -150,8 +153,8 @@ class _SignUpState extends State<SignUpPage> {
                       lastName = lastNameController.text;
                       password = passwordController.text;
                     });
+                    registration();
                   }
-                  registration();
                 },
               ),
             ],
