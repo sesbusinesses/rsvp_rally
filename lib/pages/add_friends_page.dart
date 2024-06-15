@@ -31,7 +31,11 @@ class AddFriendsPageState extends State<AddFriendsPage> {
     QuerySnapshot querySnapshot = await firestore.collection('Users').get();
 
     setState(() {
-      allUsernames = querySnapshot.docs.map((doc) => doc.id).toList();
+      allUsernames = querySnapshot.docs
+          .map((doc) => doc.id)
+          .where(
+              (username) => username != widget.username) // Exclude own username
+          .toList();
     });
   }
 
