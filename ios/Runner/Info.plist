@@ -51,5 +51,11 @@
 	<string>Your location is used to enhance event coordination and provide accurate event updates.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Your location is used to enhance event coordination and provide accurate event updates.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to upload photos.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to take photos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need permission to save photos to your library.</string>
 </dict>
 </plist>
