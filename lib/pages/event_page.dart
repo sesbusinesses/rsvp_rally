@@ -4,7 +4,7 @@ import 'package:rsvp_rally/widgets/eventcard.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
 import 'package:rsvp_rally/widgets/view_friends_button.dart';
-import 'package:rsvp_rally/widgets/view_inbox_button.dart'; // Import the settings page
+import 'package:rsvp_rally/widgets/view_inbox_button.dart';
 
 class EventPage extends StatefulWidget {
   final String username;
@@ -28,8 +28,11 @@ class EventPageState extends State<EventPage> {
   Future<void> loadEvents() async {
     eventIds = await getUserEvents(widget.username);
     double? fetchedRating = await getUserRating(widget.username);
-    userRating = fetchedRating ?? 0;
-    setState(() {});
+    if (mounted) {
+      setState(() {
+        userRating = fetchedRating ?? 0;
+      });
+    }
   }
 
   @override

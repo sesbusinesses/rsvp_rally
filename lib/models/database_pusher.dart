@@ -18,9 +18,14 @@ class DataPusher {
       'Events': [],
       'Friends': [],
       'Messages': [
-        'Account created at ${DateTime.now()}! Welcome to RSVP Rally!'
+        {
+          'text':
+              'Account created at ${DateTime.now()}! Welcome to RSVP Rally!',
+          'type': 'account creation',
+        }
       ],
       'NewMessages': true,
+      'Requests': [],
     };
     await _firestore.collection('Users').doc(username).set(newUser);
   }
@@ -145,18 +150,16 @@ Future<void> sendMessage(String eventID, String username, String message) async 
 
     if (!chatSnapshot.exists) {
       // Create a new document if it doesn't exist
-      await chatRef.set({
-        'EventID': eventID,
-        'Messages': []
-      });
+      await chatRef.set({'EventID': eventID, 'Messages': []});
     }
 
     // Update the Messages array
     await chatRef.update({
-      'Messages': FieldValue.arrayUnion([{'$username': message}])
+      'Messages': FieldValue.arrayUnion([
+        {username: message}
+      ])
     });
   } catch (e) {
     print('Error sending message: $e');
   }
 }
-

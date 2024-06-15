@@ -170,19 +170,30 @@ class CreateEventPageState extends State<CreateEventPage> {
           firestore.collection('Users').doc(widget.username);
       batch.update(hostDocRef, {
         'Events': FieldValue.arrayUnion([eventID]),
-        'Messages': FieldValue.arrayUnion(
-            ['You\'ve successfully created ${eventNameController.text}.']),
+        'Messages': FieldValue.arrayUnion([
+          {
+            'text': 'You\'ve successfully created ${eventNameController.text}.',
+            'type': 'event created',
+            'timestamp': FieldValue.serverTimestamp()
+          }
+        ]),
         'NewMessages': true,
       });
 
-      // Add event to attendees
+// Add event to attendees
       for (String attendee in attendees) {
         DocumentReference userDocRef =
             firestore.collection('Users').doc(attendee);
         batch.update(userDocRef, {
           'Events': FieldValue.arrayUnion([eventID]),
           'Messages': FieldValue.arrayUnion([
-            '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!'
+            {
+              'text':
+                  '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!',
+              'type': 'event invitation',
+              'eventID': eventID,
+              'timestamp': FieldValue.serverTimestamp()
+            }
           ]),
           'NewMessages': true,
         });

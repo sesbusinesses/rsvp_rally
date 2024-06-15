@@ -20,7 +20,7 @@ class InboxPage extends StatefulWidget {
 }
 
 class InboxPageState extends State<InboxPage> {
-  List<String> messages = [];
+  List<Map<String, dynamic>> messages = [];
 
   @override
   void initState() {
@@ -37,7 +37,7 @@ class InboxPageState extends State<InboxPage> {
       Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
       List<dynamic> userMessages = userData['Messages'] ?? [];
       setState(() {
-        messages = List<String>.from(userMessages);
+        messages = List<Map<String, dynamic>>.from(userMessages);
       });
     }
 
@@ -55,66 +55,67 @@ class InboxPageState extends State<InboxPage> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return PopScope(
-        onPopInvoked: (bool didPop) {
-          Future.delayed(Duration.zero, () {
-            Navigator.pop(context, true);
-            Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return EventPage(username: widget.username);
-            }));
-          });
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('Inbox'),
-            surfaceTintColor: Colors.transparent,
-          ),
-          body: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                    bottom: 70), // Add bottom padding to avoid overlap
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    return MessageCard(
-                      username: widget.username,
-                      rating: widget.userRating,
-                      message: messages[index],
-                    );
-                  },
-                ),
+      onPopInvoked: (bool didPop) {
+        Future.delayed(Duration.zero, () {
+          Navigator.pop(context, true);
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return EventPage(username: widget.username);
+          }));
+        });
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Inbox'),
+          surfaceTintColor: Colors.transparent,
+        ),
+        body: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                  bottom: 70), // Add bottom padding to avoid overlap
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16.0),
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  return MessageCard(
+                    username: widget.username,
+                    rating: widget.userRating,
+                    messageData: messages[index],
+                  );
+                },
               ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  color: AppColors
-                      .light, // Light background color for the bottom section
-                  padding: const EdgeInsets.only(bottom: 40.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Have any questions? ",
-                        style: TextStyle(fontSize: 16.0, color: AppColors.dark),
-                      ),
-                      GestureDetector(
-                        onTap: _launchURL,
-                        child: Text(
-                          "Visit our website",
-                          style: TextStyle(
-                            color: getInterpolatedColor(widget.userRating),
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                          ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                color: AppColors
+                    .light, // Light background color for the bottom section
+                padding: const EdgeInsets.only(bottom: 40.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Have any questions? ",
+                      style: TextStyle(fontSize: 16.0, color: AppColors.dark),
+                    ),
+                    GestureDetector(
+                      onTap: _launchURL,
+                      child: Text(
+                        "Visit our website",
+                        style: TextStyle(
+                          color: getInterpolatedColor(widget.userRating),
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
                         ),
-                      )
-                    ],
-                  ),
+                      ),
+                    )
+                  ],
                 ),
               ),
-            ],
-          ),
-        ));
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

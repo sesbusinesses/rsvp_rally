@@ -134,7 +134,7 @@ class FriendsPageState extends State<FriendsPage> {
           actions: <Widget>[
             ViewSettingsButton(
                 username: widget.username,
-                userRating: 0.0), // Use the new settings button
+                userRating: widget.rating), // Use the new settings button
           ],
         ),
         body: Stack(children: [

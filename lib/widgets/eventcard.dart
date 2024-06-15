@@ -37,12 +37,14 @@ class EventCardState extends State<EventCard> {
 
     if (eventDoc.exists) {
       Map<String, dynamic> data = eventDoc.data() as Map<String, dynamic>;
-      setState(() {
-        eventName = data['EventName'] ?? "Event Name Not Found";
-        Timestamp startTime = data['Timeline'][0]['StartTime'];
-        DateTime date = startTime.toDate();
-        eventDate = "${_monthToString(date.month)} ${date.day}";
-      });
+      if (mounted) {
+        setState(() {
+          eventName = data['EventName'] ?? "Event Name Not Found";
+          Timestamp startTime = data['Timeline'][0]['StartTime'];
+          DateTime date = startTime.toDate();
+          eventDate = "${_monthToString(date.month)} ${date.day}";
+        });
+      }
     } else {
       log("Event not found");
     }
