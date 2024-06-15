@@ -70,6 +70,7 @@ dependencies:
   syncfusion_flutter_maps: ^25.2.7
   permission_handler: ^8.2.5
   geolocator: ^7.0.3
+  firebase_storage: ^11.7.7
 
 
 
