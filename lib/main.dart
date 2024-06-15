@@ -24,6 +24,7 @@ Future<void> main() async {
   // Listen to background notifications
   FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundMessage);
 
+/*
   // to handle foreground notifications
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     String payloadData = jsonEncode(message.data);
@@ -43,6 +44,7 @@ Future<void> main() async {
   if (message != null) {
     print("Launched from terminated state");
   }
+  */
   runApp(const MyApp());
 }
 
