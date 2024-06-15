@@ -1,4 +1,4 @@
-import 'dart:convert';
+//import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +10,7 @@ import 'firebase_options.dart';
 // function to lisen to background changes (can be deleted)
 Future _firebaseBackgroundMessage(RemoteMessage message) async {
   if (message.notification != null) {
+    // ignore: avoid_print
     print("Some notification Received");
   }
 }

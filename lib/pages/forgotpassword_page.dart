@@ -111,10 +111,10 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    const EventPage(username: 'bossman5960')));
+                                    const EventPage(username: 'SES')));
                         logAllUsers();
                       },
-                      child: const Text("Create Bossman",
+                      child: const Text("Login as SES",
                           style: TextStyle(
                             color: AppColors.link,
                             fontSize: 16.0,
