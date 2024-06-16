@@ -76,11 +76,11 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
                 _buildMessageInputArea(),
-                SizedBox(height: 60),
+                SizedBox(height: 50),
               ],
             ),
             Positioned(
-              bottom: 0,
+              bottom: -10,
               left: 0,
               right: 0,
               child: BottomNav(
