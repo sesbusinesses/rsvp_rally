@@ -60,14 +60,14 @@ class _LogInState extends State<LogInPage> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
             "No User Found for that Email",
-            style: TextStyle(fontSize: 18.0, color: Colors.black),
+            style: TextStyle(fontSize: 18.0, color: AppColors.dark),
           ),
         ));
       } else if (e.code == 'wrong-password') {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text(
           "Wrong Password Provided by User",
-          style: TextStyle(fontSize: 18.0, color: Colors.black),
+          style: TextStyle(fontSize: 18.0, color: AppColors.dark),
         )));
       }
     }
