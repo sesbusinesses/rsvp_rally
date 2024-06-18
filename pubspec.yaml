@@ -40,6 +40,7 @@ dependencies:
   cloud_firestore: ^4.17.3  # Check for the latest version on pub.dev
   semicircle_indicator: ^1.1.1
   timeline_tile: ^2.0.0
+  flutter_chat_ui: ^1.6.13
   file_picker: ^8.0.3
   image_picker: ^1.1.1
   open_filex: ^4.4.0
@@ -52,6 +53,7 @@ dependencies:
   mime: any
   equatable: any
   meta: any
+  flutter_link_previewer: any
   flutter_parsed_text: any
   url_launcher: any
   photo_view: any
@@ -65,15 +67,12 @@ dependencies:
   omni_datetime_picker: ^1.1.0
 
   #location
+  syncfusion_flutter_maps: ^25.2.7
   permission_handler: ^8.2.5
   geolocator: ^7.0.3
   firebase_storage: ^11.7.7
   firebase_messaging: ^14.9.4
   flutter_local_notifications: ^17.1.2
-  google_maps_flutter: ^2.2.3  # For Google Maps
-  google_maps_webservice: ^0.0.20-nullsafety.0  # For Places API with null safety
-  syncfusion_flutter_maps: ^20.4.50  # Compatible with http 0.13.x
-  provider: ^6.0.5
 
 
 
