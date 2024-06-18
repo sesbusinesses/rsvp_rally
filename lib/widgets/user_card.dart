@@ -9,10 +9,7 @@ class UserCard extends StatefulWidget {
   final Icon? icon;
 
   const UserCard(
-      {super.key,
-      required this.username,
-      this.showUsername = true,
-      this.icon = const Icon(Icons.add)});
+      {super.key, required this.username, this.showUsername = true, this.icon});
 
   @override
   UserCardState createState() => UserCardState();
