@@ -32,10 +32,10 @@ class NotificationService {
       android: initializationSettingsAndroid,
     );
 
-    await getFCMToken();
-    print('got token');
-
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+    await getFCMToken();
+    print('Token obtained successfully');
 
     // Configure foreground notifications
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -55,16 +55,16 @@ class NotificationService {
     await _firebaseMessaging.subscribeToTopic('all');
   }
 
-  // get the fcm device token
+  // Get the FCM device token
   static Future<String?> getFCMToken({int maxRetries = 3}) async {
     try {
       final token = await _firebaseMessaging.getToken();
-      print("for android device Token: $token");
+      print("Device Token: $token");
       return token;
     } catch (e) {
-      print("failed to get device token");
+      print("Failed to get device token: $e");
       if (maxRetries > 0) {
-        print("try after 10 sec");
+        print("Retrying after 10 seconds...");
         await Future.delayed(const Duration(seconds: 10));
         return getFCMToken(maxRetries: maxRetries - 1);
       } else {
