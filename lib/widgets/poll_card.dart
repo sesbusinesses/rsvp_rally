@@ -99,7 +99,7 @@ class _PollCardState extends State<PollCard> {
                   padding: const EdgeInsets.only(top: 5, bottom: 10.0),
                   child: Text(
                     voterNames.join(', '),
-                    style: const TextStyle(color: AppColors.accent),
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ),
             ],
@@ -177,7 +177,7 @@ class _PollCardState extends State<PollCard> {
                   "Poll responses locked at $formattedCloseTime",
                   style: const TextStyle(
                     fontStyle: FontStyle.italic,
-                    color: AppColors.accent,
+                    color: Colors.grey,
                   ),
                 ),
               ],

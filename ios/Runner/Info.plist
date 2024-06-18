@@ -57,5 +57,9 @@
 	<string>We need access to your camera to take photos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We need permission to save photos to your library.</string>
+	<key>MinimumOSVersion</key>
+	<string>14.0</string>
+	<key>GMSPlacesAPIKey</key>
+	<string>$(GMS_API_KEY)</string>
 </dict>
 </plist>

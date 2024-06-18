@@ -1,15 +1,10 @@
-// ignore_for_file: avoid_print
-
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-Future<List<Map<String, dynamic>>> fetchChatMessagesWithPhotos(
-    String eventID) async {
+Future<List<Map<String, dynamic>>> fetchChatMessagesWithPhotos(String eventID) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   try {
-    DocumentSnapshot chatDoc =
-        await firestore.collection('Chats').doc(eventID).get();
+    DocumentSnapshot chatDoc = await firestore.collection('Chats').doc(eventID).get();
     if (chatDoc.exists) {
       List<dynamic> messages = chatDoc.get('Messages');
       return messages.map((msg) => Map<String, dynamic>.from(msg)).toList();
@@ -23,8 +18,7 @@ Future<List<Map<String, dynamic>>> fetchChatMessagesWithPhotos(
 Future<List<Map<String, String>>> fetchChatMessages(String eventID) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   try {
-    DocumentSnapshot chatDoc =
-        await firestore.collection('Chats').doc(eventID).get();
+    DocumentSnapshot chatDoc = await firestore.collection('Chats').doc(eventID).get();
     if (chatDoc.exists) {
       List<dynamic> messages = chatDoc.get('Messages');
       return messages.map((msg) => Map<String, String>.from(msg)).toList();
@@ -149,6 +143,71 @@ Future<double?> getUserRating(String username) async {
   } catch (e) {
     log("Error fetching user rating: $e");
     return null; // Return null in case of any errors
+  }
+}
+
+Future<String?> getFullName(String username) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  try {
+    // Access the user's document by the username
+    DocumentSnapshot userDoc =
+        await firestore.collection('Users').doc(username).get();
+
+    if (!userDoc.exists) {
+      log("No user found with username $username");
+      return null; // Return null if the user doesn't exist
+    }
+
+    // Extract the first name and last name from the document
+    String firstName = userDoc.get('FirstName') ?? '';
+    String lastName = userDoc.get('LastName') ?? '';
+
+    // Combine to form the full name
+    String fullName = '$firstName $lastName'.trim();
+    return fullName.isNotEmpty ? fullName : null;
+  } catch (e) {
+    log("Error fetching full name: $e");
+    return null; // Return null in case of any errors
+  }
+}
+
+Future<String?> getUsername(String username) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  try {
+    // Check if the user's document exists by the username
+    DocumentSnapshot userDoc =
+        await firestore.collection('Users').doc(username).get();
+
+    if (!userDoc.exists) {
+      log("No user found with username $username");
+      return null; // Return null if the user doesn't exist
+    }
+
+    return username; // The document ID is the username
+  } catch (e) {
+    log("Error fetching username: $e");
+    return null; // Return null in case of any errors
+  }
+}
+
+Future<String?> pullProfilePicture(String username) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  try {
+    DocumentSnapshot userDoc = await firestore.collection('Users').doc(username).get();
+
+    if (!userDoc.exists) {
+      print("No user found with username $username");
+      return null;
+    }
+
+    String? profilePic = userDoc.get('ProfilePic');
+    return profilePic;
+  } catch (e) {
+    print('Error fetching profile picture: $e');
+    return null;
   }
 }
 
