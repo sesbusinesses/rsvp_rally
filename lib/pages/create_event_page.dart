@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
@@ -9,13 +7,17 @@ import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/phases_section.dart';
 import 'package:rsvp_rally/widgets/notifications_section.dart';
+import 'package:rsvp_rally/widgets/places_autocomplete.dart'; // Import the PlacesAutocomplete widget
 
 class CreateEventPage extends StatefulWidget {
   final String username;
   final double rating;
 
-  const CreateEventPage(
-      {super.key, required this.username, required this.rating});
+  const CreateEventPage({
+    super.key,
+    required this.username,
+    required this.rating,
+  });
 
   @override
   CreateEventPageState createState() => CreateEventPageState();
@@ -24,15 +26,24 @@ class CreateEventPage extends StatefulWidget {
 class CreateEventPageState extends State<CreateEventPage> {
   final TextEditingController eventNameController = TextEditingController();
   final TextEditingController eventDetailsController = TextEditingController();
-  List<Map<String, TextEditingController>> phaseControllers = [];
+  List<Map<String, dynamic>> phaseControllers = [];
   List<Map<String, TextEditingController>> notificationControllers = [];
   List<String> attendees = [];
+  String? apiKey;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load the API key from environment
+    apiKey = const String.fromEnvironment('GMS_API_KEY');
+  }
 
   void addPhase() {
     setState(() {
       phaseControllers.add({
         'name': TextEditingController(),
-        'location': TextEditingController(),
+        'location': '',
+        'placeId': '',
         'startTime': TextEditingController(),
         'endTime': TextEditingController(),
       });
@@ -42,7 +53,6 @@ class CreateEventPageState extends State<CreateEventPage> {
   void removePhase(int index) {
     setState(() {
       phaseControllers[index]['name']?.dispose();
-      phaseControllers[index]['location']?.dispose();
       phaseControllers[index]['startTime']?.dispose();
       phaseControllers[index]['endTime']?.dispose();
       phaseControllers.removeAt(index);
@@ -87,8 +97,7 @@ class CreateEventPageState extends State<CreateEventPage> {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     // Fetch host's first name and last name
-    DocumentSnapshot hostDoc =
-        await firestore.collection('Users').doc(widget.username).get();
+    DocumentSnapshot hostDoc = await firestore.collection('Users').doc(widget.username).get();
     String hostFirstName = hostDoc['FirstName'] ?? widget.username;
     String hostLastName = hostDoc['LastName'] ?? '';
 
@@ -109,15 +118,15 @@ class CreateEventPageState extends State<CreateEventPage> {
 
       return {
         'PhaseName': controller['name']!.text,
-        'PhaseLocation': controller['location']!.text,
+        'PhaseLocation': controller['location'],
+        'PlaceID': controller['placeId'],
         'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
         'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
       };
     }).toList();
 
     // Collect notifications
-    List<Map<String, dynamic>> notifications =
-        notificationControllers.map((controller) {
+    List<Map<String, dynamic>> notifications = notificationControllers.map((controller) {
       DateTime? notificationTime;
       try {
         notificationTime = DateTime.parse(controller['time']!.text);
@@ -140,8 +149,7 @@ class CreateEventPageState extends State<CreateEventPage> {
       polls[pollQuestion] = {
         'Yes': [],
         'No': [],
-        'CloseTime': Timestamp.fromDate(
-            DateTime.now().add(const Duration(days: 1))) // Example close time
+        'CloseTime': Timestamp.fromDate(DateTime.now().add(const Duration(days: 1))), // Example close time
       };
     }
 
@@ -158,8 +166,7 @@ class CreateEventPageState extends State<CreateEventPage> {
 
     try {
       // Add event to Firestore
-      DocumentReference eventDocRef =
-          await firestore.collection('Events').add(eventData);
+      DocumentReference eventDocRef = await firestore.collection('Events').add(eventData);
       String eventID = eventDocRef.id;
 
       // Create timestamp
@@ -169,15 +176,14 @@ class CreateEventPageState extends State<CreateEventPage> {
       WriteBatch batch = firestore.batch();
 
       // Add event to host
-      DocumentReference hostDocRef =
-          firestore.collection('Users').doc(widget.username);
+      DocumentReference hostDocRef = firestore.collection('Users').doc(widget.username);
       batch.update(hostDocRef, {
         'Events': FieldValue.arrayUnion([eventID]),
         'Messages': FieldValue.arrayUnion([
           {
             'text': 'You\'ve successfully created ${eventNameController.text}.',
             'type': 'event created',
-            'timestamp': timestamp
+            'timestamp': timestamp,
           }
         ]),
         'NewMessages': true,
@@ -185,8 +191,7 @@ class CreateEventPageState extends State<CreateEventPage> {
 
       // Add event to attendees
       for (String attendee in attendees) {
-        DocumentReference userDocRef =
-            firestore.collection('Users').doc(attendee);
+        DocumentReference userDocRef = firestore.collection('Users').doc(attendee);
         batch.update(userDocRef, {
           'Events': FieldValue.arrayUnion([eventID]),
           'Messages': FieldValue.arrayUnion([
@@ -195,7 +200,7 @@ class CreateEventPageState extends State<CreateEventPage> {
                   '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!',
               'type': 'event invitation',
               'eventID': eventID,
-              'timestamp': timestamp
+              'timestamp': timestamp,
             }
           ]),
           'NewMessages': true,
@@ -222,9 +227,7 @@ class CreateEventPageState extends State<CreateEventPage> {
       Navigator.pop(context);
       Navigator.pop(context);
       Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return EventPage(
-          username: widget.username,
-        );
+        return EventPage(username: widget.username);
       }));
     } catch (e) {
       // Show an error message
@@ -246,12 +249,10 @@ class CreateEventPageState extends State<CreateEventPage> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.only(
-                bottom: 70), // Add bottom padding to avoid overlap
+            padding: const EdgeInsets.only(bottom: 70), // Add bottom padding to avoid overlap
             child: Center(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -276,8 +277,7 @@ class CreateEventPageState extends State<CreateEventPage> {
                       ),
                       child: Column(
                         children: [
-                          const Text('Event Name',
-                              style: TextStyle(fontSize: 20)),
+                          const Text('Event Name', style: TextStyle(fontSize: 20)),
                           WideTextBox(
                             hintText: 'Event Name',
                             controller: eventNameController,
@@ -286,11 +286,76 @@ class CreateEventPageState extends State<CreateEventPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    PhasesSection(
-                      rating: widget.rating,
-                      phaseControllers: phaseControllers,
-                      onAddPhase: addPhase,
-                      onRemovePhase: removePhase,
+                    Column(
+                      children: phaseControllers.map((controller) {
+                        int index = phaseControllers.indexOf(controller);
+                        return Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 10, horizontal: screenSize.width * 0.05),
+                          width: screenSize.width * 0.95,
+                          decoration: BoxDecoration(
+                            color: AppColors.light,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(
+                              color: getInterpolatedColor(widget.rating),
+                              width: AppColors.borderWidth,
+                            ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: AppColors.shadow,
+                                blurRadius: 10,
+                                offset: Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Phase Name', style: TextStyle(fontSize: 18)),
+                              WideTextBox(
+                                hintText: 'Phase Name',
+                                controller: controller['name'],
+                              ),
+                              const SizedBox(height: 10),
+                              const Text('Phase Location', style: TextStyle(fontSize: 18)),
+                              if (apiKey != null)
+                                PlacesAutocomplete(
+                                  apiKey: apiKey!,
+                                  onPlaceSelected: (placeId, description) {
+                                    setState(() {
+                                      controller['location'] = description;
+                                      controller['placeId'] = placeId;
+                                    });
+                                  },
+                                )
+                              else
+                                const Text('API Key not found. Please check your configuration.'),
+                              const SizedBox(height: 10),
+                              const Text('Start Time', style: TextStyle(fontSize: 18)),
+                              WideTextBox(
+                                hintText: 'YYYY-MM-DD HH:MM',
+                                controller: controller['startTime'],
+                              ),
+                              const SizedBox(height: 10),
+                              const Text('End Time', style: TextStyle(fontSize: 18)),
+                              WideTextBox(
+                                hintText: 'YYYY-MM-DD HH:MM',
+                                controller: controller['endTime'],
+                              ),
+                              const SizedBox(height: 10),
+                              TextButton(
+                                onPressed: () => removePhase(index),
+                                child: const Text('Remove Phase'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: addPhase,
+                      child: const Text('Add Phase'),
                     ),
                     const SizedBox(height: 10),
                     Container(
@@ -298,7 +363,7 @@ class CreateEventPageState extends State<CreateEventPage> {
                           vertical: 10, horizontal: screenSize.width * 0.05),
                       width: screenSize.width * 0.95,
                       decoration: BoxDecoration(
-                        color: AppColors.light, // Dark background color
+                        color: AppColors.light,
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
                           color: getInterpolatedColor(widget.rating),
@@ -314,8 +379,7 @@ class CreateEventPageState extends State<CreateEventPage> {
                       ),
                       child: Column(
                         children: [
-                          const Text('Additional Details',
-                              style: TextStyle(fontSize: 20)),
+                          const Text('Additional Details', style: TextStyle(fontSize: 20)),
                           WideTextBox(
                             hintText: 'Event Details',
                             controller: eventDetailsController,
@@ -341,8 +405,7 @@ class CreateEventPageState extends State<CreateEventPage> {
                       },
                     ),
                     const SizedBox(
-                        height:
-                            80), // Add some space at the bottom for better visibility
+                        height: 80), // Add some space at the bottom for better visibility
                   ],
                 ),
               ),
