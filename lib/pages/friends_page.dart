@@ -6,6 +6,7 @@ import 'package:rsvp_rally/widgets/view_settings_button.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/pages/add_friends_page.dart';
+import 'package:rsvp_rally/widgets/profileEditor.dart';
 
 class FriendsPage extends StatefulWidget {
   final String username;
@@ -143,7 +144,9 @@ class FriendsPageState extends State<FriendsPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                UserCard(username: widget.username),
+                ProfileEditor(
+                  username: widget.username,
+                ),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Container(

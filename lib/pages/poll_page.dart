@@ -29,91 +29,95 @@ class _PollPageState extends State<PollPage> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Event Poll'),
-          backgroundColor:
-              Colors.transparent, // Transparent background for AppBar
-          surfaceTintColor: Colors.transparent,
-        ),
-        body: Stack(
-          children: [
-            FutureBuilder<DocumentSnapshot>(
-              future: FirebaseFirestore.instance
-                  .collection('Events')
-                  .doc(widget.eventID)
-                  .get(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasData && snapshot.data != null) {
-                    Map<String, dynamic> data =
-                        snapshot.data!.data() as Map<String, dynamic>;
-                    Map<String, dynamic> polls =
-                        Map<String, dynamic>.from(data['Polls']);
+      appBar: AppBar(
+        title: const Text('Event Poll'),
+        backgroundColor:
+            Colors.transparent, // Transparent background for AppBar
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: Stack(
+        children: [
+          FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('Events')
+                .doc(widget.eventID)
+                .get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasData && snapshot.data != null) {
+                  Map<String, dynamic> data =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  Map<String, dynamic> polls =
+                      Map<String, dynamic>.from(data['Polls']);
 
-                    // Sort the polls by CloseTime
-                    List<MapEntry<String, dynamic>> sortedPolls =
-                        polls.entries.toList();
-                    sortedPolls.sort((a, b) {
-                      Timestamp aCloseTime = a.value['CloseTime'];
-                      Timestamp bCloseTime = b.value['CloseTime'];
-                      return aCloseTime.compareTo(bCloseTime);
-                    });
+                  // Sort the polls by CloseTime
+                  List<MapEntry<String, dynamic>> sortedPolls =
+                      polls.entries.toList();
+                  sortedPolls.sort((a, b) {
+                    Timestamp aCloseTime = a.value['CloseTime'];
+                    Timestamp bCloseTime = b.value['CloseTime'];
+                    return aCloseTime.compareTo(bCloseTime);
+                  });
 
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.only(
-                          bottom: 120), // Padding to avoid overlap
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              ...sortedPolls.map((entry) {
-                                return PollCard(
-                                  userRating: widget.rating,
-                                  eventID: widget.eventID,
-                                  username: widget.username,
-                                  pollData: {
-                                    'question': entry.key,
-                                    'responses': entry.value,
-                                  },
-                                );
-                              }),
-                              const SizedBox(height: 80), // Space at the bottom
-                            ],
-                          ),
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.only(
+                        bottom: 170), // Padding to avoid overlap
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            ...sortedPolls.map((entry) {
+                              return PollCard(
+                                userRating: widget.rating,
+                                eventID: widget.eventID,
+                                username: widget.username,
+                                pollData: {
+                                  'question': entry.key,
+                                  'responses': entry.value,
+                                },
+                              );
+                            }),
+                            const SizedBox(height: 80), // Space at the bottom
+                          ],
                         ),
                       ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                        child: Text("Error fetching data: ${snapshot.error}"));
-                  } else {
-                    return const Center(
-                        child: Text("No data available for this event."));
-                  }
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(
+                      child: Text("Error fetching data: ${snapshot.error}"));
+                } else {
+                  return const Center(
+                      child: Text("No data available for this event."));
                 }
-                return const Center(child: CircularProgressIndicator());
-              },
+              }
+              return const Center(child: CircularProgressIndicator());
+            },
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: BottomNav(
+              rating: widget.rating,
+              eventID: widget.eventID,
+              username: widget.username,
+              selectedIndex: 1, // Index for PollPage
             ),
-            Positioned(
-              bottom: 20,
-              left: 0,
-              right: 0,
-              child: BottomNav(
-                rating: widget.rating,
-                eventID: widget.eventID,
-                username: widget.username,
-                selectedIndex: 1, // Index for PollPage
-              ),
-            ),
-          ],
-        ),
-        floatingActionButton: CreatePollButton(
+          ),
+        ],
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 40.0), // Adjust offset as needed
+        child: CreatePollButton(
           eventID: widget.eventID,
           userRating: widget.rating,
           username: widget.username,
-        ));
+        ),
+      ),
+    );
   }
 }

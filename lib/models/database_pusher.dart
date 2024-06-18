@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:convert';
 import 'dart:developer' as developer;
 
@@ -30,6 +28,20 @@ class DataPusher {
       'Requests': [],
     };
     await _firestore.collection('Users').doc(username).set(newUser);
+  }
+}
+
+Future<void> pushProfilePicture(String username, String base64Image) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DocumentReference userRef = firestore.collection('Users').doc(username);
+
+  try {
+    await userRef.update({
+      'ProfilePic': base64Image
+    });
+    print('Profile picture updated successfully');
+  } catch (e) {
+    print('Error updating profile picture: $e');
   }
 }
 
