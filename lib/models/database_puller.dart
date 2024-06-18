@@ -1,10 +1,12 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-Future<List<Map<String, dynamic>>> fetchChatMessagesWithPhotos(String eventID) async {
+Future<List<Map<String, dynamic>>> fetchChatMessagesWithPhotos(
+    String eventID) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   try {
-    DocumentSnapshot chatDoc = await firestore.collection('Chats').doc(eventID).get();
+    DocumentSnapshot chatDoc =
+        await firestore.collection('Chats').doc(eventID).get();
     if (chatDoc.exists) {
       List<dynamic> messages = chatDoc.get('Messages');
       return messages.map((msg) => Map<String, dynamic>.from(msg)).toList();
@@ -18,7 +20,8 @@ Future<List<Map<String, dynamic>>> fetchChatMessagesWithPhotos(String eventID) a
 Future<List<Map<String, String>>> fetchChatMessages(String eventID) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   try {
-    DocumentSnapshot chatDoc = await firestore.collection('Chats').doc(eventID).get();
+    DocumentSnapshot chatDoc =
+        await firestore.collection('Chats').doc(eventID).get();
     if (chatDoc.exists) {
       List<dynamic> messages = chatDoc.get('Messages');
       return messages.map((msg) => Map<String, String>.from(msg)).toList();
@@ -196,7 +199,8 @@ Future<String?> pullProfilePicture(String username) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   try {
-    DocumentSnapshot userDoc = await firestore.collection('Users').doc(username).get();
+    DocumentSnapshot userDoc =
+        await firestore.collection('Users').doc(username).get();
 
     if (!userDoc.exists) {
       print("No user found with username $username");

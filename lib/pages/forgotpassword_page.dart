@@ -18,7 +18,6 @@ Future<void> logAllUsers() async {
 
     for (QueryDocumentSnapshot doc in querySnapshot.docs) {
       Map<String, dynamic> userData = doc.data() as Map<String, dynamic>;
-      developer.log('User ID: ${doc.id}, User Data: $userData');
     }
   } catch (e) {
     developer.log('Error fetching users collection: $e');
