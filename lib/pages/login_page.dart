@@ -161,7 +161,7 @@ class _LogInState extends State<LogInPage> {
                     userLogin();
                   }),
               const SizedBox(
-                height: 130,
+                height: 40,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
