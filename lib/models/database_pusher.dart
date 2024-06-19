@@ -36,9 +36,7 @@ Future<void> pushProfilePicture(String username, String base64Image) async {
   DocumentReference userRef = firestore.collection('Users').doc(username);
 
   try {
-    await userRef.update({
-      'ProfilePic': base64Image
-    });
+    await userRef.update({'ProfilePic': base64Image});
     print('Profile picture updated successfully');
   } catch (e) {
     print('Error updating profile picture: $e');

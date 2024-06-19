@@ -17,7 +17,7 @@ class WideTextBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.accent,
+        color: AppColors.accentLight,
         border: Border.all(color: Colors.white),
         borderRadius: BorderRadius.circular(12),
       ),

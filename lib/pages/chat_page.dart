@@ -144,7 +144,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildMessageInputArea() {
     return Container(
       padding: const EdgeInsets.all(8.0),
-      color: Colors.white,
+      color: AppColors.light,
       child: Row(
         children: [
           IconButton(

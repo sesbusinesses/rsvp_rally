@@ -97,6 +97,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                 'type': 'friend request received',
                 'username': widget.username,
                 'timestamp': timestamp,
+                'active': true,
               }
             ]),
             'NewMessages': true,
@@ -111,6 +112,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
               'type': 'friend request received',
               'username': widget.username,
               'timestamp': timestamp,
+              'active': true,
             }
           ],
           'NewMessages': true,

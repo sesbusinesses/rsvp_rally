@@ -127,7 +127,8 @@ class EventCardState extends State<EventCard> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.accent, // Medium light text color
+                          color:
+                              AppColors.accentDark, // Medium light text color
                         ),
                       ),
                     ],

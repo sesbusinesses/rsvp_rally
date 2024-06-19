@@ -92,13 +92,13 @@ class UserCardState extends State<UserCard> {
           Stack(
             children: [
               Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: AppColors.shadow,
                       blurRadius: 5,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
@@ -108,7 +108,8 @@ class UserCardState extends State<UserCard> {
                       ? MemoryImage(base64Decode(profilePicBase64!))
                       : null,
                   child: profilePicBase64 == null
-                      ? const Icon(Icons.add, size: 50, color: Colors.grey)
+                      ? const Icon(Icons.add,
+                          size: 50, color: AppColors.accentDark)
                       : null,
                 ),
               ),
@@ -146,7 +147,7 @@ class UserCardState extends State<UserCard> {
                     widget.username,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Colors.grey,
+                      color: AppColors.accentDark,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),

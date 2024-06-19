@@ -49,7 +49,7 @@ class DetailsCard extends StatelessWidget {
                       Text(
                         'Host: ${snapshot.data!['hostName']}',
                         style: const TextStyle(
-                            fontSize: 12, color: AppColors.accent),
+                            fontSize: 12, color: AppColors.accentDark),
                       ),
                       const SizedBox(height: 15),
                       Text(snapshot.data!['details'],
