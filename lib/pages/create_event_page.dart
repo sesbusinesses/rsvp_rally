@@ -238,6 +238,7 @@ class CreateEventPageState extends State<CreateEventPage> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Create New Event'),
         backgroundColor: Colors.transparent,
