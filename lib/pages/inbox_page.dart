@@ -45,7 +45,7 @@ class InboxPageState extends State<InboxPage> {
   }
 
   Future<void> _launchURL() async {
-    final Uri url = Uri.parse('https://sesbusinesses.me');
+    final Uri url = Uri.parse('https://sesbusinesses.me/rsvp_support.html');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw 'Could not launch $url';
     }
