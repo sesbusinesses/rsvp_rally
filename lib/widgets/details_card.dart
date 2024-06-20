@@ -43,8 +43,8 @@ class DetailsCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 10),
-                      Text('${snapshot.data!['eventName']} Details',
-                          style: const TextStyle(
+                      const Text('Details',
+                          style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold)),
                       Text(
                         'Host: ${snapshot.data!['hostName']}',

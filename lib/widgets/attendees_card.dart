@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/rating_indicator.dart';
-import 'package:rsvp_rally/widgets/user_card.dart'; // Ensure this includes fetchEventAttendees
+import 'package:rsvp_rally/widgets/user_card.dart';
 
 class AttendeesCard extends StatelessWidget {
   final double rating;
@@ -51,7 +51,7 @@ class AttendeesCard extends StatelessWidget {
                   children: [
                     const Text('Attendees',
                         style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold)),
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                     const SizedBox(
                         height:
                             15), // Space between the header and the first attendee

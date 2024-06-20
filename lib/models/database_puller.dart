@@ -271,6 +271,12 @@ Future<List<Map<String, dynamic>>> fetchEventAttendees(String eventID) async {
   if (eventDoc.exists) {
     var eventData = eventDoc.data() as Map<String, dynamic>;
     List<dynamic> attendeesUsernames = eventData['Attendees'] ?? [];
+    String hostUsername = eventData['HostName'];
+
+    // Add host to the attendees list if not already present
+    if (!attendeesUsernames.contains(hostUsername)) {
+      attendeesUsernames.add(hostUsername);
+    }
 
     for (String username in attendeesUsernames) {
       DocumentSnapshot userDoc =
