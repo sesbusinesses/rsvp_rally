@@ -177,6 +177,14 @@ class FriendsPageState extends State<FriendsPage> {
                             ],
                           ),
                           const SizedBox(height: 10),
+                          if (filteredFriends.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.all(40),
+                              child: Text(
+                                'You don\'t have any friends yet. Click the button below to find some!',
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ),
                           ...filteredFriends.map((friendData) =>
                               UserCard(username: friendData['username'])),
                           const SizedBox(height: 80)

@@ -66,6 +66,14 @@ class EventPageState extends State<EventPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    if (eventIds.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(40),
+                        child: Text(
+                          'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ),
                     ...eventIds.map((eventId) => EventCard(
                           eventID: eventId,
                           userRating: userRating,
