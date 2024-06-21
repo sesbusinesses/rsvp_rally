@@ -160,8 +160,9 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Container(
-      padding: EdgeInsets.symmetric(
-          vertical: 10, horizontal: screenSize.width * 0.05),
+      padding: const EdgeInsets.symmetric(
+        vertical: 10,
+      ),
       width: screenSize.width * 0.95,
       decoration: BoxDecoration(
         color: AppColors.light, // Dark background color
@@ -190,10 +191,13 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
               ),
             ),
           ),
-          WideTextBox(
-            hintText: 'Search through your friends...',
-            controller: searchController,
-            onChanged: (value) => filterFriends(value),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
+            child: WideTextBox(
+              hintText: 'Search through your friends...',
+              controller: searchController,
+              onChanged: (value) => filterFriends(value),
+            ),
           ),
           Column(
             children: filteredFriends
