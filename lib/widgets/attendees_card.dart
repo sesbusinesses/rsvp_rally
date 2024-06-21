@@ -89,15 +89,8 @@ class AttendeesCard extends StatelessWidget {
                   style: const TextStyle(fontSize: 16)),
             );
           }
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: CircularProgressIndicator(),
-          );
         }
-        return const Padding(
-          padding: EdgeInsets.all(16),
-          child: CircularProgressIndicator(),
-        );
+        return Container();
       },
     );
   }

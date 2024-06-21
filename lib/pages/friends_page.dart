@@ -19,17 +19,11 @@ class FriendsPage extends StatefulWidget {
 }
 
 class FriendsPageState extends State<FriendsPage> {
+  TextEditingController searchController = TextEditingController();
   List<Map<String, dynamic>> friendsData = [];
   List<Map<String, dynamic>> filteredFriends = [];
-  TextEditingController searchController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    fetchFriends();
-  }
-
-  Future<void> fetchFriends() async {
+  Future<List<Map<String, dynamic>>> fetchFriends() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     try {
       DocumentSnapshot userDoc =
@@ -57,11 +51,10 @@ class FriendsPageState extends State<FriendsPage> {
         }
 
         friends.sort((a, b) => b['rating'].compareTo(a['rating']));
+        friendsData = friends;
+        filteredFriends = friendsData;
 
-        setState(() {
-          friendsData = friends;
-          filteredFriends = friendsData;
-        });
+        return friends;
       }
     } catch (e) {
       // Handle error
@@ -69,6 +62,7 @@ class FriendsPageState extends State<FriendsPage> {
         print("Error fetching friends: $e");
       }
     }
+    return [];
   }
 
   void filterFriends(String query) {
@@ -160,33 +154,59 @@ class FriendsPageState extends State<FriendsPage> {
                       ),
                       child: Column(
                         children: [
-                          const Text('Your Friends',
-                              style: TextStyle(fontSize: 20)),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: WideTextBox(
-                                  hintText: 'Search through your friends...',
-                                  controller: searchController,
-                                  onChanged: (value) =>
-                                      filterFriends(searchController.text),
-                                ),
-                              ),
-                              const Icon(Icons.search_rounded),
-                            ],
+                          FutureBuilder<List<Map<String, dynamic>>>(
+                            future: fetchFriends(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.done) {
+                                if (snapshot.hasData &&
+                                    snapshot.data!.isNotEmpty) {
+                                  return Column(
+                                    children: [
+                                      const Text('Your Friends',
+                                          style: TextStyle(fontSize: 20)),
+                                      const SizedBox(height: 10),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: WideTextBox(
+                                              hintText:
+                                                  'Search through your friends...',
+                                              controller: searchController,
+                                              onChanged: (value) =>
+                                                  filterFriends(
+                                                      searchController.text),
+                                            ),
+                                          ),
+                                          const Icon(Icons.search_rounded),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10),
+                                      ...filteredFriends.map((friendData) =>
+                                          UserCard(
+                                              username:
+                                                  friendData['username'])),
+                                    ],
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Text('Error: ${snapshot.error}',
+                                        style: const TextStyle(fontSize: 16)),
+                                  );
+                                }
+                                return const Padding(
+                                  padding: EdgeInsets.all(40),
+                                  child: Text(
+                                    'You don\'t have any friends yet. Click the button below to find some!',
+                                    style: TextStyle(fontSize: 20),
+                                  ),
+                                );
+                              } else {
+                                return Container();
+                              }
+                            },
                           ),
-                          const SizedBox(height: 10),
-                          if (filteredFriends.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.all(40),
-                              child: Text(
-                                'You don\'t have any friends yet. Click the button below to find some!',
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ),
-                          ...filteredFriends.map((friendData) =>
-                              UserCard(username: friendData['username'])),
                           const SizedBox(height: 80)
                         ],
                       ),

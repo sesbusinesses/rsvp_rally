@@ -46,8 +46,8 @@ class EventTimeline extends StatelessWidget {
             );
           }
         } else {
-          return const SliverFillRemaining(
-            child: CircularProgressIndicator(),
+          return SliverFillRemaining(
+            child: Container(),
           );
         }
       },
