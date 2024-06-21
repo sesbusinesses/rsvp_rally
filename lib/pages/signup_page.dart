@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/models/notification_service.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -63,6 +64,8 @@ class _SignUpState extends State<SignUpPage> {
                 style: TextStyle(fontSize: 20.0),
               )));
         }
+
+        await NotificationService().ensureTokenUploaded();
 
         Navigator.pushReplacement(
             context,

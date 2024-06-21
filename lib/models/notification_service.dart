@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -40,8 +42,7 @@ class NotificationService {
 
     await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-    await getFCMToken();
-    print('Token obtained successfully');
+    //await getFCMToken();
 
     // Configure foreground notifications
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -59,6 +60,84 @@ class NotificationService {
 
     // Subscribe to a topic
     await _firebaseMessaging.subscribeToTopic('all');
+  }
+
+  final firebaseFirestore = FirebaseFirestore.instance;
+  final _currentUser = FirebaseAuth.instance.currentUser;
+
+  Future<void> ensureTokenUploaded() async {
+    final username = _currentUser!.displayName;
+
+    bool tokenUploaded = await isTokenUploaded(username!);
+
+    if (!tokenUploaded) {
+      await uploadFcmToken();
+    } else {
+      //print("Token is already uploaded.");
+    }
+  }
+
+  Future<bool> isTokenUploaded(String username) async {
+    try {
+      DocumentSnapshot snapshot =
+          await firebaseFirestore.collection('Users').doc(username).get();
+
+      if (snapshot.exists) {
+        var data = snapshot.data() as Map<String, dynamic>;
+        return data.containsKey('notificationToken') &&
+            data['notificationToken'] != null;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print("Error checking token: ${e.toString()}");
+      return false;
+    }
+  }
+
+  Future<void> uploadFcmToken() async {
+    try {
+      await FirebaseMessaging.instance.getToken().then((token) async {
+        print('getToken :: $token');
+        await firebaseFirestore
+            .collection('Users')
+            .doc(_currentUser!.displayName)
+            .update({
+          'notificationToken': token,
+        });
+      });
+      FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
+        print('onTokenRefresh :: $token');
+        await firebaseFirestore
+            .collection('Users')
+            .doc(_currentUser!.displayName)
+            .update({
+          'notificationToken': token,
+        });
+      });
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  //delte when it's not in use
+  Future<void> uploadFcmTokenSES() async {
+    try {
+      await FirebaseMessaging.instance.getToken().then((token) async {
+        //print('getToken :: $token');
+        await firebaseFirestore.collection('Users').doc('SES').update({
+          'notificationToken': token,
+        });
+      });
+      FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
+        //print('onTokenRefresh :: $token');
+        await firebaseFirestore.collection('Users').doc('SES').update({
+          'notificationToken': token,
+        });
+      });
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
   // Get the FCM device token
