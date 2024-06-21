@@ -5,6 +5,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:io';
 
+import 'package:permission_handler/permission_handler.dart';
+
 class NotificationService {
   static final FirebaseMessaging _firebaseMessaging =
       FirebaseMessaging.instance;
@@ -12,7 +14,18 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
-    // Request permissions for iOS
+    // Request permissions for Android.
+    await _firebaseMessaging.requestPermission();
+    if (Platform.isAndroid) {
+      // Initialize local notifications for Android
+      const AndroidInitializationSettings initializationSettingsAndroid =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      await _flutterLocalNotificationsPlugin.initialize(
+        const InitializationSettings(android: initializationSettingsAndroid),
+      );
+    }
+
+    // Request permissions for IOS.
     if (Platform.isIOS) {
       await _firebaseMessaging.requestPermission(
         alert: true,
@@ -23,24 +36,16 @@ class NotificationService {
         provisional: false,
         sound: true,
       );
+      // Initialize local notifications for iOS
+      const DarwinInitializationSettings initializationSettingsIOS =
+          DarwinInitializationSettings();
+
+      // Combine initialization settings for both Android and iOS
+      const InitializationSettings initializationSettings =
+          InitializationSettings(
+        iOS: initializationSettingsIOS,
+      );
     }
-
-    // Initialize local notifications for Android
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    // Initialize local notifications for iOS
-    const DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings();
-
-    // Combine initialization settings for both Android and iOS
-    const InitializationSettings initializationSettings =
-        InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
-
-    await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
     //await getFCMToken();
 
@@ -59,7 +64,7 @@ class NotificationService {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     // Subscribe to a topic
-    await _firebaseMessaging.subscribeToTopic('all');
+    //await _firebaseMessaging.subscribeToTopic('all');
   }
 
   final firebaseFirestore = FirebaseFirestore.instance;
