@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 
 class PollCard extends StatefulWidget {
@@ -69,6 +71,10 @@ class _PollCardState extends State<PollCard> {
     }
   }
 
+  Future<String?> _fetchProfilePicture(String username) async {
+    return await pullProfilePicture(username);
+  }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
@@ -94,9 +100,33 @@ class _PollCardState extends State<PollCard> {
               if (voterNames.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 10, bottom: 10),
-                  child: Text(
-                    voterNames.join(', '),
-                    style: const TextStyle(color: AppColors.accentDark),
+                  child: FutureBuilder<List<String?>>(
+                    future: Future.wait(voterNames
+                        .map((username) => _fetchProfilePicture(username))
+                        .toList()),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        return Wrap(
+                          spacing: 8.0,
+                          children: snapshot.data!.map((profilePictureData) {
+                            return CircleAvatar(
+                              radius: 15,
+                              backgroundImage: profilePictureData != null
+                                  ? MemoryImage(
+                                      base64Decode(profilePictureData))
+                                  : null,
+                              child: profilePictureData == null
+                                  ? const Icon(Icons.person,
+                                      size: 20, color: Colors.grey)
+                                  : null,
+                            );
+                          }).toList(),
+                        );
+                      } else {
+                        return const CircularProgressIndicator(strokeWidth: 2);
+                      }
+                    },
                   ),
                 )
               else
