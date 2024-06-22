@@ -72,7 +72,8 @@ class CreatePollPageState extends State<CreatePollPage> {
     Map<String, dynamic> pollData = {
       ...options,
       'CloseTime':
-          Timestamp.fromDate(DateTime.now().add(const Duration(days: 1)))
+          Timestamp.fromDate(DateTime.now().add(const Duration(days: 1))),
+      'IsAlarmSet': false
     };
 
     try {
