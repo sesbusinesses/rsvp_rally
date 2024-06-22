@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/widgets/bracket_painter.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:rsvp_rally/models/database_puller.dart'; // Ensure this path is correct
 import 'package:intl/intl.dart';
@@ -95,7 +96,7 @@ class EventTimeline extends StatelessWidget {
           drawGap: isFuturePhase || (isCurrentPhase && isLastNode));
     } else if (isCurrentPhase) {
       indicatorStyle = IndicatorStyle(
-        width: 30,
+        width: 15,
         padding: const EdgeInsets.all(0),
         indicator: Container(
           height: 30,
@@ -107,7 +108,7 @@ class EventTimeline extends StatelessWidget {
                 color: getInterpolatedColor(rating),
                 width: AppColors.borderWidth),
           ),
-          child: const Icon(Icons.play_arrow, color: AppColors.light, size: 16),
+          child: const Icon(Icons.play_arrow, color: AppColors.light, size: 10),
         ),
       );
     } else {
@@ -123,10 +124,10 @@ class EventTimeline extends StatelessWidget {
     }
 
     return SizedBox(
-        height: 75,
+        height: 60,
         child: TimelineTile(
           alignment: TimelineAlign.manual,
-          lineXY: 0.2,
+          lineXY: 0.15,
           isFirst: (index == 0) & isStartNode,
           isLast: isLastNode,
           indicatorStyle: indicatorStyle,
@@ -136,53 +137,75 @@ class EventTimeline extends StatelessWidget {
           ),
           endChild: Container(
             constraints: const BoxConstraints(maxHeight: 500),
-            padding: const EdgeInsets.only(top: 0, left: 10),
+            padding: const EdgeInsets.only(left: 10),
             color: Colors.transparent,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
               children: [
-                if (isStartNode && !isLastNode) ...[
-                  Text(formatter.format(data['startTime'].toDate()),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
-                ],
-                if (!isStartNode && !isLastNode) ...[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15, right: 30),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('${data['phaseName']}',
-                              style: const TextStyle(color: AppColors.dark)),
-                          if (data['phaseLocation'] != null) ...[
-                            GestureDetector(
-                              onTap: () async {
-                                final String url =
-                                    'https://www.google.com/maps/search/?api=1&query=${data['phaseLocation']}';
-                                final Uri uri = Uri.parse(url);
-                                if (!await launchUrl(uri,
-                                    mode: LaunchMode.externalApplication)) {
-                                  throw 'Could not launch $uri';
-                                }
-                              },
-                              child: Text('${data['phaseLocation']}',
-                                  style:
-                                      const TextStyle(color: AppColors.link)),
-                            ),
-                          ] else ...[
-                            const Text('Location not specified',
-                                style: TextStyle(color: AppColors.dark)),
-                          ],
-                        ]),
-                  )
-                ],
-                if (isLastNode) ...[
-                  const SizedBox(height: 4),
-                  Text(formatter.format(data['endTime'].toDate()),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16))
-                ],
+                if (!isStartNode && !isLastNode)
+                  CustomPaint(
+                    size: const Size(20, 100),
+                    painter: BracketPainter(getInterpolatedColor(rating)),
+                  ),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (isStartNode && !isLastNode)
+                        Text(
+                          formatter.format(data['startTime'].toDate()),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                      if (!isStartNode && !isLastNode)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 5, right: 30),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${data['phaseName']}',
+                                style: const TextStyle(color: AppColors.dark),
+                              ),
+                              if (data['phaseLocation'] != null)
+                                GestureDetector(
+                                  onTap: () async {
+                                    final String url =
+                                        'https://www.google.com/maps/search/?api=1&query=${data['phaseLocation']}';
+                                    final Uri uri = Uri.parse(url);
+                                    if (!await launchUrl(uri,
+                                        mode: LaunchMode.externalApplication)) {
+                                      throw 'Could not launch $uri';
+                                    }
+                                  },
+                                  child: RichText(
+                                    text: TextSpan(
+                                      text: '${data['phaseLocation']}',
+                                      style: const TextStyle(
+                                          color: AppColors.link),
+                                    ),
+                                  ),
+                                )
+                              else
+                                const Text(
+                                  'Location not specified',
+                                  style: TextStyle(color: AppColors.dark),
+                                ),
+                            ],
+                          ),
+                        ),
+                      if (isLastNode) const SizedBox(height: 4),
+                      if (isLastNode)
+                        Text(
+                          formatter.format(data['endTime'].toDate()),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

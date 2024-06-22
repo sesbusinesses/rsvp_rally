@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/widgets/user_card.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 
 class AddFriendsPage extends StatefulWidget {
@@ -14,7 +16,7 @@ class AddFriendsPage extends StatefulWidget {
 class AddFriendsPageState extends State<AddFriendsPage> {
   List<String> allUsernames = [];
   List<String> searchResults = [];
-  List<String> friendsUsernames = [];
+  List<Map<String, dynamic>> friends = [];
   TextEditingController searchController = TextEditingController();
 
   @override
@@ -49,17 +51,46 @@ class AddFriendsPageState extends State<AddFriendsPage> {
     });
   }
 
-  Future<void> fetchFriends() async {
+  Future<List<Map<String, dynamic>>> fetchFriends() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    DocumentSnapshot userDoc =
-        await firestore.collection('Users').doc(widget.username).get();
+    try {
+      DocumentSnapshot userDoc =
+          await firestore.collection('Users').doc(widget.username).get();
 
-    if (userDoc.exists) {
-      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-      setState(() {
-        friendsUsernames = List.from(userData['Friends'] ?? []);
-      });
+      if (userDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        List<String> friendsUsernames = List.from(userData['Friends'] ?? []);
+        List<Map<String, dynamic>> friendsList = [];
+
+        for (String friendUsername in friendsUsernames) {
+          DocumentSnapshot friendDoc =
+              await firestore.collection('Users').doc(friendUsername).get();
+
+          if (friendDoc.exists) {
+            Map<String, dynamic> friendData =
+                friendDoc.data() as Map<String, dynamic>;
+            friendsList.add({
+              'username': friendUsername,
+              'firstName': friendData['FirstName'] ?? "",
+              'lastName': friendData['LastName'] ?? "",
+              'rating': double.tryParse(friendData['Rating'].toString()) ?? 0.0,
+            });
+          }
+        }
+
+        friendsList.sort((a, b) => b['rating'].compareTo(a['rating']));
+        setState(() {
+          friends = friendsList;
+        });
+        return friendsList;
+      }
+    } catch (e) {
+      // Handle error
+      if (kDebugMode) {
+        print("Error fetching friends: $e");
+      }
     }
+    return [];
   }
 
   void searchUsers(String query) {
@@ -71,14 +102,15 @@ class AddFriendsPageState extends State<AddFriendsPage> {
       setState(() {
         searchResults = allUsernames
             .where((username) =>
-                username.toLowerCase().startsWith(query.toLowerCase()))
+                username.toLowerCase().startsWith(query.toLowerCase()) &&
+                !friends.any((friend) => friend['username'] == username))
             .toList();
       });
     }
   }
 
   Future<void> addFriend(String friendUsername) async {
-    if (!friendsUsernames.contains(friendUsername)) {
+    if (!friends.any((friend) => friend['username'] == friendUsername)) {
       FirebaseFirestore firestore = FirebaseFirestore.instance;
       Timestamp timestamp = Timestamp.now();
 
@@ -153,41 +185,43 @@ class AddFriendsPageState extends State<AddFriendsPage> {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         title: const Text('Add Friends'),
       ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(
-            vertical: 15.0, horizontal: screenSize.width * 0.075),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: WideTextBox(
-                    hintText: 'Search for friends',
-                    controller: searchController,
-                  ),
-                ),
-              ],
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: screenSize.width * 0.85,
+            child: WideTextBox(
+              hintText: 'Search for friends',
+              controller: searchController,
             ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: searchResults.length,
-                itemBuilder: (context, index) {
-                  String username = searchResults[index];
-                  return ListTile(
-                    title: Text(username),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.add),
-                      onPressed: () => addFriend(username),
-                    ),
-                  );
-                },
-              ),
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+              child: SizedBox(
+            width: screenSize.width * 0.95,
+            child: ListView.builder(
+              itemCount: searchResults.length,
+              itemBuilder: (context, index) {
+                String username = searchResults[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 0),
+                  child: ListTile(
+                      minLeadingWidth: 0,
+                      minVerticalPadding: 0,
+                      contentPadding: EdgeInsets.symmetric(
+                          vertical: 0.0, horizontal: screenSize.width * 0.05),
+                      title: UserCard(username: username),
+                      trailing: GestureDetector(
+                          child: const Icon(Icons.add),
+                          onTap: () => addFriend(username))),
+                );
+              },
             ),
-          ],
-        ),
+          )),
+        ],
       ),
     );
   }

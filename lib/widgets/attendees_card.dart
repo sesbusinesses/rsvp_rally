@@ -49,9 +49,18 @@ class AttendeesCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Attendees',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold)),
+                    Row(children: [
+                      const Text('Attendees',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      Expanded(child: Container()),
+                      Icon(Icons.people, color: getInterpolatedColor(rating)),
+                      const SizedBox(width: 5),
+                      Text(attendees.length.toString(),
+                          style: TextStyle(
+                              fontSize: 20,
+                              color: getInterpolatedColor(rating)))
+                    ]),
                     ...attendees.map((attendee) {
                       IconData iconData =
                           Icons.question_mark; // Default to maybe
