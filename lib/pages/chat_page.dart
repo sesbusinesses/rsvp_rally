@@ -6,6 +6,7 @@ import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/models/database_pusher.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/message_bubble.dart';
+import 'package:rsvp_rally/widgets/widetextbox.dart'; // Import WideTextBox
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:developer' as developer;
@@ -175,7 +176,8 @@ class _ChatPageState extends State<ChatPage> {
             onPressed: _pickAndSendPhoto,
           ),
           Expanded(
-            child: TextField(
+            child: WideTextBox(
+              hintText: 'Type a message',
               controller: _controller,
               decoration: InputDecoration(
                 hintText: 'Type a message',
@@ -208,8 +210,13 @@ class _ChatPageState extends State<ChatPage> {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
-        await sendMessageWithPhotoBase64(
-            widget.eventID, widget.username, image);
+        // Read image as bytes
+        final bytes = await image.readAsBytes();
+        // Convert bytes to base64 string
+        final base64Image = base64Encode(bytes);
+
+        // Send the base64 string
+        await sendMessage(widget.eventID, widget.username, 'data:image/png;base64,$base64Image');
         _scrollToBottom(); // Ensure scrolling to the bottom after sending a photo
       }
     } catch (e) {

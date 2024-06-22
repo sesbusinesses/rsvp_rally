@@ -24,7 +24,7 @@ class PhasesSection extends StatelessWidget {
             vertical: 10, horizontal: screenSize.width * 0.05),
         width: screenSize.width * 0.95,
         decoration: BoxDecoration(
-          color: AppColors.light, // Dark background color
+          color: AppColors.light,
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
             color: getInterpolatedColor(rating),

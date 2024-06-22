@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/time_picker.dart';
+import 'package:rsvp_rally/widgets/places_autocomplete.dart';
+import 'package:rsvp_rally/config/config.dart';
 
 class PhaseEntryWidget extends StatelessWidget {
   final double rating;
@@ -41,7 +43,12 @@ class PhaseEntryWidget extends StatelessWidget {
     return Column(
       children: [
         WideTextBox(hintText: 'Phase Name', controller: nameController),
-        WideTextBox(hintText: 'Phase Location', controller: locationController),
+        PlacesAutocomplete(
+          apiKey: Config.googleMapsApiKey, // Use the actual API key here
+          onPlaceSelected: (placeId, description) {
+            locationController.text = description;
+          },
+        ),
         InkWell(
           onTap: () => _selectStartTime(context),
           child: IgnorePointer(
