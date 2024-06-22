@@ -31,12 +31,14 @@ class _ChatPageState extends State<ChatPage> {
   final ImagePicker _picker = ImagePicker();
   final ScrollController _scrollController = ScrollController();
   String eventName = 'Event Chat'; // Default text
+  String rsvpStatus = 'maybe'; // Default RSVP status
 
   @override
   void initState() {
     super.initState();
     _scrollToBottom();
     fetchEventName();
+    checkRSVPStatus();
   }
 
   @override
@@ -60,6 +62,13 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  Future<void> checkRSVPStatus() async {
+    String status = await isComing(widget.eventID, widget.username);
+    setState(() {
+      rsvpStatus = status;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,53 +83,67 @@ class _ChatPageState extends State<ChatPage> {
             Column(
               children: [
                 Expanded(
-                  child: StreamBuilder<DocumentSnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('Chats')
-                        .doc(widget.eventID)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
+                  child: rsvpStatus == 'yes'
+                      ? StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('Chats')
+                              .doc(widget.eventID)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
 
-                      if (!snapshot.hasData || !snapshot.data!.exists) {
-                        return const Center(child: Text('No messages yet.'));
-                      }
+                            if (!snapshot.hasData || !snapshot.data!.exists) {
+                              return const Center(
+                                  child: Text('No messages yet.'));
+                            }
 
-                      var messages =
-                          snapshot.data!['Messages'] as List<dynamic>;
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        _scrollToBottom();
-                      });
+                            var messages =
+                                snapshot.data!['Messages'] as List<dynamic>;
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _scrollToBottom();
+                            });
 
-                      return ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.only(
-                            bottom:
-                                60), // Adjust padding to avoid overlap with bottom nav
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          var messageEntry =
-                              Map<String, dynamic>.from(messages[index]);
-                          var entry = messageEntry.entries.first;
-                          bool isPhoto = entry.value is String &&
-                              entry.value.toString().startsWith('data:image');
-                          return MessageBubble(
-                            message: entry.value,
-                            isMe: isPhoto
-                                ? messageEntry['username'] == widget.username
-                                : entry.key == widget.username,
-                            username:
-                                isPhoto ? messageEntry['username'] : entry.key,
-                            isPhoto: isPhoto,
-                          );
-                        },
-                      );
-                    },
-                  ),
+                            return ListView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.only(
+                                  bottom:
+                                      60), // Adjust padding to avoid overlap with bottom nav
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) {
+                                var messageEntry =
+                                    Map<String, dynamic>.from(messages[index]);
+                                var entry = messageEntry.entries.first;
+                                bool isPhoto = entry.value is String &&
+                                    entry.value
+                                        .toString()
+                                        .startsWith('data:image');
+                                return MessageBubble(
+                                  message: entry.value,
+                                  isMe: isPhoto
+                                      ? messageEntry['username'] ==
+                                          widget.username
+                                      : entry.key == widget.username,
+                                  username: isPhoto
+                                      ? messageEntry['username']
+                                      : entry.key,
+                                  isPhoto: isPhoto,
+                                );
+                              },
+                            );
+                          },
+                        )
+                      : const Center(
+                          child: Text(
+                            'RSVP \'Yes\' to access the chat',
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        ),
                 ),
-                _buildMessageInputArea(),
+                if (rsvpStatus == 'yes') _buildMessageInputArea(),
                 const SizedBox(height: 50),
               ],
             ),
