@@ -55,7 +55,7 @@ class EventPageState extends State<EventPage> {
             future: getUserEvents(widget.username),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CupertinoActivityIndicator();
+                return const CircularProgressIndicator();
               } else if (snapshot.hasError) {
                 return const Padding(
                   padding: EdgeInsets.all(40),
