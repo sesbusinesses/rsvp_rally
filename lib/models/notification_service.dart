@@ -5,8 +5,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:io';
 
-import 'package:permission_handler/permission_handler.dart';
-
 class NotificationService {
   static final FirebaseMessaging _firebaseMessaging =
       FirebaseMessaging.instance;
@@ -15,8 +13,9 @@ class NotificationService {
 
   Future<void> initialize() async {
     // Request permissions for Android.
-    await _firebaseMessaging.requestPermission();
+
     if (Platform.isAndroid) {
+      await _firebaseMessaging.requestPermission();
       // Initialize local notifications for Android
       const AndroidInitializationSettings initializationSettingsAndroid =
           AndroidInitializationSettings('@mipmap/ic_launcher');
