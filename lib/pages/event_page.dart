@@ -85,6 +85,7 @@ class EventPageState extends State<EventPage> {
                         return UserRatingIndicator(userRating: userRating);
                       },
                     ),
+                    const SizedBox(height: 20),
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(

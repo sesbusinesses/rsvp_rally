@@ -115,10 +115,8 @@ class MessageCardState extends State<MessageCard> {
 
     // Find the matching message and update its active status
     for (var message in messages) {
-      print('message: $message, widget: ${widget.messageData}');
       if (message.toString() == widget.messageData.toString()) {
         message['active'] = false;
-        print('We found the message!');
         break;
       }
     }
@@ -139,6 +137,44 @@ class MessageCardState extends State<MessageCard> {
       return requests.contains(widget.messageData['username']);
     }
     return false;
+  }
+
+  Future<bool> isEventActive(String eventID) async {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('Users')
+        .doc(widget.username)
+        .get();
+    if (userDoc.exists) {
+      List<dynamic> events = userDoc['Events'] ?? [];
+      return events.contains(eventID);
+    }
+    return false;
+  }
+
+  void handleEventTap(String eventID, String messageType) async {
+    bool eventActive = await isEventActive(eventID);
+    if (eventActive) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => messageType == 'event invitation'
+              ? DetailsPage(
+                  username: widget.username,
+                  userRating: widget.rating,
+                  eventID: eventID,
+                )
+              : PollPage(
+                  username: widget.username,
+                  rating: widget.rating,
+                  eventID: eventID,
+                ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('The event was cancelled.')),
+      );
+    }
   }
 
   @override
@@ -197,22 +233,7 @@ class MessageCardState extends State<MessageCard> {
                 ],
               ),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => messageType == 'event invitation'
-                        ? DetailsPage(
-                            username: widget.username,
-                            userRating: widget.rating,
-                            eventID: widget.messageData['eventID'],
-                          )
-                        : PollPage(
-                            username: widget.username,
-                            rating: widget.rating,
-                            eventID: widget.messageData['eventID'],
-                          ),
-                  ),
-                );
+                handleEventTap(widget.messageData['eventID'], messageType);
               },
             )
           : Column(

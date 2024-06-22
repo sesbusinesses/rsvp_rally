@@ -33,6 +33,7 @@ class EditEventPageState extends State<EditEventPage> {
   List<Map<String, TextEditingController>> phaseControllers = [];
   List<Map<String, TextEditingController>> notificationControllers = [];
   List<String> attendees = [];
+  List<String> originalAttendees = [];
   bool isLoading = true;
 
   @override
@@ -54,6 +55,7 @@ class EditEventPageState extends State<EditEventPage> {
         eventNameController.text = eventData['EventName'] ?? '';
         eventDetailsController.text = eventData['Details'] ?? '';
         attendees = List<String>.from(eventData['Attendees'] ?? []);
+        originalAttendees = List<String>.from(attendees);
 
         phaseControllers = (eventData['Timeline'] as List<dynamic>?)
                 ?.map((phase) {
@@ -147,6 +149,22 @@ class EditEventPageState extends State<EditEventPage> {
         const SnackBar(content: Text('Please invite at least one person')),
       );
       return;
+    } else if (phaseControllers.any((controller) =>
+        controller['name']!.text.isEmpty ||
+        controller['location']!.text.isEmpty ||
+        controller['startTime']!.text.isEmpty ||
+        controller['endTime']!.text.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all phase details')),
+      );
+      return;
+    } else if (notificationControllers.any((controller) =>
+        controller['text']!.text.isEmpty || controller['time']!.text.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please fill in all notification details')),
+      );
+      return;
     }
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -203,7 +221,6 @@ class EditEventPageState extends State<EditEventPage> {
     };
 
     try {
-      // Update event in Firestore
       await firestore
           .collection('Events')
           .doc(widget.eventID)
@@ -219,13 +236,56 @@ class EditEventPageState extends State<EditEventPage> {
         'Events': FieldValue.arrayUnion([widget.eventID])
       });
 
-      // Add event to attendees
+      // Remove event from friends who are no longer invited
+      Timestamp timestamp = Timestamp.now();
+      DocumentSnapshot hostDoc =
+          await firestore.collection('Users').doc(widget.username).get();
+      String hostFirstName = hostDoc['FirstName'] ?? widget.username;
+      String hostLastName = hostDoc['LastName'] ?? '';
+      List<String> removedAttendees = originalAttendees
+          .where((attendee) => !attendees.contains(attendee))
+          .toList();
+
+      for (String friend in removedAttendees) {
+        DocumentReference userDocRef =
+            firestore.collection('Users').doc(friend);
+        batch.update(userDocRef, {
+          'Messages': FieldValue.arrayUnion([
+            {
+              'text':
+                  '$hostFirstName $hostLastName has cancelled ${eventData['EventName']}.',
+              'type': 'event cancelled',
+              'eventID': widget.eventID,
+              'timestamp': timestamp
+            }
+          ]),
+          'NewMessages': true,
+          'Events': FieldValue.arrayRemove([widget.eventID])
+        });
+      }
+
+      // Add event to attendees and send invitation message to new attendees
       for (String attendee in attendees) {
         DocumentReference userDocRef =
             firestore.collection('Users').doc(attendee);
-        batch.update(userDocRef, {
-          'Events': FieldValue.arrayUnion([widget.eventID])
-        });
+        Map<String, dynamic> updateData = {
+          'Events': FieldValue.arrayUnion([widget.eventID]),
+        };
+
+        if (!originalAttendees.contains(attendee)) {
+          updateData['Messages'] = FieldValue.arrayUnion([
+            {
+              'text':
+                  '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!',
+              'type': 'event invitation',
+              'eventID': widget.eventID,
+              'timestamp': timestamp
+            }
+          ]);
+          updateData['NewMessages'] = true;
+        }
+
+        batch.update(userDocRef, updateData);
       }
 
       // Commit the batch
