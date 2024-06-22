@@ -157,7 +157,8 @@ class CreateEventPageState extends State<CreateEventPage> {
         'Yes': [],
         'No': [],
         'CloseTime': Timestamp.fromDate(
-            DateTime.now().add(const Duration(days: 1))) // Example close time
+            DateTime.now().add(const Duration(days: 1))), // Example close time
+        'IsAlarmSet': false,
       };
     }
 
