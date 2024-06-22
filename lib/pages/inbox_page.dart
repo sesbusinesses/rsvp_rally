@@ -45,7 +45,7 @@ class InboxPageState extends State<InboxPage> {
   }
 
   Future<void> _launchURL() async {
-    final Uri url = Uri.parse('https://sesbusinesses.me');
+    final Uri url = Uri.parse('https://sesbusinesses.me/rsvp_support.html');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw 'Could not launch $url';
     }
@@ -71,8 +71,7 @@ class InboxPageState extends State<InboxPage> {
         body: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.only(
-                  bottom: 70), // Add bottom padding to avoid overlap
+              padding: const EdgeInsets.only(bottom: 80),
               child: ListView.builder(
                 padding: const EdgeInsets.all(16.0),
                 itemCount: messages.length,

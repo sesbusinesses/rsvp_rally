@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/models/database_puller.dart';
+import 'package:rsvp_rally/widgets/widebutton.dart';
 
 class PollCard extends StatefulWidget {
   final String eventID;
@@ -68,8 +71,13 @@ class _PollCardState extends State<PollCard> {
     }
   }
 
+  Future<String?> _fetchProfilePicture(String username) async {
+    return await pullProfilePicture(username);
+  }
+
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
     List<Widget> responseWidgets = [];
 
     pollData['responses'].forEach((option, voters) {
@@ -79,29 +87,50 @@ class _PollCardState extends State<PollCard> {
         responseWidgets.add(
           Column(
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  _vote(option);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: getInterpolatedDark(widget.userRating),
-                ),
-                child: Text(
-                  option,
-                  style: const TextStyle(
-                    color: AppColors.light,
-                    fontWeight: FontWeight.bold,
-                  ),
+              SizedBox(
+                width: screenSize.width * 0.7225,
+                child: WideButton(
+                  buttonText: option,
+                  rating: widget.userRating,
+                  onPressed: () {
+                    _vote(option);
+                  },
                 ),
               ),
               if (voterNames.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(top: 5, bottom: 10.0),
-                  child: Text(
-                    voterNames.join(', '),
-                    style: const TextStyle(color: Colors.grey),
+                  padding: const EdgeInsets.only(top: 10, bottom: 10),
+                  child: FutureBuilder<List<String?>>(
+                    future: Future.wait(voterNames
+                        .map((username) => _fetchProfilePicture(username))
+                        .toList()),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData) {
+                        return Wrap(
+                          spacing: 8.0,
+                          children: snapshot.data!.map((profilePictureData) {
+                            return CircleAvatar(
+                              radius: 15,
+                              backgroundImage: profilePictureData != null
+                                  ? MemoryImage(
+                                      base64Decode(profilePictureData))
+                                  : null,
+                              child: profilePictureData == null
+                                  ? const Icon(Icons.person,
+                                      size: 20, color: Colors.grey)
+                                  : null,
+                            );
+                          }).toList(),
+                        );
+                      } else {
+                        return const CircularProgressIndicator(strokeWidth: 2);
+                      }
+                    },
                   ),
-                ),
+                )
+              else
+                const SizedBox(height: 10),
             ],
           ),
         );
@@ -141,7 +170,7 @@ class _PollCardState extends State<PollCard> {
                 Text(
                   pollData['question'],
                   style: const TextStyle(
-                    fontSize: 22,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppColors.dark,
                   ),
@@ -166,7 +195,7 @@ class _PollCardState extends State<PollCard> {
                     ],
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.only(top: 10),
                     child: Column(
                       children: responseWidgets,
                     ),
@@ -176,8 +205,7 @@ class _PollCardState extends State<PollCard> {
                 Text(
                   "Poll responses locked at $formattedCloseTime",
                   style: const TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Colors.grey,
+                    color: AppColors.accentDark,
                   ),
                 ),
               ],

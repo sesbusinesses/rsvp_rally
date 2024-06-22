@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
@@ -24,6 +22,18 @@ class AddFriendsPageState extends State<AddFriendsPage> {
     super.initState();
     fetchAllUsernames();
     fetchFriends();
+
+    // Add listener to the searchController
+    searchController.addListener(() {
+      searchUsers(searchController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    // Dispose the controller when the widget is disposed
+    searchController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchAllUsernames() async {
@@ -87,6 +97,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                 'type': 'friend request received',
                 'username': widget.username,
                 'timestamp': timestamp,
+                'active': true,
               }
             ]),
             'NewMessages': true,
@@ -101,6 +112,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
               'type': 'friend request received',
               'username': widget.username,
               'timestamp': timestamp,
+              'active': true,
             }
           ],
           'NewMessages': true,
@@ -138,25 +150,23 @@ class AddFriendsPageState extends State<AddFriendsPage> {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Friends'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: EdgeInsets.symmetric(
+            vertical: 15.0, horizontal: screenSize.width * 0.075),
         child: Column(
           children: [
             Row(
               children: [
                 Expanded(
                   child: WideTextBox(
-                    hintText: 'Enter Username',
+                    hintText: 'Search for friends',
                     controller: searchController,
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  onPressed: () => searchUsers(searchController.text),
                 ),
               ],
             ),
