@@ -90,23 +90,25 @@ class EventPageState extends State<EventPage> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
-                          children: eventIds.map((eventId) {
-                            return FutureBuilder<double?>(
-                              future: getUserRating(widget.username),
-                              builder: (context, ratingSnapshot) {
-                                double userRating = ratingSnapshot.data ?? 0;
-                                return EventCard(
-                                  eventID: eventId,
-                                  userRating: userRating,
-                                  username: widget.username,
-                                );
-                              },
-                            );
-                          }).toList(),
+                          children: [
+                            ...eventIds.map((eventId) {
+                              return FutureBuilder<double?>(
+                                future: getUserRating(widget.username),
+                                builder: (context, ratingSnapshot) {
+                                  double userRating = ratingSnapshot.data ?? 0;
+                                  return EventCard(
+                                    eventID: eventId,
+                                    userRating: userRating,
+                                    username: widget.username,
+                                  );
+                                },
+                              );
+                            }),
+                            const SizedBox(height: 20)
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 40),
                   ],
                 );
               }
