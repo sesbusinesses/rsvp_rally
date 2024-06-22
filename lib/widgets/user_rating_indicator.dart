@@ -18,34 +18,32 @@ class UserRatingIndicator extends StatelessWidget {
     }
 
     return Container(
-      width: 220,
-      height: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: const [],
-      ),
-      child: Expanded(
-          child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            top: 60, // Adjusted position to align the emoji correctly
-            child: Text(
-              getEmoji(userRating), // Displaying the appropriate emoji
-              style: const TextStyle(
-                fontSize: 50,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+        width: 220,
+        height: 120,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: const [],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              top: 60, // Adjusted position to align the emoji correctly
+              child: Text(
+                getEmoji(userRating), // Displaying the appropriate emoji
+                style: const TextStyle(
+                  fontSize: 50,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-          CustomPaint(
-            size: const Size(200, 100), // Adjusted size for the semicircle
-            painter: _SemicircularPainter(userRating),
-          ),
-        ],
-      )),
-    );
+            CustomPaint(
+              size: const Size(200, 100), // Adjusted size for the semicircle
+              painter: _SemicircularPainter(userRating),
+            ),
+          ],
+        ));
   }
 }
 

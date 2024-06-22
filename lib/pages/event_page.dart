@@ -92,10 +92,12 @@ class EventPageState extends State<EventPage> {
                       future: userRatingFuture,
                       builder: (context, ratingSnapshot) {
                         double userRating = ratingSnapshot.data ?? 0;
-                        return UserRatingIndicator(userRating: userRating);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: UserRatingIndicator(userRating: userRating),
+                        );
                       },
                     ),
-                    const SizedBox(height: 20),
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
