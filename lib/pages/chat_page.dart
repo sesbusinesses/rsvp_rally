@@ -179,14 +179,6 @@ class _ChatPageState extends State<ChatPage> {
             child: WideTextBox(
               hintText: 'Type a message',
               controller: _controller,
-              decoration: InputDecoration(
-                hintText: 'Type a message',
-                border: const OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide(color: getInterpolatedColor(widget.rating)),
-                ),
-              ),
             ),
           ),
           IconButton(
@@ -216,7 +208,8 @@ class _ChatPageState extends State<ChatPage> {
         final base64Image = base64Encode(bytes);
 
         // Send the base64 string
-        await sendMessage(widget.eventID, widget.username, 'data:image/png;base64,$base64Image');
+        await sendMessage(widget.eventID, widget.username,
+            'data:image/png;base64,$base64Image');
         _scrollToBottom(); // Ensure scrolling to the bottom after sending a photo
       }
     } catch (e) {

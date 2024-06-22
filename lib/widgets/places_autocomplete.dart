@@ -9,8 +9,8 @@ class PlacesAutocomplete extends StatefulWidget {
   const PlacesAutocomplete({
     required this.apiKey,
     required this.onPlaceSelected,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _PlacesAutocompleteState createState() => _PlacesAutocompleteState();
@@ -22,7 +22,7 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
   OverlayEntry? _overlayEntry;
   List<Prediction> _predictions = [];
   late GoogleMapsPlaces _places;
-  FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -67,7 +67,7 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
       _overlayEntry!.remove();
     }
     _overlayEntry = _createOverlayEntry();
-    Overlay.of(context)?.insert(_overlayEntry!);
+    Overlay.of(context).insert(_overlayEntry!);
   }
 
   void _hideOverlay() {
@@ -91,7 +91,7 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
             elevation: 4.0,
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.accent,
+                color: AppColors.accentLight,
                 border: Border.all(color: Colors.white),
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -104,8 +104,10 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
                   return ListTile(
                     title: Text(prediction.description ?? ''),
                     onTap: () async {
-                      final detail = await _places.getDetailsByPlaceId(prediction.placeId!);
-                      widget.onPlaceSelected(prediction.placeId!, detail.result.formattedAddress ?? '');
+                      final detail = await _places
+                          .getDetailsByPlaceId(prediction.placeId!);
+                      widget.onPlaceSelected(prediction.placeId!,
+                          detail.result.formattedAddress ?? '');
                       _controller.text = detail.result.formattedAddress ?? '';
                       _hideOverlay();
                     },
@@ -125,7 +127,7 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
       link: _layerLink,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.accent,
+          color: AppColors.accentLight,
           border: Border.all(color: Colors.white),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -135,7 +137,7 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
             controller: _controller,
             focusNode: _focusNode,
             onChanged: _searchPlaces,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: "Event Location",
               prefixIcon: Icon(Icons.location_on),
               border: InputBorder.none,
