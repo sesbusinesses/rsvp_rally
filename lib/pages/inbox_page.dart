@@ -84,34 +84,6 @@ class InboxPageState extends State<InboxPage> {
                 },
               ),
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                color: AppColors
-                    .light, // Light background color for the bottom section
-                padding: const EdgeInsets.only(bottom: 40.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Have any questions? ",
-                      style: TextStyle(fontSize: 16.0, color: AppColors.dark),
-                    ),
-                    GestureDetector(
-                      onTap: _launchURL,
-                      child: Text(
-                        "Visit our website",
-                        style: TextStyle(
-                          color: getInterpolatedColor(widget.userRating),
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
