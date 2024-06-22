@@ -18,20 +18,18 @@ class UserRatingIndicator extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(10),
+      width: 220,
+      height: 120,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         boxShadow: const [],
       ),
-      child: Stack(
+      child: Expanded(
+          child: Stack(
         alignment: Alignment.center,
         children: [
-          CustomPaint(
-            size: const Size(200, 200),
-            painter: _SemicircularPainter(userRating),
-          ),
           Positioned(
-            top: 50,
+            top: 60, // Adjusted position to align the emoji correctly
             child: Text(
               getEmoji(userRating), // Displaying the appropriate emoji
               style: const TextStyle(
@@ -41,8 +39,12 @@ class UserRatingIndicator extends StatelessWidget {
               ),
             ),
           ),
+          CustomPaint(
+            size: const Size(200, 100), // Adjusted size for the semicircle
+            painter: _SemicircularPainter(userRating),
+          ),
         ],
-      ),
+      )),
     );
   }
 }
@@ -54,7 +56,9 @@ class _SemicircularPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final width = size.width;
+    final height = size.height * 2;
+    final rect = Rect.fromLTWH(0, 0, width, height);
     const startAngle = -math.pi;
     final sweepAngle = math.pi * progress;
 
@@ -73,7 +77,8 @@ class _SemicircularPainter extends CustomPainter {
     final backgroundPaint = Paint()
       ..color = Colors.grey.withOpacity(0.2)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 10;
+      ..strokeWidth = 10
+      ..strokeCap = StrokeCap.round;
 
     // Draw full semicircle background
     canvas.drawArc(rect, startAngle, math.pi, false, backgroundPaint);
