@@ -71,7 +71,7 @@ class InboxPageState extends State<InboxPage> {
         body: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: 80),
+              padding: const EdgeInsets.only(bottom: 0),
               child: ListView.builder(
                 padding: const EdgeInsets.all(16.0),
                 itemCount: messages.length,

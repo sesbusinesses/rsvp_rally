@@ -3,6 +3,7 @@ import 'package:rsvp_rally/models/colors.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:rsvp_rally/models/database_puller.dart'; // Ensure this path is correct
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EventTimeline extends StatelessWidget {
   final double rating;
@@ -68,7 +69,7 @@ class EventTimeline extends StatelessWidget {
       indicatorStyle = IndicatorStyle(
           width: 30,
           padding: const EdgeInsets.all(0),
-          indicator: isFuturePhase
+          indicator: isFuturePhase || (isCurrentPhase && isLastNode)
               ? Container(
                   height: 30,
                   width: 30,
@@ -91,7 +92,7 @@ class EventTimeline extends StatelessWidget {
                         width: AppColors.borderWidth),
                   ),
                 ),
-          drawGap: isFuturePhase);
+          drawGap: isFuturePhase || (isCurrentPhase && isLastNode));
     } else if (isCurrentPhase) {
       indicatorStyle = IndicatorStyle(
         width: 30,
@@ -148,17 +149,33 @@ class EventTimeline extends StatelessWidget {
                 ],
                 if (!isStartNode && !isLastNode) ...[
                   Padding(
-                      padding: const EdgeInsets.only(left: 15),
-                      child: Column(
+                    padding: const EdgeInsets.only(left: 15, right: 30),
+                    child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Activity: ${data['phaseName']}',
+                          Text('${data['phaseName']}',
                               style: const TextStyle(color: AppColors.dark)),
-                          Text(
-                              'Location: ${data['phaseLocation'] ?? 'Location not specified'}',
-                              style: const TextStyle(color: AppColors.dark)),
-                        ],
-                      )),
+                          if (data['phaseLocation'] != null) ...[
+                            GestureDetector(
+                              onTap: () async {
+                                final String url =
+                                    'https://www.google.com/maps/search/?api=1&query=${data['phaseLocation']}';
+                                final Uri uri = Uri.parse(url);
+                                if (!await launchUrl(uri,
+                                    mode: LaunchMode.externalApplication)) {
+                                  throw 'Could not launch $uri';
+                                }
+                              },
+                              child: Text('${data['phaseLocation']}',
+                                  style:
+                                      const TextStyle(color: AppColors.link)),
+                            ),
+                          ] else ...[
+                            const Text('Location not specified',
+                                style: TextStyle(color: AppColors.dark)),
+                          ],
+                        ]),
+                  )
                 ],
                 if (isLastNode) ...[
                   const SizedBox(height: 4),
