@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/models/notification_service.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/pages/signup_page.dart';
 import 'package:rsvp_rally/pages/forgotpassword_page.dart';
@@ -34,9 +35,12 @@ class _LogInState extends State<LogInPage> {
   }
 
   void checkIfLogin() async {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) async {
       if (user != null && mounted && !isNavigating) {
         final name = user.displayName ?? 'User';
+
+        await NotificationService().ensureTokenUploaded();
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => EventPage(username: name)),
@@ -63,10 +67,13 @@ class _LogInState extends State<LogInPage> {
       User? user = userCredential.user;
       final name = user?.displayName ?? 'User';
 
+      await NotificationService().ensureTokenUploaded();
+
       if (mounted) {
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => EventPage(username: name)));
       }
+      
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential' && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
