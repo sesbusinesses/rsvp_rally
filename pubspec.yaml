@@ -96,7 +96,7 @@ dev_dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/rsvp_rally.png"
+  image_path: "assets/rsvp_rally.jpeg"
 
 # The following section is specific to Flutter packages.
 flutter:
