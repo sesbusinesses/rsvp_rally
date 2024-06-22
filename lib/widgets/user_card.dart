@@ -6,8 +6,10 @@ import 'package:rsvp_rally/models/colors.dart';
 class UserCard extends StatefulWidget {
   final String username;
   final bool showUsername;
+  final Icon? icon;
 
-  const UserCard({super.key, required this.username, this.showUsername = true});
+  const UserCard(
+      {super.key, required this.username, this.showUsername = true, this.icon});
 
   @override
   UserCardState createState() => UserCardState();
@@ -45,7 +47,7 @@ class UserCardState extends State<UserCard> {
         setState(() {
           firstName = userData['FirstName'] ?? "";
           lastName = userData['LastName'] ?? "";
-          profilePicBase64 = userData['ProfilePic'] ?? null;
+          profilePicBase64 = userData['ProfilePic'];
           rating = double.tryParse(userData['Rating'].toString()) ?? 0.0;
         });
       }
@@ -86,15 +88,15 @@ class UserCardState extends State<UserCard> {
       ),
       child: Row(
         children: [
-          SizedBox(width: 10),  // Space between border and picture
+          const SizedBox(width: 10), // Space between border and picture
           Stack(
             children: [
               Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: AppColors.shadow,
                       blurRadius: 5,
                       offset: Offset(0, 2),
                     ),
@@ -106,26 +108,27 @@ class UserCardState extends State<UserCard> {
                       ? MemoryImage(base64Decode(profilePicBase64!))
                       : null,
                   child: profilePicBase64 == null
-                      ? Icon(Icons.add, size: 50, color: Colors.grey)
+                      ? const Icon(Icons.add,
+                          size: 50, color: AppColors.accentDark)
                       : null,
                 ),
               ),
               if (profilePicBase64 != null)
                 Positioned(
-                  bottom: 1,  // Adjusted for smaller CircleAvatar
-                  right: -5,  // Adjusted for smaller CircleAvatar
+                  bottom: 1, // Adjusted for smaller CircleAvatar
+                  right: -5, // Adjusted for smaller CircleAvatar
                   child: CircleAvatar(
-                    radius: 18,  // Smaller radius
+                    radius: 18, // Smaller radius
                     backgroundColor: Colors.transparent,
                     child: Text(
                       getEmoji(rating),
-                      style: TextStyle(fontSize: 25),  // Larger font size
+                      style: const TextStyle(fontSize: 25), // Larger font size
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(width: 20),  // Space between picture and text
+          const SizedBox(width: 20), // Space between picture and text
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -142,15 +145,17 @@ class UserCardState extends State<UserCard> {
                 if (widget.showUsername)
                   Text(
                     widget.username,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
-                      color: Colors.grey,
+                      color: AppColors.accentDark,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
               ],
             ),
           ),
+          if (widget.icon != null) widget.icon!,
+          if (widget.icon != null) const SizedBox(width: 15),
         ],
       ),
     );

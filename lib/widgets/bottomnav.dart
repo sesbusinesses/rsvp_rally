@@ -6,6 +6,7 @@ import 'package:rsvp_rally/pages/poll_page.dart';
 import 'package:rsvp_rally/pages/chat_page.dart';
 import 'package:rsvp_rally/pages/edit_event_page.dart';
 import 'package:rsvp_rally/models/colors.dart'; // Ensure this import exists
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BottomNav extends StatefulWidget {
   final String eventID;
@@ -14,18 +15,40 @@ class BottomNav extends StatefulWidget {
   final double rating;
 
   const BottomNav({
-    Key? key,
+    super.key,
     required this.eventID,
     required this.username,
     required this.selectedIndex,
     required this.rating,
-  }) : super(key: key);
+  });
 
   @override
   _BottomNavState createState() => _BottomNavState();
 }
 
 class _BottomNavState extends State<BottomNav> {
+  bool isHost = false;
+
+  @override
+  void initState() {
+    super.initState();
+    checkIfHost();
+  }
+
+  Future<void> checkIfHost() async {
+    DocumentSnapshot eventDoc = await FirebaseFirestore.instance
+        .collection('Events')
+        .doc(widget.eventID)
+        .get();
+
+    if (eventDoc.exists) {
+      Map<String, dynamic> eventData = eventDoc.data() as Map<String, dynamic>;
+      setState(() {
+        isHost = eventData['HostName'] == widget.username;
+      });
+    }
+  }
+
   void _onItemTapped(int index) {
     if (index != widget.selectedIndex) {
       switch (index) {
@@ -38,7 +61,6 @@ class _BottomNavState extends State<BottomNav> {
                 eventID: widget.eventID,
                 userRating: widget.rating,
               ),
-
             ),
           );
           break;
@@ -67,16 +89,18 @@ class _BottomNavState extends State<BottomNav> {
           );
           break;
         case 3:
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EditEventPage(
-                rating: widget.rating,
-                eventID: widget.eventID,
-                username: widget.username,
+          if (isHost) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EditEventPage(
+                  rating: widget.rating,
+                  eventID: widget.eventID,
+                  username: widget.username,
+                ),
               ),
-            ),
-          );
+            );
+          }
           break;
       }
     }
@@ -98,7 +122,7 @@ class _BottomNavState extends State<BottomNav> {
                 color: Colors.black.withOpacity(0.1),
                 spreadRadius: 2,
                 blurRadius: 5,
-                offset: Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
             border: Border.all(
@@ -124,11 +148,12 @@ class _BottomNavState extends State<BottomNav> {
                 index: 2,
                 selected: widget.selectedIndex == 2,
               ),
-              _buildNavItem(
-                icon: Icons.edit,
-                index: 3,
-                selected: widget.selectedIndex == 3,
-              ),
+              if (isHost)
+                _buildNavItem(
+                  icon: Icons.edit,
+                  index: 3,
+                  selected: widget.selectedIndex == 3,
+                ),
             ],
           ),
         ),
@@ -136,7 +161,8 @@ class _BottomNavState extends State<BottomNav> {
     );
   }
 
-  Widget _buildNavItem({required IconData icon, required int index, required bool selected}) {
+  Widget _buildNavItem(
+      {required IconData icon, required int index, required bool selected}) {
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       child: Stack(
@@ -161,7 +187,6 @@ class _BottomNavState extends State<BottomNav> {
             color: selected ? Colors.grey[900] : Colors.grey[500],
           ),
         ],
-
       ),
     );
   }

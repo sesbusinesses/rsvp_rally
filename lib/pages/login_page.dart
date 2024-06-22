@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/models/notification_service.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/pages/signup_page.dart';
 import 'package:rsvp_rally/pages/forgotpassword_page.dart';
@@ -34,9 +35,12 @@ class _LogInState extends State<LogInPage> {
   }
 
   void checkIfLogin() async {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) async {
       if (user != null && mounted && !isNavigating) {
         final name = user.displayName ?? 'User';
+
+        await NotificationService().ensureTokenUploaded();
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => EventPage(username: name)),
@@ -46,6 +50,16 @@ class _LogInState extends State<LogInPage> {
   }
 
   userLogin() async {
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          "Please enter both email and password",
+          style: TextStyle(fontSize: 18.0, color: AppColors.dark),
+        ),
+      ));
+      return;
+    }
+
     try {
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
@@ -53,22 +67,35 @@ class _LogInState extends State<LogInPage> {
       User? user = userCredential.user;
       final name = user?.displayName ?? 'User';
 
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => EventPage(username: name)));
+      await NotificationService().ensureTokenUploaded();
+
+      if (mounted) {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => EventPage(username: name)));
+      }
+      
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
+      if (e.code == 'invalid-credential' && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
-            "No User Found for that Email",
-            style: TextStyle(fontSize: 18.0, color: Colors.black),
+            "Incorrect Email or Password",
+            style: TextStyle(fontSize: 18.0, color: AppColors.dark),
           ),
         ));
-      } else if (e.code == 'wrong-password') {
+      } else if (e.code == 'invalid-email' && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text(
-          "Wrong Password Provided by User",
-          style: TextStyle(fontSize: 18.0, color: Colors.black),
-        )));
+          content: Text(
+            "Invalid Email Address",
+            style: TextStyle(fontSize: 18.0, color: AppColors.dark),
+          ),
+        ));
+      } else if (e.code == 'too-many-requests' && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+            "Too many login attempts. Try again later.",
+            style: TextStyle(fontSize: 18.0, color: AppColors.dark),
+          ),
+        ));
       }
     }
   }
@@ -141,7 +168,7 @@ class _LogInState extends State<LogInPage> {
                     userLogin();
                   }),
               const SizedBox(
-                height: 130,
+                height: 40,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

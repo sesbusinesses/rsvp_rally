@@ -19,17 +19,22 @@ class FriendsPage extends StatefulWidget {
 }
 
 class FriendsPageState extends State<FriendsPage> {
+  TextEditingController searchController = TextEditingController();
   List<Map<String, dynamic>> friendsData = [];
   List<Map<String, dynamic>> filteredFriends = [];
-  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    fetchFriends();
+    fetchFriends().then((friends) {
+      setState(() {
+        friendsData = friends;
+        filteredFriends = friendsData;
+      });
+    });
   }
 
-  Future<void> fetchFriends() async {
+  Future<List<Map<String, dynamic>>> fetchFriends() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     try {
       DocumentSnapshot userDoc =
@@ -57,11 +62,7 @@ class FriendsPageState extends State<FriendsPage> {
         }
 
         friends.sort((a, b) => b['rating'].compareTo(a['rating']));
-
-        setState(() {
-          friendsData = friends;
-          filteredFriends = friendsData;
-        });
+        return friends;
       }
     } catch (e) {
       // Handle error
@@ -69,6 +70,7 @@ class FriendsPageState extends State<FriendsPage> {
         print("Error fetching friends: $e");
       }
     }
+    return [];
   }
 
   void filterFriends(String query) {
@@ -79,20 +81,11 @@ class FriendsPageState extends State<FriendsPage> {
     } else {
       String lowerCaseQuery = query.toLowerCase();
 
-      List<Map<String, dynamic>> temp = [];
-
-      if (query.length == 1) {
-        temp = friendsData.where((friend) {
-          return friend['username'].toLowerCase().startsWith(lowerCaseQuery) ||
-              friend['firstName'].toLowerCase().startsWith(lowerCaseQuery);
-        }).toList();
-      } else {
-        temp = friendsData.where((friend) {
-          return friend['username'].toLowerCase().contains(lowerCaseQuery) ||
-              friend['firstName'].toLowerCase().contains(lowerCaseQuery) ||
-              friend['lastName'].toLowerCase().contains(lowerCaseQuery);
-        }).toList();
-      }
+      List<Map<String, dynamic>> temp = friendsData.where((friend) {
+        return friend['username'].toLowerCase().contains(lowerCaseQuery) ||
+            friend['firstName'].toLowerCase().contains(lowerCaseQuery) ||
+            friend['lastName'].toLowerCase().contains(lowerCaseQuery);
+      }).toList();
 
       temp.sort((a, b) {
         bool aIsExactMatch = a['username'].toLowerCase() == lowerCaseQuery ||
@@ -129,26 +122,28 @@ class FriendsPageState extends State<FriendsPage> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          actions: <Widget>[
-            ViewSettingsButton(
-                username: widget.username,
-                userRating: widget.rating), // Use the new settings button
-          ],
-        ),
-        body: Stack(children: [
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        actions: <Widget>[
+          ViewSettingsButton(
+              username: widget.username,
+              userRating: widget.rating), // Use the new settings button
+        ],
+      ),
+      body: Stack(
+        children: [
           Center(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ProfileEditor(
-                  username: widget.username,
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ProfileEditor(
+                    username: widget.username,
+                  ),
+                  Expanded(
+                      child: SingleChildScrollView(
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       width: screenSize.width * 0.85,
@@ -159,9 +154,6 @@ class FriendsPageState extends State<FriendsPage> {
                       ),
                       child: Column(
                         children: [
-                          const Text('Your Friends',
-                              style: TextStyle(fontSize: 20)),
-                          const SizedBox(height: 10),
                           Row(
                             children: [
                               Expanded(
@@ -172,20 +164,34 @@ class FriendsPageState extends State<FriendsPage> {
                                       filterFriends(searchController.text),
                                 ),
                               ),
-                              const Icon(Icons.search_rounded),
                             ],
                           ),
                           const SizedBox(height: 10),
-                          ...filteredFriends.map((friendData) =>
-                              UserCard(username: friendData['username'])),
+                          if (filteredFriends.isNotEmpty)
+                            ...filteredFriends.map((friendData) =>
+                                UserCard(username: friendData['username'])),
+                          if (filteredFriends.isEmpty && friendsData.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.all(40),
+                              child: Text(
+                                'You don\'t have any friends yet. Click the button below to find some!',
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ),
+                          if (filteredFriends.isEmpty && friendsData.isNotEmpty)
+                            const Padding(
+                              padding: EdgeInsets.all(40),
+                              child: Text(
+                                'You don\'t have any friends for this search. Click the button below to find some!',
+                                style: TextStyle(fontSize: 20),
+                              ),
+                            ),
                           const SizedBox(height: 80)
                         ],
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ),
+                  )),
+                ]),
           ),
           Align(
             alignment: Alignment.bottomCenter,
@@ -208,6 +214,8 @@ class FriendsPageState extends State<FriendsPage> {
               ),
             ),
           ),
-        ]));
+        ],
+      ),
+    );
   }
 }
