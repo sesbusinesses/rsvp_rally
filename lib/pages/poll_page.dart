@@ -20,9 +20,26 @@ class PollPage extends StatefulWidget {
 }
 
 class _PollPageState extends State<PollPage> {
+  bool isHost = false;
+
   @override
   void initState() {
     super.initState();
+    checkIfHost();
+  }
+
+  Future<void> checkIfHost() async {
+    DocumentSnapshot eventDoc = await FirebaseFirestore.instance
+        .collection('Events')
+        .doc(widget.eventID)
+        .get();
+
+    if (eventDoc.exists) {
+      Map<String, dynamic> eventData = eventDoc.data() as Map<String, dynamic>;
+      setState(() {
+        isHost = eventData['HostName'] == widget.username;
+      });
+    }
   }
 
   @override
@@ -110,14 +127,17 @@ class _PollPageState extends State<PollPage> {
           ),
         ],
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 40.0), // Adjust offset as needed
-        child: CreatePollButton(
-          eventID: widget.eventID,
-          userRating: widget.rating,
-          username: widget.username,
-        ),
-      ),
+      floatingActionButton: isHost
+          ? Padding(
+              padding: const EdgeInsets.only(
+                  bottom: 40.0), // Adjust offset as needed
+              child: CreatePollButton(
+                eventID: widget.eventID,
+                userRating: widget.rating,
+                username: widget.username,
+              ),
+            )
+          : null,
     );
   }
 }
