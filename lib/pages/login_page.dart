@@ -73,7 +73,6 @@ class _LogInState extends State<LogInPage> {
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (context) => EventPage(username: name)));
       }
-      
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential' && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -113,12 +112,15 @@ class _LogInState extends State<LogInPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(
-                height: 80,
+                height: 100,
               ),
-              Image(
-                  image: const AssetImage('assets/rsvp_rally.png'),
-                  width: screenSize.width * 0.5),
-              const SizedBox(height: 70),
+              const Text('RSVP Rally',
+                  style: TextStyle(
+                    color: AppColors.dark,
+                    fontSize: 30.0,
+                    fontWeight: FontWeight.bold,
+                  )),
+              const SizedBox(height: 100),
               const Text(
                 "Welcome back, you've been missed!",
                 style: TextStyle(

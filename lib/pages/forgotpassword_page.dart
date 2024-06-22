@@ -73,10 +73,13 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Image(
-                    image: const AssetImage('assets/rsvp_rally.png'),
-                    width: screenSize.width * 0.5),
-                const SizedBox(height: 70),
+                const Text('RSVP Rally',
+                    style: TextStyle(
+                      color: AppColors.dark,
+                      fontSize: 30.0,
+                      fontWeight: FontWeight.bold,
+                    )),
+                const SizedBox(height: 100),
                 const Text(
                   "Recover your password below",
                   style: TextStyle(
