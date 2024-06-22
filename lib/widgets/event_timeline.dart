@@ -3,7 +3,6 @@ import 'package:rsvp_rally/models/colors.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import 'package:rsvp_rally/models/database_puller.dart'; // Ensure this path is correct
 import 'package:intl/intl.dart';
-// Firestore timestamp handling
 
 class EventTimeline extends StatelessWidget {
   final double rating;
@@ -19,7 +18,6 @@ class EventTimeline extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData && snapshot.data!.isNotEmpty) {
             var timelineData = snapshot.data!;
-            // Adjust the count to handle each phase being split into two nodes, plus one for the last end time
             return SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -30,14 +28,12 @@ class EventTimeline extends StatelessWidget {
                     return buildTimelineTile(data, phaseIndex,
                         timelineData.length, isStartNode, false);
                   } else {
-                    // Handling the extra node for displaying the end time of the last phase
                     final lastData = timelineData.last;
                     return buildTimelineTile(
                         lastData, phaseIndex, timelineData.length, false, true);
                   }
                 },
-                childCount: timelineData.length * 2 +
-                    1, // Each phase split into two nodes, plus one for the last end time
+                childCount: timelineData.length * 2 + 1,
               ),
             );
           } else {
@@ -46,8 +42,8 @@ class EventTimeline extends StatelessWidget {
             );
           }
         } else {
-          return SliverFillRemaining(
-            child: Container(),
+          return const SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
           );
         }
       },
@@ -57,13 +53,61 @@ class EventTimeline extends StatelessWidget {
   Widget buildTimelineTile(Map<String, dynamic> data, int index, int length,
       bool isStartNode, bool isLastNode) {
     final DateFormat formatter = DateFormat('MMM d, yyyy h:mm a');
+    final currentTime = DateTime.now();
+    final startTime = data['startTime'].toDate();
+    final endTime = data['endTime'].toDate();
+
+    bool isCurrentPhase =
+        currentTime.isAfter(startTime) && currentTime.isBefore(endTime);
+    bool isPastPhase = currentTime.isAfter(endTime);
+    bool isFuturePhase = currentTime.isBefore(startTime);
+
     IndicatorStyle indicatorStyle;
 
     if (isStartNode || isLastNode) {
       indicatorStyle = IndicatorStyle(
+          width: 30,
+          padding: const EdgeInsets.all(0),
+          indicator: isFuturePhase
+              ? Container(
+                  height: 30,
+                  width: 30,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.transparent,
+                    border: Border.all(
+                        color: getInterpolatedColor(rating),
+                        width: AppColors.borderWidth),
+                  ),
+                )
+              : Container(
+                  height: 30,
+                  width: 30,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: getInterpolatedColor(rating),
+                    border: Border.all(
+                        color: getInterpolatedColor(rating),
+                        width: AppColors.borderWidth),
+                  ),
+                ),
+          drawGap: isFuturePhase);
+    } else if (isCurrentPhase) {
+      indicatorStyle = IndicatorStyle(
         width: 30,
-        color: getInterpolatedColor(rating),
         padding: const EdgeInsets.all(0),
+        indicator: Container(
+          height: 30,
+          width: 30,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: getInterpolatedColor(rating),
+            border: Border.all(
+                color: getInterpolatedColor(rating),
+                width: AppColors.borderWidth),
+          ),
+          child: const Icon(Icons.play_arrow, color: AppColors.light, size: 16),
+        ),
       );
     } else {
       indicatorStyle = IndicatorStyle(
@@ -83,7 +127,7 @@ class EventTimeline extends StatelessWidget {
           alignment: TimelineAlign.manual,
           lineXY: 0.2,
           isFirst: (index == 0) & isStartNode,
-          isLast: isLastNode, // Adjust isLast for the additional node
+          isLast: isLastNode,
           indicatorStyle: indicatorStyle,
           beforeLineStyle: LineStyle(
             color: getInterpolatedColor(rating),
@@ -92,6 +136,7 @@ class EventTimeline extends StatelessWidget {
           endChild: Container(
             constraints: const BoxConstraints(maxHeight: 500),
             padding: const EdgeInsets.only(top: 0, left: 10),
+            color: Colors.transparent,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,

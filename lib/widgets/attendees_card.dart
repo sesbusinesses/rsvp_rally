@@ -52,9 +52,6 @@ class AttendeesCard extends StatelessWidget {
                     const Text('Attendees',
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold)),
-                    const SizedBox(
-                        height:
-                            15), // Space between the header and the first attendee
                     ...attendees.map((attendee) {
                       IconData iconData =
                           Icons.question_mark; // Default to maybe
