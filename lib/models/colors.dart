@@ -27,6 +27,13 @@ Color getInterpolatedColor(double value) {
   return colors.last;
 }
 
+Color getInterpolatedShadow(double value) {
+  Color interpolatedColor = getInterpolatedColor(value);
+  int alpha =
+      (interpolatedColor.alpha * 0.3).toInt(); // Adjust the factor as needed
+  return interpolatedColor.withAlpha(alpha);
+}
+
 Color getInterpolatedDark(double value) {
   Color baseColor = getInterpolatedColor(value);
   return darken(baseColor);
