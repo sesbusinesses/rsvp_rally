@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/widgets/bottomnav.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
@@ -15,11 +16,11 @@ class ChatPage extends StatefulWidget {
   final String username;
 
   const ChatPage({
-    Key? key,
+    super.key,
     required this.eventID,
     required this.rating,
     required this.username,
-  }) : super(key: key);
+  });
 
   @override
   _ChatPageState createState() => _ChatPageState();
@@ -28,11 +29,51 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
   final ImagePicker _picker = ImagePicker();
+  final ScrollController _scrollController = ScrollController();
+  String eventName = 'Event Chat'; // Default text
+  String rsvpStatus = 'maybe'; // Default RSVP status
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollToBottom();
+    fetchEventName();
+    checkRSVPStatus();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> fetchEventName() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentSnapshot eventDoc =
+        await firestore.collection('Events').doc(widget.eventID).get();
+
+    if (eventDoc.exists) {
+      Map<String, dynamic> data = eventDoc.data() as Map<String, dynamic>;
+      setState(() {
+        eventName = data['EventName'] ??
+            'Event Details'; // Set the event name or default
+      });
+    }
+  }
+
+  Future<void> checkRSVPStatus() async {
+    String status = await isComing(widget.eventID, widget.username);
+    setState(() {
+      rsvpStatus = status;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text(eventName),
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
       ),
@@ -42,41 +83,68 @@ class _ChatPageState extends State<ChatPage> {
             Column(
               children: [
                 Expanded(
-                  child: StreamBuilder<DocumentSnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('Chats')
-                        .doc(widget.eventID)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      }
+                  child: rsvpStatus == 'yes'
+                      ? StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('Chats')
+                              .doc(widget.eventID)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
 
-                      if (!snapshot.hasData || !snapshot.data!.exists) {
-                        return Center(child: Text('No messages yet.'));
-                      }
+                            if (!snapshot.hasData || !snapshot.data!.exists) {
+                              return const Center(
+                                  child: Text('No messages yet.'));
+                            }
 
-                      var messages = snapshot.data!['Messages'] as List<dynamic>;
-                      return ListView.builder(
-                        padding: EdgeInsets.only(bottom: 60), // Adjust padding to avoid overlap with bottom nav
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          var messageEntry = Map<String, dynamic>.from(messages[index]);
-                          var entry = messageEntry.entries.first;
-                          bool isPhoto = entry.value is String && entry.value.toString().startsWith('data:image');
-                          return MessageBubble(
-                            message: entry.value,
-                            isMe: entry.key == widget.username,
-                            username: entry.key,
-                            isPhoto: isPhoto,
-                          );
-                        },
-                      );
-                    },
-                  ),
+                            var messages =
+                                snapshot.data!['Messages'] as List<dynamic>;
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _scrollToBottom();
+                            });
+
+                            return ListView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.only(
+                                  bottom:
+                                      60), // Adjust padding to avoid overlap with bottom nav
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) {
+                                var messageEntry =
+                                    Map<String, dynamic>.from(messages[index]);
+                                var entry = messageEntry.entries.first;
+                                bool isPhoto = entry.value is String &&
+                                    entry.value
+                                        .toString()
+                                        .startsWith('data:image');
+                                return MessageBubble(
+                                  message: entry.value,
+                                  isMe: isPhoto
+                                      ? messageEntry['username'] ==
+                                          widget.username
+                                      : entry.key == widget.username,
+                                  username: isPhoto
+                                      ? messageEntry['username']
+                                      : entry.key,
+                                  isPhoto: isPhoto,
+                                );
+                              },
+                            );
+                          },
+                        )
+                      : const Center(
+                          child: Text(
+                            'RSVP \'Yes\' to access the chat',
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        ),
                 ),
-                _buildMessageInputArea(),
-                SizedBox(height: 50),
+                if (rsvpStatus == 'yes') _buildMessageInputArea(),
+                const SizedBox(height: 50),
               ],
             ),
             Positioned(
@@ -99,7 +167,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildMessageInputArea() {
     return Container(
       padding: const EdgeInsets.all(8.0),
-      color: Colors.white,
+      color: AppColors.light,
       child: Row(
         children: [
           IconButton(
@@ -111,9 +179,10 @@ class _ChatPageState extends State<ChatPage> {
               controller: _controller,
               decoration: InputDecoration(
                 hintText: 'Type a message',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: getInterpolatedColor(widget.rating)),
+                  borderSide:
+                      BorderSide(color: getInterpolatedColor(widget.rating)),
                 ),
               ),
             ),
@@ -131,6 +200,7 @@ class _ChatPageState extends State<ChatPage> {
     if (_controller.text.isNotEmpty) {
       await sendMessage(widget.eventID, widget.username, _controller.text);
       _controller.clear();
+      _scrollToBottom(); // Ensure scrolling to the bottom after sending a message
     }
   }
 
@@ -138,13 +208,21 @@ class _ChatPageState extends State<ChatPage> {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
-        await sendMessageWithPhotoBase64(widget.eventID, widget.username, image);
+        await sendMessageWithPhotoBase64(
+            widget.eventID, widget.username, image);
+        _scrollToBottom(); // Ensure scrolling to the bottom after sending a photo
       }
     } catch (e) {
       developer.log('Error picking or sending photo: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error picking or sending photo: $e')),
       );
+    }
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
     }
   }
 }

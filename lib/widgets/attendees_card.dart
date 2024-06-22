@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
-import 'package:rsvp_rally/widgets/rating_indicator.dart'; // Ensure this includes fetchEventAttendees
+import 'package:rsvp_rally/widgets/rating_indicator.dart';
+import 'package:rsvp_rally/widgets/user_card.dart';
 
 class AttendeesCard extends StatelessWidget {
   final double rating;
@@ -25,7 +26,7 @@ class AttendeesCard extends StatelessWidget {
               padding: EdgeInsets.only(
                   left: screenSize.width * 0.075,
                   right: screenSize.width * 0.075,
-                  bottom: 50),
+                  bottom: 100),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -50,10 +51,7 @@ class AttendeesCard extends StatelessWidget {
                   children: [
                     const Text('Attendees',
                         style: TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.bold)),
-                    const SizedBox(
-                        height:
-                            15), // Space between the header and the first attendee
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                     ...attendees.map((attendee) {
                       IconData iconData =
                           Icons.question_mark; // Default to maybe
@@ -70,33 +68,11 @@ class AttendeesCard extends StatelessWidget {
                           break;
                       }
                       return Column(children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          width: screenSize.width * 0.8,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                color:
-                                    getInterpolatedColor(attendee['rating'])),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "${attendee['firstName']} ${attendee['lastName']}",
-                                style: const TextStyle(
-                                  color: AppColors.dark,
-                                ),
-                              ),
-                              RatingIndicator(progress: attendee['rating']),
-                              Icon(iconData,
-                                  color:
-                                      getInterpolatedColor(attendee['rating'])),
-                            ],
-                          ),
+                        UserCard(
+                          username: attendee['username'],
+                          icon: Icon(iconData,
+                              color: getInterpolatedColor(attendee['rating'])),
                         ),
-                        const SizedBox(height: 12),
                       ]);
                     }),
                   ],
@@ -110,15 +86,8 @@ class AttendeesCard extends StatelessWidget {
                   style: const TextStyle(fontSize: 16)),
             );
           }
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: CircularProgressIndicator(),
-          );
         }
-        return const Padding(
-          padding: EdgeInsets.all(16),
-          child: CircularProgressIndicator(),
-        );
+        return Container();
       },
     );
   }

@@ -10,37 +10,47 @@ class MessageBubble extends StatelessWidget {
   final bool isPhoto;
 
   const MessageBubble({
-    Key? key,
+    super.key,
     required this.message,
     required this.isMe,
     required this.username,
     this.isPhoto = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
-      future: pullProfilePicture(username), // Fetch profile picture
+    return FutureBuilder<List<dynamic>>(
+      future: Future.wait([
+        pullProfilePicture(username), // Fetch profile picture
+        getUserRating(username), // Fetch user rating
+      ]),
       builder: (context, snapshot) {
         Widget profilePicture;
+        double userRating = 0.0;
 
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData && snapshot.data != null) {
+            String? profilePictureData = snapshot.data![0];
+            double? userRatingData = snapshot.data![1] as double?;
+            userRating = userRatingData ?? 0.0;
+
             profilePicture = CircleAvatar(
               radius: 15,
-              backgroundImage: MemoryImage(base64Decode(snapshot.data!)),
-              child: snapshot.data == null
-                  ? Icon(Icons.person, size: 20, color: Colors.grey)
+              backgroundImage: profilePictureData != null
+                  ? MemoryImage(base64Decode(profilePictureData))
+                  : null,
+              child: profilePictureData == null
+                  ? const Icon(Icons.person, size: 20, color: Colors.grey)
                   : null,
             );
           } else {
-            profilePicture = CircleAvatar(
+            profilePicture = const CircleAvatar(
               radius: 15,
               child: Icon(Icons.person, size: 20, color: Colors.grey),
             );
           }
         } else {
-          profilePicture = CircleAvatar(
+          profilePicture = const CircleAvatar(
             radius: 15,
             child: CircularProgressIndicator(strokeWidth: 2),
           );
@@ -48,11 +58,16 @@ class MessageBubble extends StatelessWidget {
 
         return Padding(
           padding: EdgeInsets.only(
-            left: isMe ? 50.0 : 8.0, // Padding between profile picture and screen edge
-            right: isMe ? 8.0 : 50.0, // Padding between profile picture and screen edge
+            left: isMe
+                ? 50.0
+                : 8.0, // Padding between profile picture and screen edge
+            right: isMe
+                ? 8.0
+                : 50.0, // Padding between profile picture and screen edge
           ),
           child: Row(
-            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            mainAxisAlignment:
+                isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!isMe)
@@ -62,27 +77,36 @@ class MessageBubble extends StatelessWidget {
                 ),
               Flexible(
                 child: Container(
-                  margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                  padding: isPhoto ? EdgeInsets.zero : EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                  padding: isPhoto
+                      ? EdgeInsets.zero
+                      : const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 15),
                   decoration: BoxDecoration(
-                    color: isMe ? getInterpolatedColor(1.0) : getInterpolatedColor(0.5),
+                    color: getInterpolatedColor(userRating),
                     borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(15),
-                      topRight: Radius.circular(15),
-                      bottomLeft: isMe ? Radius.circular(15) : Radius.zero,
-                      bottomRight: isMe ? Radius.zero : Radius.circular(15),
+                      topLeft: const Radius.circular(15),
+                      topRight: const Radius.circular(15),
+                      bottomLeft:
+                          isMe ? const Radius.circular(15) : Radius.zero,
+                      bottomRight:
+                          isMe ? Radius.zero : const Radius.circular(15),
                     ),
                   ),
                   child: isPhoto
                       ? ClipRRect(
                           borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(15),
-                            topRight: Radius.circular(15),
-                            bottomLeft: isMe ? Radius.circular(15) : Radius.zero,
-                            bottomRight: isMe ? Radius.zero : Radius.circular(15),
+                            topLeft: const Radius.circular(15),
+                            topRight: const Radius.circular(15),
+                            bottomLeft:
+                                isMe ? const Radius.circular(15) : Radius.zero,
+                            bottomRight:
+                                isMe ? Radius.zero : const Radius.circular(15),
                           ),
                           child: Image.memory(
-                            base64Decode(message.split(',')[1]), // Decode Base64 string
+                            base64Decode(
+                                message.split(',')[1]), // Decode Base64 string
                             width: 200,
                             height: 200,
                             fit: BoxFit.cover,
@@ -91,15 +115,16 @@ class MessageBubble extends StatelessWidget {
                                 width: 200,
                                 height: 200,
                                 color: Colors.grey[300],
-                                child: Icon(Icons.broken_image, color: Colors.red),
+                                child: const Icon(Icons.broken_image,
+                                    color: Colors.red),
                               );
                             },
                           ),
                         )
                       : Text(
                           message,
-                          style: TextStyle(
-                            color: isMe ? Colors.white : Colors.black,
+                          style: const TextStyle(
+                            color: Colors.black,
                           ),
                         ),
                 ),

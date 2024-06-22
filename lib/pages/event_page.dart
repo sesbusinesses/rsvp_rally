@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/widgets/create_event_button.dart';
 import 'package:rsvp_rally/widgets/eventcard.dart';
@@ -16,25 +17,6 @@ class EventPage extends StatefulWidget {
 }
 
 class EventPageState extends State<EventPage> {
-  List<String> eventIds = [];
-  double userRating = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    loadEvents();
-  }
-
-  Future<void> loadEvents() async {
-    eventIds = await getUserEvents(widget.username);
-    double? fetchedRating = await getUserRating(widget.username);
-    if (mounted) {
-      setState(() {
-        userRating = fetchedRating ?? 0;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,45 +25,104 @@ class EventPageState extends State<EventPage> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        leading: ViewInboxButton(
-            username: widget.username,
-            userRating: userRating), // Use the new settings button
+        leading: FutureBuilder<double?>(
+          future: getUserRating(widget.username),
+          builder: (context, snapshot) {
+            double userRating = snapshot.data ?? 0;
+            return ViewInboxButton(
+              username: widget.username,
+              userRating: userRating,
+            );
+          },
+        ),
         actions: <Widget>[
-          ViewFriendsButton(username: widget.username, userRating: userRating),
+          FutureBuilder<double?>(
+            future: getUserRating(widget.username),
+            builder: (context, snapshot) {
+              double userRating = snapshot.data ?? 0;
+              return ViewFriendsButton(
+                username: widget.username,
+                userRating: userRating,
+              );
+            },
+          ),
         ],
       ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.only(top: 40),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              UserRatingIndicator(
-                  userRating:
-                      userRating), // This remains at the top, not scrollable
-              Expanded(
-                child: SingleChildScrollView(
-                    child: Column(
+          child: FutureBuilder<List<String>>(
+            future: getUserEvents(widget.username),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CupertinoActivityIndicator();
+              } else if (snapshot.hasError) {
+                return const Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Text(
+                    'Error fetching events. Please try again later.',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                );
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Text(
+                    'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                );
+              } else {
+                List<String> eventIds = snapshot.data!;
+                return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    ...eventIds.map((eventId) => EventCard(
-                          eventID: eventId,
-                          userRating: userRating,
-                          username: widget.username,
-                        )),
+                    FutureBuilder<double?>(
+                      future: getUserRating(widget.username),
+                      builder: (context, ratingSnapshot) {
+                        double userRating = ratingSnapshot.data ?? 0;
+                        return UserRatingIndicator(userRating: userRating);
+                      },
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: eventIds.map((eventId) {
+                            return FutureBuilder<double?>(
+                              future: getUserRating(widget.username),
+                              builder: (context, ratingSnapshot) {
+                                double userRating = ratingSnapshot.data ?? 0;
+                                return EventCard(
+                                  eventID: eventId,
+                                  userRating: userRating,
+                                  username: widget.username,
+                                );
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 40),
                   ],
-                )),
-              ),
-            ],
+                );
+              }
+            },
           ),
         ),
       ),
-      floatingActionButton: CreateEventButton(
-        userRating: userRating,
-        username: widget.username,
+      floatingActionButton: FutureBuilder<double?>(
+        future: getUserRating(widget.username),
+        builder: (context, snapshot) {
+          double userRating = snapshot.data ?? 0;
+          return CreateEventButton(
+            userRating: userRating,
+            username: widget.username,
+          );
+        },
       ),
     );
   }

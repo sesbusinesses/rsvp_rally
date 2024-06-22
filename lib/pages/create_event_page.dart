@@ -82,6 +82,22 @@ class CreateEventPageState extends State<CreateEventPage> {
         const SnackBar(content: Text('Please invite at least one person')),
       );
       return;
+    } else if (phaseControllers.any((controller) =>
+        controller['name']!.text.isEmpty ||
+        controller['location']!.text.isEmpty ||
+        controller['startTime']!.text.isEmpty ||
+        controller['endTime']!.text.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill out all phase details')),
+      );
+      return;
+    } else if (notificationControllers.any((controller) =>
+        controller['text']!.text.isEmpty || controller['time']!.text.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please fill out all notification details')),
+      );
+      return;
     }
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -238,6 +254,7 @@ class CreateEventPageState extends State<CreateEventPage> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Create New Event'),
         backgroundColor: Colors.transparent,

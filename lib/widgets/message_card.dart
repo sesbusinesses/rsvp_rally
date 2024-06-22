@@ -61,6 +61,8 @@ class MessageCardState extends State<MessageCard> {
 
     // Refresh the UI
     setState(() {});
+
+    setMessageUnactive();
   }
 
   Future<void> declineFriendRequest(String friendUsername) async {
@@ -98,6 +100,33 @@ class MessageCardState extends State<MessageCard> {
 
     // Refresh the UI
     setState(() {});
+
+    setMessageUnactive();
+  }
+
+  void setMessageUnactive() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentReference userDocRef =
+        firestore.collection('Users').doc(widget.username);
+
+    // Retrieve the user's messages
+    DocumentSnapshot userDoc = await userDocRef.get();
+    List<dynamic> messages = userDoc['Messages'] ?? [];
+
+    // Find the matching message and update its active status
+    for (var message in messages) {
+      print('message: $message, widget: ${widget.messageData}');
+      if (message.toString() == widget.messageData.toString()) {
+        message['active'] = false;
+        print('We found the message!');
+        break;
+      }
+    }
+
+    // Update the user's messages
+    await userDocRef.update({
+      'Messages': messages,
+    });
   }
 
   Future<bool> isInRequestsList() async {
@@ -119,11 +148,13 @@ class MessageCardState extends State<MessageCard> {
     String messageType = widget.messageData['type'] ?? 'Unknown';
     String messageText = widget.messageData['text'] ?? '';
     String additionalInfo = '';
+    bool active = false;
 
     if (messageType == 'friend request received' ||
         messageType == 'friend request sent' ||
         messageType == 'friend request update') {
       additionalInfo = 'From: ${widget.messageData['username']}';
+      active = widget.messageData['active'] ?? false;
     } else if (messageType == 'event invitation' ||
         messageType == 'poll reminder') {
       additionalInfo = 'Event ID: ${widget.messageData['eventID']}';
@@ -199,7 +230,7 @@ class MessageCardState extends State<MessageCard> {
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const SizedBox();
-                      } else if (snapshot.hasData && snapshot.data!) {
+                      } else if (snapshot.hasData && snapshot.data! && active) {
                         return Column(
                           children: [
                             const SizedBox(height: 10),
