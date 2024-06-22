@@ -17,6 +17,16 @@ class EventPage extends StatefulWidget {
 }
 
 class EventPageState extends State<EventPage> {
+  late Future<double?> userRatingFuture;
+  late Future<List<String>> userEventsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    userRatingFuture = getUserRating(widget.username);
+    userEventsFuture = getUserEvents(widget.username);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +36,7 @@ class EventPageState extends State<EventPage> {
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         leading: FutureBuilder<double?>(
-          future: getUserRating(widget.username),
+          future: userRatingFuture,
           builder: (context, snapshot) {
             double userRating = snapshot.data ?? 0;
             return ViewInboxButton(
@@ -37,7 +47,7 @@ class EventPageState extends State<EventPage> {
         ),
         actions: <Widget>[
           FutureBuilder<double?>(
-            future: getUserRating(widget.username),
+            future: userRatingFuture,
             builder: (context, snapshot) {
               double userRating = snapshot.data ?? 0;
               return ViewFriendsButton(
@@ -52,7 +62,7 @@ class EventPageState extends State<EventPage> {
         child: Padding(
           padding: const EdgeInsets.only(top: 40),
           child: FutureBuilder<List<String>>(
-            future: getUserEvents(widget.username),
+            future: userEventsFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const CircularProgressIndicator();
@@ -79,7 +89,7 @@ class EventPageState extends State<EventPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     FutureBuilder<double?>(
-                      future: getUserRating(widget.username),
+                      future: userRatingFuture,
                       builder: (context, ratingSnapshot) {
                         double userRating = ratingSnapshot.data ?? 0;
                         return UserRatingIndicator(userRating: userRating);
@@ -94,7 +104,7 @@ class EventPageState extends State<EventPage> {
                           children: [
                             ...eventIds.map((eventId) {
                               return FutureBuilder<double?>(
-                                future: getUserRating(widget.username),
+                                future: userRatingFuture,
                                 builder: (context, ratingSnapshot) {
                                   double userRating = ratingSnapshot.data ?? 0;
                                   return EventCard(
@@ -118,7 +128,7 @@ class EventPageState extends State<EventPage> {
         ),
       ),
       floatingActionButton: FutureBuilder<double?>(
-        future: getUserRating(widget.username),
+        future: userRatingFuture,
         builder: (context, snapshot) {
           double userRating = snapshot.data ?? 0;
           return CreateEventButton(
