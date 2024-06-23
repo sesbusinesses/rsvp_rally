@@ -199,16 +199,21 @@ Future<String?> pullProfilePicture(String username) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   try {
-    DocumentSnapshot userDoc =
-        await firestore.collection('Users').doc(username).get();
+    DocumentSnapshot userDoc = await firestore.collection('Users').doc(username).get();
 
     if (!userDoc.exists) {
       print("No user found with username $username");
       return null;
     }
 
-    String? profilePic = userDoc.get('ProfilePic');
-    return profilePic;
+    final data = userDoc.data() as Map<String, dynamic>?;
+
+    if (data == null || !data.containsKey('ProfilePic')) {
+      print("Field 'ProfilePic' does not exist for user $username");
+      return null;
+    }
+
+    return data['ProfilePic'] as String?;
   } catch (e) {
     print('Error fetching profile picture: $e');
     return null;
