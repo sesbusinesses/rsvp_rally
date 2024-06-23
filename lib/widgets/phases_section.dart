@@ -52,6 +52,7 @@ class PhasesSection extends StatelessWidget {
               child: const Text('Add Phase',
                   style: TextStyle(color: AppColors.dark)),
             ),
+            const SizedBox(height: 10),
             ...List.generate(phaseControllers.length, (index) {
               return PhaseEntryWidget(
                 rating: rating,

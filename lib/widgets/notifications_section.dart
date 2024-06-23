@@ -49,6 +49,7 @@ class NotificationsSection extends StatelessWidget {
               child: const Text('Add Reminder',
                   style: TextStyle(color: AppColors.dark)),
             ),
+            const SizedBox(height: 10),
             ...List.generate(notificationControllers.length, (index) {
               return NotificationEntryWidget(
                 textController: notificationControllers[index]['text']!,
