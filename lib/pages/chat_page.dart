@@ -18,11 +18,11 @@ class ChatPage extends StatefulWidget {
   final String username;
 
   const ChatPage({
-    Key? key,
+    super.key,
     required this.eventID,
     required this.rating,
     required this.username,
-  }) : super(key: key);
+  });
 
   @override
   _ChatPageState createState() => _ChatPageState();
@@ -31,6 +31,45 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
   final ImagePicker _picker = ImagePicker();
+  final ScrollController _scrollController = ScrollController();
+  String eventName = 'Event Chat'; // Default text
+  String rsvpStatus = 'maybe'; // Default RSVP status
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollToBottom();
+    fetchEventName();
+    checkRSVPStatus();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> fetchEventName() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentSnapshot eventDoc =
+        await firestore.collection('Events').doc(widget.eventID).get();
+
+    if (eventDoc.exists) {
+      Map<String, dynamic> data = eventDoc.data() as Map<String, dynamic>;
+      setState(() {
+        eventName = data['EventName'] ??
+            'Event Details'; // Set the event name or default
+      });
+    }
+  }
+
+  Future<void> checkRSVPStatus() async {
+    String status = await isComing(widget.eventID, widget.username);
+    setState(() {
+      rsvpStatus = status;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,50 +84,65 @@ class _ChatPageState extends State<ChatPage> {
             Column(
               children: [
                 Expanded(
-                  child: StreamBuilder<DocumentSnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('Chats')
-                        .doc(widget.eventID)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      }
+                  child: rsvpStatus == 'yes'
+                      ? StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('Chats')
+                              .doc(widget.eventID)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
 
-                      if (!snapshot.hasData || !snapshot.data!.exists) {
-                        return Center(child: Text('No messages yet.'));
-                      }
+                            if (!snapshot.hasData || !snapshot.data!.exists) {
+                              return const Center(
+                                  child: Text('No messages yet.'));
+                            }
 
-                      var data = snapshot.data?.data() as Map<String, dynamic>?;
-                      if (data == null) {
-                        return Center(child: Text('No data available for this chat.'));
-                      }
+                            var messages =
+                                snapshot.data!['Messages'] as List<dynamic>;
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              _scrollToBottom();
+                            });
 
-                      var messages = data['Messages'] as List<dynamic>? ?? [];
-                      return ListView.builder(
-                        padding: EdgeInsets.only(bottom: 60), // Adjust padding to avoid overlap with bottom nav
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          var messageEntry = Map<String, dynamic>.from(messages[index]);
-                          var entry = messageEntry.entries.first;
-                          bool isPhoto = entry.value is String && entry.value.toString().startsWith('data:image');
-                          return MessageBubble(
-                            message: entry.value,
-                            isMe: entry.key == widget.username,
-                            username: entry.key,
-                            isPhoto: isPhoto,
-                          );
-                        },
-                      );
-                    },
-                  ),
+                            return ListView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.only(bottom: 60),
+                              itemCount: messages.length,
+                              itemBuilder: (context, index) {
+                                var messageEntry =
+                                    Map<String, dynamic>.from(messages[index]);
+                                var entry = messageEntry.entries.first;
+                                bool isPhoto = entry.value is String &&
+                                    entry.value
+                                        .toString()
+                                        .startsWith('data:image');
+                                return MessageBubble(
+                                  message: entry.value,
+                                  isMe: entry.key == widget.username,
+                                  username: entry.key,
+                                  isPhoto: isPhoto,
+                                );
+                              },
+                            );
+                          },
+                        )
+                      : const Center(
+                          child: Text(
+                            'RSVP \'Yes\' to access the chat',
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        ),
                 ),
-                _buildMessageInputArea(),
-                SizedBox(height: 50),
+                if (rsvpStatus == 'yes') _buildMessageInputArea(),
+                const SizedBox(height: 50),
               ],
             ),
             Positioned(
-              bottom: -10, // Adjusted to keep the BottomNav 20 pixels above the bottom
+              bottom: -10,
               left: 0,
               right: 0,
               child: BottomNav(
@@ -154,11 +208,12 @@ class _ChatPageState extends State<ChatPage> {
           mimeType = 'image/jpeg';
 
           final base64Image = base64Encode(encodedBytes);
-          await sendMessage(widget.eventID, widget.username, 'data:$mimeType;base64,$base64Image');
+          await sendMessage(widget.eventID, widget.username,
+              'data:$mimeType;base64,$base64Image');
         } else {
           developer.log('Error decoding image');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error decoding image')),
+            const SnackBar(content: Text('Error decoding image')),
           );
         }
       }
@@ -167,6 +222,12 @@ class _ChatPageState extends State<ChatPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error picking or sending photo: $e')),
       );
+    }
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
     }
   }
 }

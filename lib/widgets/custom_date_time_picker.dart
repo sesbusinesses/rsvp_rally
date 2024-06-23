@@ -145,7 +145,9 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
                   }),
                 ),
               ),
-              const Text(':'),
+              const Text(':',
+                  style: TextStyle(
+                      color: AppColors.dark, fontWeight: FontWeight.bold)),
               // Minute Picker
               Expanded(
                 child: CupertinoPicker(

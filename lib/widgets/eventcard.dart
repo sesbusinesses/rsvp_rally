@@ -108,34 +108,40 @@ class EventCardState extends State<EventCard> {
           child: Padding(
             padding: const EdgeInsets.all(15),
             child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(
+                      width: screenSize.width * 0.85 - 60,
+                      child: Text(
                         eventName,
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: AppColors.dark, // Light text color
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      Text(
-                        eventDate,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color:
-                              AppColors.accentDark, // Medium light text color
-                        ),
+                    ),
+                    Text(
+                      eventDate,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.accentDark, // Medium light text color
                       ),
-                    ],
-                  ),
-                  Icon(Icons.arrow_forward_ios,
-                      color: getInterpolatedColor(widget.userRating)),
-                ]),
+                    ),
+                  ],
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: getInterpolatedColor(widget.userRating),
+                ),
+              ],
+            ),
           ),
         ),
       ),
