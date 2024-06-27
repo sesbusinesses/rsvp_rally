@@ -73,7 +73,7 @@ class CreatePollPageState extends State<CreatePollPage> {
       ...options,
       'CloseTime':
           Timestamp.fromDate(DateTime.now().add(const Duration(days: 1))),
-      'IsAlarmSet': false
+      'IsClosed': false
     };
 
     try {
