@@ -135,6 +135,7 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
                   onSelectedItemChanged: (int index) {
                     _onTimeChanged(index + 1, selectedMinute, isAm);
                   },
+                  looping: true,
                   children: List<Widget>.generate(12, (int index) {
                     return Center(
                       child: Text(
@@ -157,6 +158,7 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
                   onSelectedItemChanged: (int index) {
                     _onTimeChanged(selectedHour, index * 5, isAm);
                   },
+                  looping: true,
                   children: List<Widget>.generate(12, (int index) {
                     return Center(
                       child: Text(
