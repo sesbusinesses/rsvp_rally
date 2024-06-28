@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
@@ -27,6 +28,17 @@ class CreateEventPageState extends State<CreateEventPage> {
   List<Map<String, TextEditingController>> phaseControllers = [];
   List<Map<String, TextEditingController>> notificationControllers = [];
   List<String> attendees = [];
+  final dateFormat = DateFormat('MMM d, yyyy h:mm a');
+
+// Function to parse DateTime from display format
+  DateTime? parseDateTimeFromController(TextEditingController controller) {
+    try {
+      return dateFormat.parse(controller.text);
+    } catch (e) {
+      print(e);
+      return null; // Handle invalid date format
+    }
+  }
 
   void addPhase() {
     setState(() {
@@ -108,20 +120,10 @@ class CreateEventPageState extends State<CreateEventPage> {
     String hostFirstName = hostDoc['FirstName'] ?? widget.username;
     String hostLastName = hostDoc['LastName'] ?? '';
 
-    // Collect phases
     List<Map<String, dynamic>> phases = phaseControllers.map((controller) {
-      DateTime? startTime;
-      DateTime? endTime;
-      try {
-        startTime = DateTime.parse(controller['startTime']!.text);
-      } catch (e) {
-        startTime = null; // Handle invalid start time format
-      }
-      try {
-        endTime = DateTime.parse(controller['endTime']!.text);
-      } catch (e) {
-        endTime = null; // Handle invalid end time format
-      }
+      DateTime? startTime =
+          parseDateTimeFromController(controller['startTime']!);
+      DateTime? endTime = parseDateTimeFromController(controller['endTime']!);
 
       return {
         'PhaseName': controller['name']!.text,
