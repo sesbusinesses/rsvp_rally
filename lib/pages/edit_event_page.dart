@@ -446,7 +446,9 @@ class EditEventPageState extends State<EditEventPage> {
                             phaseControllers: phaseControllers,
                             onAddPhase: addPhase,
                             onRemovePhase: removePhase,
+                            eventID: widget.eventID, // Pass the eventID here
                           ),
+
                           const SizedBox(height: 10),
                           Container(
                             padding: EdgeInsets.symmetric(

@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PlacesAutocomplete extends StatefulWidget {
   final String apiKey;
   final Function(String placeId, String description) onPlaceSelected;
+  final String? eventID; // Make eventID optional
+  final int? phaseIndex; // Make phaseIndex optional
+  final TextEditingController controller;
 
   const PlacesAutocomplete({
     required this.apiKey,
     required this.onPlaceSelected,
+    this.eventID, // Make eventID optional
+    this.phaseIndex, // Make phaseIndex optional,
+    required this.controller,
     super.key,
   });
 
@@ -17,12 +24,12 @@ class PlacesAutocomplete extends StatefulWidget {
 }
 
 class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
-  final TextEditingController _controller = TextEditingController();
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   List<Prediction> _predictions = [];
   late GoogleMapsPlaces _places;
   final FocusNode _focusNode = FocusNode();
+  String _hintText = "Event Location"; // Default placeholder
 
   @override
   void initState() {
@@ -35,12 +42,12 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
         _hideOverlay();
       }
     });
+    _loadHintText();
   }
 
   @override
   void dispose() {
     _focusNode.dispose();
-    _controller.dispose();
     super.dispose();
   }
 
@@ -108,7 +115,7 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
                           .getDetailsByPlaceId(prediction.placeId!);
                       widget.onPlaceSelected(prediction.placeId!,
                           detail.result.formattedAddress ?? '');
-                      _controller.text = detail.result.formattedAddress ?? '';
+                      widget.controller.text = detail.result.formattedAddress ?? '';
                       _hideOverlay();
                     },
                   );
@@ -119,6 +126,30 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
         ),
       ),
     );
+  }
+
+  Future<void> _loadHintText() async {
+    if (widget.eventID != null && widget.phaseIndex != null) {
+      try {
+        DocumentSnapshot eventDoc = await FirebaseFirestore.instance
+            .collection('Events')
+            .doc(widget.eventID)
+            .get();
+        if (eventDoc.exists) {
+          Map<String, dynamic> eventData =
+              eventDoc.data() as Map<String, dynamic>;
+          List<dynamic> phases = eventData['phases'] ?? [];
+          if (widget.phaseIndex! < phases.length) {
+            String location = phases[widget.phaseIndex!]['location'] ?? '';
+            setState(() {
+              _hintText = location.isNotEmpty ? location : _hintText;
+            });
+          }
+        }
+      } catch (e) {
+        print('Error fetching phase location: $e');
+      }
+    }
   }
 
   @override
@@ -132,14 +163,14 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
-          padding: const EdgeInsets.only(left: 5, top: 10, bottom: 5),
+          padding: const EdgeInsets.only(left: 5, top: 10, bottom: 10),
           child: TextField(
-            controller: _controller,
+            controller: widget.controller,
             focusNode: _focusNode,
             onChanged: _searchPlaces,
-            decoration: const InputDecoration(
-              hintText: "Event Location",
-              prefixIcon: Icon(Icons.location_on),
+            decoration: InputDecoration(
+              hintText: _hintText,
+              prefixIcon: const Icon(Icons.location_on),
               border: InputBorder.none,
             ),
           ),
