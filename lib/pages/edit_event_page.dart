@@ -167,9 +167,10 @@ class EditEventPageState extends State<EditEventPage> {
         controller['name']!.text.isEmpty ||
         controller['location']!.text.isEmpty ||
         controller['startTime']!.text.isEmpty ||
-        controller['endTime']!.text.isEmpty)) {
+        (controller['endTime']!.text.isEmpty &&
+            controller != phaseControllers.last))) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all phase details')),
+        const SnackBar(content: Text('Please fill out all phase details')),
       );
       return;
     } else if (notificationControllers.any((controller) =>
@@ -184,18 +185,27 @@ class EditEventPageState extends State<EditEventPage> {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     // Collect phases
-    List<Map<String, dynamic>> phases = phaseControllers.map((controller) {
-      DateTime? startTime =
-          parseDateTimeFromController(controller['startTime']!);
-      DateTime? endTime = parseDateTimeFromController(controller['endTime']!);
+    List<Map<String, dynamic>> phases = [];
 
-      return {
-        'PhaseName': controller['name']!.text,
-        'PhaseLocation': controller['location']!.text,
+    for (int i = 0; i < phaseControllers.length; i++) {
+      DateTime? startTime =
+          parseDateTimeFromController(phaseControllers[i]['startTime']!);
+      DateTime? endTime =
+          parseDateTimeFromController(phaseControllers[i]['endTime']!);
+
+      // If endTime is null and it's not the last phase, set it to the startTime of the next phase
+      if (endTime == null && i < phaseControllers.length - 1) {
+        endTime =
+            parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
+      }
+
+      phases.add({
+        'PhaseName': phaseControllers[i]['name']!.text,
+        'PhaseLocation': phaseControllers[i]['location']!.text,
         'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
         'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
-      };
-    }).toList();
+      });
+    }
 
     // Collect notifications
     List<Map<String, dynamic>> notifications =
