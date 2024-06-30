@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -30,7 +28,7 @@ class CreateEventPageState extends State<CreateEventPage> {
   List<String> attendees = [];
   final dateFormat = DateFormat('MMM d, yyyy h:mm a');
 
-// Function to parse DateTime from display format
+  // Function to parse DateTime from display format
   DateTime? parseDateTimeFromController(TextEditingController controller) {
     try {
       return dateFormat.parse(controller.text);
@@ -98,7 +96,8 @@ class CreateEventPageState extends State<CreateEventPage> {
         controller['name']!.text.isEmpty ||
         controller['location']!.text.isEmpty ||
         controller['startTime']!.text.isEmpty ||
-        controller['endTime']!.text.isEmpty)) {
+        (controller['endTime']!.text.isEmpty &&
+            controller == phaseControllers.last))) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill out all phase details')),
       );
@@ -120,28 +119,33 @@ class CreateEventPageState extends State<CreateEventPage> {
     String hostFirstName = hostDoc['FirstName'] ?? widget.username;
     String hostLastName = hostDoc['LastName'] ?? '';
 
-    List<Map<String, dynamic>> phases = phaseControllers.map((controller) {
-      DateTime? startTime =
-          parseDateTimeFromController(controller['startTime']!);
-      DateTime? endTime = parseDateTimeFromController(controller['endTime']!);
+    List<Map<String, dynamic>> phases = [];
 
-      return {
-        'PhaseName': controller['name']!.text,
-        'PhaseLocation': controller['location']!.text,
+    for (int i = 0; i < phaseControllers.length; i++) {
+      DateTime? startTime =
+          parseDateTimeFromController(phaseControllers[i]['startTime']!);
+      DateTime? endTime =
+          parseDateTimeFromController(phaseControllers[i]['endTime']!);
+
+      // If endTime is null and it's not the last phase, set it to the startTime of the next phase
+      if (endTime == null && i < phaseControllers.length - 1) {
+        endTime =
+            parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
+      }
+
+      phases.add({
+        'PhaseName': phaseControllers[i]['name']!.text,
+        'PhaseLocation': phaseControllers[i]['location']!.text,
         'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
         'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
-      };
-    }).toList();
+      });
+    }
 
     // Collect notifications
     List<Map<String, dynamic>> notifications =
         notificationControllers.map((controller) {
-      DateTime? notificationTime;
-      try {
-        notificationTime = DateTime.parse(controller['time']!.text);
-      } catch (e) {
-        notificationTime = null; // Handle invalid notification time format
-      }
+      DateTime? notificationTime =
+          parseDateTimeFromController(controller['time']!);
 
       return {
         'NotificationText': controller['text']!.text,
@@ -263,124 +267,129 @@ class CreateEventPageState extends State<CreateEventPage> {
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(
-                bottom: 70), // Add bottom padding to avoid overlap
-            child: Center(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          vertical: 10, horizontal: screenSize.width * 0.05),
-                      width: screenSize.width * 0.95,
-                      decoration: BoxDecoration(
-                        color: AppColors.light, // Dark background color
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          color: getInterpolatedColor(widget.rating),
-                          width: AppColors.borderWidth,
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                  bottom: 70), // Add bottom padding to avoid overlap
+              child: Center(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            vertical: 10, horizontal: screenSize.width * 0.05),
+                        width: screenSize.width * 0.95,
+                        decoration: BoxDecoration(
+                          color: AppColors.light, // Dark background color
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: getInterpolatedColor(widget.rating),
+                            width: AppColors.borderWidth,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: AppColors.shadow,
+                              blurRadius: 10,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
                         ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: AppColors.shadow,
-                            blurRadius: 10,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          const Text('Event Name',
-                              style: TextStyle(fontSize: 20)),
-                          WideTextBox(
-                            hintText: 'Event Name',
-                            controller: eventNameController,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    PhasesSection(
-                      rating: widget.rating,
-                      phaseControllers: phaseControllers,
-                      onAddPhase: addPhase,
-                      onRemovePhase: removePhase,
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                          vertical: 10, horizontal: screenSize.width * 0.05),
-                      width: screenSize.width * 0.95,
-                      decoration: BoxDecoration(
-                        color: AppColors.light, // Dark background color
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          color: getInterpolatedColor(widget.rating),
-                          width: AppColors.borderWidth,
+                        child: Column(
+                          children: [
+                            const Text('Event Name',
+                                style: TextStyle(fontSize: 20)),
+                            WideTextBox(
+                              hintText: 'Event Name',
+                              controller: eventNameController,
+                            ),
+                          ],
                         ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: AppColors.shadow,
-                            blurRadius: 10,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
                       ),
-                      child: Column(
-                        children: [
-                          const Text('Additional Details',
-                              style: TextStyle(fontSize: 20)),
-                          WideTextBox(
-                            hintText: 'Event Details',
-                            controller: eventDetailsController,
-                          ),
-                        ],
+                      const SizedBox(height: 10),
+                      PhasesSection(
+                        rating: widget.rating,
+                        phaseControllers: phaseControllers,
+                        onAddPhase: addPhase,
+                        onRemovePhase: removePhase,
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    NotificationsSection(
-                      rating: widget.rating,
-                      notificationControllers: notificationControllers,
-                      onAddNotification: addNotification,
-                      onRemoveNotification: removeNotification,
-                    ),
-                    const SizedBox(height: 10),
-                    AttendeeEntrySection(
-                      rating: widget.rating,
-                      username: widget.username,
-                      onAttendeesChanged: (newAttendees) {
-                        setState(() {
-                          attendees = newAttendees;
-                        });
-                      },
-                    ),
-                    const SizedBox(
-                        height:
-                            80), // Add some space at the bottom for better visibility
-                  ],
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            vertical: 10, horizontal: screenSize.width * 0.05),
+                        width: screenSize.width * 0.95,
+                        decoration: BoxDecoration(
+                          color: AppColors.light, // Dark background color
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: getInterpolatedColor(widget.rating),
+                            width: AppColors.borderWidth,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: AppColors.shadow,
+                              blurRadius: 10,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            const Text('Additional Details',
+                                style: TextStyle(fontSize: 20)),
+                            WideTextBox(
+                              hintText: 'Event Details',
+                              controller: eventDetailsController,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      NotificationsSection(
+                        rating: widget.rating,
+                        notificationControllers: notificationControllers,
+                        onAddNotification: addNotification,
+                        onRemoveNotification: removeNotification,
+                      ),
+                      const SizedBox(height: 10),
+                      AttendeeEntrySection(
+                        rating: widget.rating,
+                        username: widget.username,
+                        onAttendeesChanged: (newAttendees) {
+                          setState(() {
+                            attendees = newAttendees;
+                          });
+                        },
+                      ),
+                      const SizedBox(
+                          height:
+                              80), // Add some space at the bottom for better visibility
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              height: 100,
-              child: WideButton(
-                rating: widget.rating,
-                buttonText: 'Create Event',
-                onPressed: createEvent,
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                height: 100,
+                child: WideButton(
+                  rating: widget.rating,
+                  buttonText: 'Create Event',
+                  onPressed: createEvent,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

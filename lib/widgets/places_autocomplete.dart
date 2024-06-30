@@ -110,6 +110,7 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
                           detail.result.formattedAddress ?? '');
                       _controller.text = detail.result.formattedAddress ?? '';
                       _hideOverlay();
+                      FocusScope.of(context).unfocus();
                     },
                   );
                 },

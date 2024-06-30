@@ -31,7 +31,7 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
     super.initState();
     selectedDate = widget.initialDateTime;
     selectedHour = selectedDate.hour % 12 == 0 ? 12 : selectedDate.hour % 12;
-    selectedMinute = (selectedDate.minute ~/ 5) * 5;
+    selectedMinute = (selectedDate.minute ~/ 30) * 30;
     isAm = selectedDate.hour < 12;
   }
 
@@ -154,21 +154,29 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
                 child: CupertinoPicker(
                   itemExtent: 32.0,
                   scrollController: FixedExtentScrollController(
-                      initialItem: selectedMinute ~/ 5),
+                    initialItem: selectedMinute == 30 ? 1 : 0,
+                  ),
                   onSelectedItemChanged: (int index) {
-                    _onTimeChanged(selectedHour, index * 5, isAm);
+                    _onTimeChanged(selectedHour, index * 30, isAm);
                   },
-                  looping: true,
-                  children: List<Widget>.generate(12, (int index) {
-                    return Center(
+                  looping: false,
+                  children: const [
+                    Center(
                       child: Text(
-                        '${index * 5}'.padLeft(2, '0'),
-                        style: const TextStyle(color: AppColors.dark),
+                        '00',
+                        style: TextStyle(color: AppColors.dark),
                       ),
-                    );
-                  }),
+                    ),
+                    Center(
+                      child: Text(
+                        '30',
+                        style: TextStyle(color: AppColors.dark),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+
               // AM/PM Picker
               Expanded(
                 child: CupertinoPicker(

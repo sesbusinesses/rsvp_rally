@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
@@ -35,6 +36,7 @@ class EditEventPageState extends State<EditEventPage> {
   List<String> attendees = [];
   List<String> originalAttendees = [];
   bool isLoading = true;
+  final dateFormat = DateFormat('MMM d, yyyy h:mm a');
 
   @override
   void initState() {
@@ -65,11 +67,13 @@ class EditEventPageState extends State<EditEventPage> {
                     TextEditingController(text: phase['PhaseLocation'] ?? ''),
                 'startTime': TextEditingController(
                     text: phase['StartTime'] != null
-                        ? (phase['StartTime'] as Timestamp).toDate().toString()
+                        ? dateFormat
+                            .format((phase['StartTime'] as Timestamp).toDate())
                         : ''),
                 'endTime': TextEditingController(
                     text: phase['EndTime'] != null
-                        ? (phase['EndTime'] as Timestamp).toDate().toString()
+                        ? dateFormat
+                            .format((phase['EndTime'] as Timestamp).toDate())
                         : ''),
               };
             }).toList() ??
@@ -82,9 +86,9 @@ class EditEventPageState extends State<EditEventPage> {
                         text: notification['NotificationText'] ?? ''),
                     'time': TextEditingController(
                         text: notification['NotificationTime'] != null
-                            ? (notification['NotificationTime'] as Timestamp)
-                                .toDate()
-                                .toString()
+                            ? dateFormat.format(
+                                (notification['NotificationTime'] as Timestamp)
+                                    .toDate())
                             : ''),
                   };
                 }).toList() ??
@@ -92,6 +96,16 @@ class EditEventPageState extends State<EditEventPage> {
 
         isLoading = false;
       });
+    }
+  }
+
+  // Function to parse DateTime from display format
+  DateTime? parseDateTimeFromController(TextEditingController controller) {
+    try {
+      return dateFormat.parse(controller.text);
+    } catch (e) {
+      print(e);
+      return null; // Handle invalid date format
     }
   }
 
@@ -171,18 +185,9 @@ class EditEventPageState extends State<EditEventPage> {
 
     // Collect phases
     List<Map<String, dynamic>> phases = phaseControllers.map((controller) {
-      DateTime? startTime;
-      DateTime? endTime;
-      try {
-        startTime = DateTime.parse(controller['startTime']!.text);
-      } catch (e) {
-        startTime = null; // Handle invalid start time format
-      }
-      try {
-        endTime = DateTime.parse(controller['endTime']!.text);
-      } catch (e) {
-        endTime = null; // Handle invalid end time format
-      }
+      DateTime? startTime =
+          parseDateTimeFromController(controller['startTime']!);
+      DateTime? endTime = parseDateTimeFromController(controller['endTime']!);
 
       return {
         'PhaseName': controller['name']!.text,
@@ -195,12 +200,8 @@ class EditEventPageState extends State<EditEventPage> {
     // Collect notifications
     List<Map<String, dynamic>> notifications =
         notificationControllers.map((controller) {
-      DateTime? notificationTime;
-      try {
-        notificationTime = DateTime.parse(controller['time']!.text);
-      } catch (e) {
-        notificationTime = null; // Handle invalid notification time format
-      }
+      DateTime? notificationTime =
+          parseDateTimeFromController(controller['time']!);
 
       return {
         'NotificationText': controller['text']!.text,
@@ -390,6 +391,7 @@ class EditEventPageState extends State<EditEventPage> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Edit Event'),
         backgroundColor: Colors.transparent,
