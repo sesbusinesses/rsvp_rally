@@ -6,6 +6,7 @@ import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
 import 'package:rsvp_rally/widgets/view_friends_button.dart';
 import 'package:rsvp_rally/widgets/view_inbox_button.dart';
+import 'package:rsvp_rally/models/location_service.dart';
 
 class EventPage extends StatefulWidget {
   final String username;
@@ -25,6 +26,7 @@ class EventPageState extends State<EventPage> {
     super.initState();
     userRatingFuture = getUserRating(widget.username);
     userEventsFuture = getUserEvents(widget.username);
+    enableLocationTracking(widget.username, context);
   }
 
   @override
