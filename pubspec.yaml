@@ -48,7 +48,6 @@ dependencies:
   intl: any
   table_calendar: ^3.0.9
   flutter_chat_types: any
-  http: any
   mime: any
   equatable: any
   meta: any
@@ -74,8 +73,9 @@ dependencies:
   flutter_local_notifications: ^17.1.2
 
   google_maps_webservice: ^0.0.19
-
-  image: ^3.0.1
+  http: ^0.13.3
+  image: ^3.3.0
+  flutter_image_compress: ^1.1.1
 
 dependency_overrides:
   http: ^1.0.0

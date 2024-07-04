@@ -31,7 +31,8 @@ class EditEventPage extends StatefulWidget {
 class EditEventPageState extends State<EditEventPage> {
   final TextEditingController eventNameController = TextEditingController();
   final TextEditingController eventDetailsController = TextEditingController();
-  List<Map<String, TextEditingController>> phaseControllers = [];
+  List<Map<String, dynamic>> phaseControllers = [];
+  List<Map<String, double>> phaseGeopoints = [];
   List<Map<String, TextEditingController>> notificationControllers = [];
   List<String> attendees = [];
   List<String> originalAttendees = [];
@@ -61,6 +62,14 @@ class EditEventPageState extends State<EditEventPage> {
 
         phaseControllers = (eventData['Timeline'] as List<dynamic>?)
                 ?.map((phase) {
+              GeoPoint? geoPoint = phase['PhaseGeopoint'];
+              Map<String, double>? geopointMap;
+              if (geoPoint != null) {
+                geopointMap = {
+                  'lat': geoPoint.latitude,
+                  'lng': geoPoint.longitude,
+                };
+              }
               return {
                 'name': TextEditingController(text: phase['PhaseName'] ?? ''),
                 'location':
@@ -75,6 +84,7 @@ class EditEventPageState extends State<EditEventPage> {
                         ? dateFormat
                             .format((phase['EndTime'] as Timestamp).toDate())
                         : ''),
+                'geopoint': geopointMap,
               };
             }).toList() ??
             [];
@@ -116,7 +126,9 @@ class EditEventPageState extends State<EditEventPage> {
         'location': TextEditingController(),
         'startTime': TextEditingController(),
         'endTime': TextEditingController(),
+        'geopoint': null,
       });
+      phaseGeopoints.add({});
     });
   }
 
@@ -127,6 +139,7 @@ class EditEventPageState extends State<EditEventPage> {
       phaseControllers[index]['startTime']?.dispose();
       phaseControllers[index]['endTime']?.dispose();
       phaseControllers.removeAt(index);
+      phaseGeopoints.removeAt(index);
     });
   }
 
@@ -184,34 +197,49 @@ class EditEventPageState extends State<EditEventPage> {
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    // Collect phases
-    List<Map<String, dynamic>> phases = [];
+// Collect phases
+List<Map<String, dynamic>> phases = [];
 
-    for (int i = 0; i < phaseControllers.length; i++) {
-      DateTime? startTime =
-          parseDateTimeFromController(phaseControllers[i]['startTime']!);
-      DateTime? endTime =
-          parseDateTimeFromController(phaseControllers[i]['endTime']!);
+for (int i = 0; i < phaseControllers.length; i++) {
+  DateTime? startTime = parseDateTimeFromController(phaseControllers[i]['startTime']!);
+  DateTime? endTime = parseDateTimeFromController(phaseControllers[i]['endTime']!);
 
-      // If endTime is null and it's not the last phase, set it to the startTime of the next phase
-      if (endTime == null && i < phaseControllers.length - 1) {
-        endTime =
-            parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
-      }
+  // If endTime is null and it's not the last phase, set it to the startTime of the next phase
+  if (endTime == null && i < phaseControllers.length - 1) {
+    endTime = parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
+  }
 
-      phases.add({
-        'PhaseName': phaseControllers[i]['name']!.text,
-        'PhaseLocation': phaseControllers[i]['location']!.text,
-        'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
-        'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
-      });
-    }
+  // Properly handle the geopoint
+  GeoPoint? geopoint;
+  if (phaseControllers[i]['geopoint'] != null && phaseControllers[i]['geopoint'] is GeoPoint) {
+    geopoint = phaseControllers[i]['geopoint'];
+  } else if (phaseControllers[i]['geopoint'] != null) {
+    geopoint = GeoPoint(phaseControllers[i]['geopoint']['lat'], phaseControllers[i]['geopoint']['lng']);
+  }
 
-    // Collect notifications
-    List<Map<String, dynamic>> notifications =
-        notificationControllers.map((controller) {
-      DateTime? notificationTime =
-          parseDateTimeFromController(controller['time']!);
+  phases.add({
+    'PhaseName': phaseControllers[i]['name']!.text,
+    'PhaseLocation': phaseControllers[i]['location']!.text,
+    'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
+    'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
+    'PhaseGeopoint': geopoint,
+  });
+}
+
+List<Map<String, dynamic>> notifications = notificationControllers.map((controller) {
+  DateTime? notificationTime;
+  try {
+    notificationTime = DateTime.parse(controller['time']!.text);
+  } catch (e) {
+    notificationTime = null;
+  }
+
+  return {
+    'NotificationTime': notificationTime != null ? Timestamp.fromDate(notificationTime) : null,
+    'NotificationMessage': controller['message']!.text,
+  };
+}).toList();
+
 
       return {
         'NotificationText': controller['text']!.text,
@@ -221,7 +249,6 @@ class EditEventPageState extends State<EditEventPage> {
       };
     }).toList();
 
-    // Update event data
     Map<String, dynamic> eventData = {
       'EventName': eventNameController.text,
       'Details': eventDetailsController.text,
@@ -237,17 +264,14 @@ class EditEventPageState extends State<EditEventPage> {
           .doc(widget.eventID)
           .update(eventData);
 
-      // Add the event ID to the 'Events' field for the host and each attendee
       WriteBatch batch = firestore.batch();
 
-      // Add event to host
       DocumentReference hostDocRef =
           firestore.collection('Users').doc(widget.username);
       batch.update(hostDocRef, {
         'Events': FieldValue.arrayUnion([widget.eventID])
       });
 
-      // Remove event from friends who are no longer invited
       Timestamp timestamp = Timestamp.now();
       DocumentSnapshot hostDoc =
           await firestore.collection('Users').doc(widget.username).get();
@@ -275,7 +299,6 @@ class EditEventPageState extends State<EditEventPage> {
         });
       }
 
-      // Add event to attendees and send invitation message to new attendees
       for (String attendee in attendees) {
         DocumentReference userDocRef =
             firestore.collection('Users').doc(attendee);
@@ -299,17 +322,14 @@ class EditEventPageState extends State<EditEventPage> {
         batch.update(userDocRef, updateData);
       }
 
-      // Commit the batch
       await batch.commit();
 
-      // Show a confirmation message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Event updated successfully')),
       );
 
       Navigator.pop(context);
     } catch (e) {
-      // Show an error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to update event: $e')),
       );
@@ -319,14 +339,12 @@ class EditEventPageState extends State<EditEventPage> {
   Future<void> deleteEvent(String eventID) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    // Fetch host's first name and last name
     DocumentSnapshot hostDoc =
         await firestore.collection('Users').doc(widget.username).get();
     String hostFirstName = hostDoc['FirstName'] ?? widget.username;
     String hostLastName = hostDoc['LastName'] ?? '';
 
     try {
-      // Get the event document
       DocumentSnapshot eventDoc =
           await firestore.collection('Events').doc(eventID).get();
 
@@ -337,7 +355,6 @@ class EditEventPageState extends State<EditEventPage> {
 
         WriteBatch batch = firestore.batch();
 
-        // Remove the event ID from each attendee's event list
         for (String attendee in attendees) {
           DocumentReference userDocRef =
               firestore.collection('Users').doc(attendee);
@@ -355,7 +372,6 @@ class EditEventPageState extends State<EditEventPage> {
           });
         }
 
-        // Remove the event ID from the host's event list
         String hostName = eventData['HostName'];
         DocumentReference hostDocRef =
             firestore.collection('Users').doc(hostName);
@@ -371,12 +387,10 @@ class EditEventPageState extends State<EditEventPage> {
           'NewMessages': true,
         });
 
-        // Delete the event document
         DocumentReference eventDocRef =
             firestore.collection('Events').doc(eventID);
         batch.delete(eventDocRef);
 
-        // Commit the batch operation
         await batch.commit();
 
         Navigator.pop(context);
@@ -412,8 +426,7 @@ class EditEventPageState extends State<EditEventPage> {
           : Stack(
               children: [
                 SingleChildScrollView(
-                  padding: const EdgeInsets.only(
-                      bottom: 120), // Padding for BottomNav
+                  padding: const EdgeInsets.only(bottom: 120),
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -427,7 +440,7 @@ class EditEventPageState extends State<EditEventPage> {
                                 horizontal: screenSize.width * 0.05),
                             width: screenSize.width * 0.95,
                             decoration: BoxDecoration(
-                              color: AppColors.light, // Dark background color
+                              color: AppColors.light,
                               borderRadius: BorderRadius.circular(15),
                               border: Border.all(
                                 color: getInterpolatedColor(widget.rating),
@@ -456,8 +469,10 @@ class EditEventPageState extends State<EditEventPage> {
                           PhasesSection(
                             rating: widget.rating,
                             phaseControllers: phaseControllers,
+                            phaseGeopoints: phaseGeopoints,
                             onAddPhase: addPhase,
                             onRemovePhase: removePhase,
+                            eventID: widget.eventID,
                           ),
                           const SizedBox(height: 10),
                           Container(
@@ -466,7 +481,7 @@ class EditEventPageState extends State<EditEventPage> {
                                 horizontal: screenSize.width * 0.05),
                             width: screenSize.width * 0.95,
                             decoration: BoxDecoration(
-                              color: AppColors.light, // Dark background color
+                              color: AppColors.light,
                               borderRadius: BorderRadius.circular(15),
                               border: Border.all(
                                 color: getInterpolatedColor(widget.rating),
@@ -509,8 +524,7 @@ class EditEventPageState extends State<EditEventPage> {
                             },
                             existingAttendees: attendees,
                           ),
-                          const SizedBox(
-                              height: 10), // Add spacing before the button
+                          const SizedBox(height: 10),
                           WideButton(
                             rating: widget.rating,
                             buttonText: 'Update Event',
@@ -524,8 +538,7 @@ class EditEventPageState extends State<EditEventPage> {
                               await deleteEvent(widget.eventID);
                             },
                           ),
-                          const SizedBox(
-                              height: 120), // Adjusted space at the bottom
+                          const SizedBox(height: 120),
                         ],
                       ),
                     ),
@@ -539,7 +552,7 @@ class EditEventPageState extends State<EditEventPage> {
                     rating: widget.rating,
                     eventID: widget.eventID,
                     username: widget.username,
-                    selectedIndex: 3, // Index for EditEventPage
+                    selectedIndex: 3,
                   ),
                 ),
               ],

@@ -23,7 +23,7 @@ class CreateEventPage extends StatefulWidget {
 class CreateEventPageState extends State<CreateEventPage> {
   final TextEditingController eventNameController = TextEditingController();
   final TextEditingController eventDetailsController = TextEditingController();
-  List<Map<String, TextEditingController>> phaseControllers = [];
+  List<Map<String, dynamic>> phaseControllers = []; // Updated to dynamic
   List<Map<String, TextEditingController>> notificationControllers = [];
   List<String> attendees = [];
   final dateFormat = DateFormat('MMM d, yyyy h:mm a');
@@ -45,6 +45,7 @@ class CreateEventPageState extends State<CreateEventPage> {
         'location': TextEditingController(),
         'startTime': TextEditingController(),
         'endTime': TextEditingController(),
+        'geopoint': null, // Initialize geopoint as null
       });
     });
   }
@@ -122,15 +123,27 @@ class CreateEventPageState extends State<CreateEventPage> {
     List<Map<String, dynamic>> phases = [];
 
     for (int i = 0; i < phaseControllers.length; i++) {
+
       DateTime? startTime =
           parseDateTimeFromController(phaseControllers[i]['startTime']!);
       DateTime? endTime =
           parseDateTimeFromController(phaseControllers[i]['endTime']!);
-
+      
       // If endTime is null and it's not the last phase, set it to the startTime of the next phase
       if (endTime == null && i < phaseControllers.length - 1) {
         endTime =
             parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
+      }
+      
+            GeoPoint? geopoint = controller['geopoint'];
+
+      if (geopoint == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Could not fetch geopoint for phase ${controller['name']!.text}')),
+        );
+        return;
       }
 
       phases.add({
@@ -138,6 +151,7 @@ class CreateEventPageState extends State<CreateEventPage> {
         'PhaseLocation': phaseControllers[i]['location']!.text,
         'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
         'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
+
       });
     }
 
