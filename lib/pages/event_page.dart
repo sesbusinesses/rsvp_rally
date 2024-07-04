@@ -33,6 +33,7 @@ class EventPageState extends State<EventPage> {
 
   Future<void> checkEventsExistence(List<String> eventIds) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
+    existingEventIds.clear(); // Clear existingEventIds to avoid duplication
     for (String eventId in eventIds) {
       DocumentSnapshot eventDoc =
           await firestore.collection('Events').doc(eventId).get();
