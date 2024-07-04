@@ -23,6 +23,7 @@ class EventCard extends StatefulWidget {
 class EventCardState extends State<EventCard> {
   String eventName = "";
   String eventDate = "";
+  bool eventExists = true;
 
   @override
   void initState() {
@@ -47,7 +48,35 @@ class EventCardState extends State<EventCard> {
       }
     } else {
       log("Event not found");
+      // Remove the event reference from the user's document
+      await _removeEventFromUserDoc(widget.username, widget.eventID);
+      if (mounted) {
+        setState(() {
+          eventExists = false; // Mark the event as non-existent
+        });
+      }
     }
+  }
+
+  Future<void> _removeEventFromUserDoc(String username, String eventID) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentReference userDocRef = firestore.collection('Users').doc(username);
+
+    await firestore.runTransaction((transaction) async {
+      DocumentSnapshot userDoc = await transaction.get(userDocRef);
+
+      if (!userDoc.exists) {
+        log("No user found with username $username");
+        return;
+      }
+
+      List<String> events = List.from(userDoc.get('Events'));
+      if (events.contains(eventID)) {
+        events.remove(eventID);
+        transaction.update(userDocRef, {'Events': events});
+        log("Removed event $eventID from user $username");
+      }
+    });
   }
 
   String _monthToString(int month) {
@@ -70,6 +99,10 @@ class EventCardState extends State<EventCard> {
 
   @override
   Widget build(BuildContext context) {
+    if (!eventExists) {
+      return Container(); // Return an empty container if the event doesn't exist
+    }
+
     Size screenSize = MediaQuery.of(context).size;
 
     return Padding(
