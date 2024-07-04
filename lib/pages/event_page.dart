@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/models/route_observer.dart';
 import 'package:rsvp_rally/widgets/create_event_button.dart';
 import 'package:rsvp_rally/widgets/eventcard.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
@@ -19,7 +20,7 @@ class EventPage extends StatefulWidget {
   EventPageState createState() => EventPageState();
 }
 
-class EventPageState extends State<EventPage> {
+class EventPageState extends State<EventPage> with RouteAware {
   late Future<double?> userRatingFuture;
   late Future<List<String>> userEventsFuture;
   List<String> existingEventIds = [];
@@ -27,8 +28,34 @@ class EventPageState extends State<EventPage> {
   @override
   void initState() {
     super.initState();
+    loadData();
+  }
+
+  void loadData() {
     userRatingFuture = getUserRating(widget.username);
     userEventsFuture = getUserEvents(widget.username);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to RouteObserver
+    routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
+  }
+
+  @override
+  void dispose() {
+    // Unsubscribe from RouteObserver
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Reload the data when coming back to this page
+    setState(() {
+      loadData();
+    });
   }
 
   Future<void> checkEventsExistence(List<String> eventIds) async {
