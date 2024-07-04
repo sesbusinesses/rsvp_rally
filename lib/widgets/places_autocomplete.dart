@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/config/config.dart'; // Ensure this is imported
 
 class PlacesAutocomplete extends StatefulWidget {
   final String apiKey;
-  final Function(String placeId, String description) onPlaceSelected;
+  final Function(String placeId, String description, GeoPoint? geopoint) onPlaceSelected; // Updated callback
   final String? eventID; // Make eventID optional
   final int? phaseIndex; // Make phaseIndex optional
   final TextEditingController controller;
@@ -13,8 +14,8 @@ class PlacesAutocomplete extends StatefulWidget {
   const PlacesAutocomplete({
     required this.apiKey,
     required this.onPlaceSelected,
-    this.eventID, // Make eventID optional
-    this.phaseIndex, // Make phaseIndex optional,
+    this.eventID,
+    this.phaseIndex,
     required this.controller,
     super.key,
   });
@@ -113,8 +114,8 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
                     onTap: () async {
                       final detail = await _places
                           .getDetailsByPlaceId(prediction.placeId!);
-                      widget.onPlaceSelected(prediction.placeId!,
-                          detail.result.formattedAddress ?? '');
+                      GeoPoint? geopoint = await _getGeopoint(detail.result.geometry!.location);
+                      widget.onPlaceSelected(prediction.placeId!, detail.result.formattedAddress ?? '', geopoint);
                       widget.controller.text = detail.result.formattedAddress ?? '';
                       _hideOverlay();
                     },
@@ -126,6 +127,10 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
         ),
       ),
     );
+  }
+
+  Future<GeoPoint?> _getGeopoint(Location location) async {
+    return GeoPoint(location.lat, location.lng);
   }
 
   Future<void> _loadHintText() async {

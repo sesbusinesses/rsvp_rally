@@ -25,12 +25,12 @@ class CreateEventPage extends StatefulWidget {
 class CreateEventPageState extends State<CreateEventPage> {
   final TextEditingController eventNameController = TextEditingController();
   final TextEditingController eventDetailsController = TextEditingController();
-  List<Map<String, TextEditingController>> phaseControllers = [];
+  List<Map<String, dynamic>> phaseControllers = []; // Updated to dynamic
   List<Map<String, TextEditingController>> notificationControllers = [];
   List<String> attendees = [];
   final dateFormat = DateFormat('MMM d, yyyy h:mm a');
 
-// Function to parse DateTime from display format
+  // Function to parse DateTime from display format
   DateTime? parseDateTimeFromController(TextEditingController controller) {
     try {
       return dateFormat.parse(controller.text);
@@ -47,6 +47,7 @@ class CreateEventPageState extends State<CreateEventPage> {
         'location': TextEditingController(),
         'startTime': TextEditingController(),
         'endTime': TextEditingController(),
+        'geopoint': null, // Initialize geopoint as null
       });
     });
   }
@@ -120,18 +121,31 @@ class CreateEventPageState extends State<CreateEventPage> {
     String hostFirstName = hostDoc['FirstName'] ?? widget.username;
     String hostLastName = hostDoc['LastName'] ?? '';
 
-    List<Map<String, dynamic>> phases = phaseControllers.map((controller) {
+    List<Map<String, dynamic>> phases = [];
+    for (var controller in phaseControllers) {
       DateTime? startTime =
           parseDateTimeFromController(controller['startTime']!);
       DateTime? endTime = parseDateTimeFromController(controller['endTime']!);
 
-      return {
+      GeoPoint? geopoint = controller['geopoint'];
+
+      if (geopoint == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Could not fetch geopoint for phase ${controller['name']!.text}')),
+        );
+        return;
+      }
+
+      phases.add({
         'PhaseName': controller['name']!.text,
         'PhaseLocation': controller['location']!.text,
         'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
         'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
-      };
-    }).toList();
+        'PhaseGeopoint': geopoint,
+      });
+    }
 
     // Collect notifications
     List<Map<String, dynamic>> notifications =
