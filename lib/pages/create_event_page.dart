@@ -150,6 +150,7 @@ class CreateEventPageState extends State<CreateEventPage> {
         'PhaseLocation': phaseControllers[i]['location']!.text,
         'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
         'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
+        'GeoPoint': geopoint, // Add geopoint to phase data
       });
     }
 
@@ -167,7 +168,7 @@ class CreateEventPageState extends State<CreateEventPage> {
       };
     }).toList();
 
-// Create polls for each phase
+    // Create polls for each phase
     Map<String, dynamic> polls = {};
     for (var phase in phases) {
       String pollQuestion = 'RSVP for ${phase['PhaseName']}';

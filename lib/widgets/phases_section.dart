@@ -223,10 +223,6 @@ class _PhasesSectionState extends State<PhasesSection> {
                     InkWell(
                       onTap: () async {
                         FocusScope.of(context).unfocus();
-                        // if (MediaQuery.of(context).viewInsets.bottom > 0) {
-                        //   await Future.delayed(
-                        //       const Duration(milliseconds: 300));
-                        // }
                         selectDateTime(
                           context,
                           isStartNode

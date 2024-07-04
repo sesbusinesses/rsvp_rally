@@ -12,9 +12,9 @@ class ProfileEditor extends StatefulWidget {
   final String username;
 
   const ProfileEditor({
-    Key? key,
+    super.key,
     required this.username,
-  }) : super(key: key);
+  });
 
   @override
   _ProfileEditorState createState() => _ProfileEditorState();
@@ -60,12 +60,14 @@ class _ProfileEditorState extends State<ProfileEditor> {
         List<int> imageBytes = await file.readAsBytes();
 
         // Resize the image if it is too large
-        if (imageBytes.length > 1000000) { // Example threshold: 1MB
+        if (imageBytes.length > 10000) {
+          // Example threshold: 1MB
           img.Image? originalImage = img.decodeImage(imageBytes);
           if (originalImage != null) {
             // Calculate the reduction factor to keep the size under 1MB
-            double reductionFactor = math.sqrt(1000000 / imageBytes.length);
-            img.Image resizedImage = img.copyResize(originalImage, width: (originalImage.width * reductionFactor).toInt());
+            double reductionFactor = math.sqrt(10000 / imageBytes.length);
+            img.Image resizedImage = img.copyResize(originalImage,
+                width: (originalImage.width * reductionFactor).toInt());
             imageBytes = img.encodeJpg(resizedImage);
           }
         }
@@ -126,7 +128,7 @@ class _ProfileEditorState extends State<ProfileEditor> {
                       BoxShadow(
                         color: Colors.black.withOpacity(0.3),
                         blurRadius: 5,
-                        offset: Offset(0, 2),
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
@@ -136,34 +138,34 @@ class _ProfileEditorState extends State<ProfileEditor> {
                         ? MemoryImage(base64Decode(_profilePicBase64!))
                         : null,
                     child: _profilePicBase64 == null
-                        ? Icon(Icons.add, size: 50, color: Colors.grey)
+                        ? const Icon(Icons.add, size: 50, color: Colors.grey)
                         : null,
                   ),
                 ),
               ),
               if (_profilePicBase64 != null)
                 Positioned(
-                  bottom: 5,  // Adjusted for smaller CircleAvatar
-                  right: -5,  // Adjusted for smaller CircleAvatar
+                  bottom: 5, // Adjusted for smaller CircleAvatar
+                  right: -5, // Adjusted for smaller CircleAvatar
                   child: CircleAvatar(
-                    radius: 20,  // Smaller radius
+                    radius: 20, // Smaller radius
                     backgroundColor: Colors.transparent,
                     child: Text(
                       getEmoji(_rating),
-                      style: TextStyle(fontSize: 30),  // Larger font size
+                      style: const TextStyle(fontSize: 30), // Larger font size
                     ),
                   ),
                 ),
             ],
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
-            _firstName + ' ' + _lastName,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            '$_firstName $_lastName',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           Text(
             widget.username,
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
         ],
       ),
