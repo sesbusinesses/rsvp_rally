@@ -47,7 +47,6 @@ dependencies:
   uuid: ^4.4.0
   intl: any
   table_calendar: ^3.0.9
-
   flutter_chat_types: any
   mime: any
   equatable: any

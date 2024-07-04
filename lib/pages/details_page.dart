@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/widgets/event_top_display.dart';
 import 'package:rsvp_rally/widgets/event_timeline.dart';
 import 'package:rsvp_rally/widgets/details_card.dart';
 import 'package:rsvp_rally/widgets/attendees_card.dart';
@@ -55,6 +56,15 @@ class DetailsPageState extends State<DetailsPage> {
         children: [
           CustomScrollView(
             slivers: [
+              SliverToBoxAdapter(
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      EventTopDisplay(
+                          eventID: widget.eventID,
+                          userRating: widget.userRating)
+                    ]),
+              ),
               EventTimeline(eventID: widget.eventID, rating: widget.userRating),
               SliverToBoxAdapter(
                 child: DetailsCard(

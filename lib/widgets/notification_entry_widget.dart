@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/widgets/bracket_painter.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/time_picker.dart';
 
@@ -26,35 +29,46 @@ class _NotificationEntryWidgetState extends State<NotificationEntryWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
-        WideTextBox(
-            hintText: 'Notification Text', controller: widget.textController),
-        InkWell(
-          onTap: () async {
-            print('selecting date time');
-            DateTime? dateTime = await selectDateTime(context, widget.rating);
-            print('dateTime is $dateTime');
-            if (dateTime != null) {
-              setState(() {
-                selectedDateTime = dateTime;
-                print(
-                    'setting timeController to ${dateTime.toIso8601String()}');
-                widget.timeController.text = dateTime.toIso8601String();
-                print('timeController is now ${widget.timeController.text}');
-              });
-            }
-          },
-          child: IgnorePointer(
-            child: WideTextBox(
-              hintText: 'Notification Time',
-              controller: widget.timeController,
-            ),
-          ),
-        ),
         IconButton(
           icon: const Icon(Icons.remove_circle),
           onPressed: widget.onRemove,
+        ),
+        CustomPaint(
+          size: const Size(20, 100),
+          painter: BracketPainter(getInterpolatedColor(widget.rating)),
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              WideTextBox(
+                hintText: 'Notification Text',
+                controller: widget.textController,
+              ),
+              const SizedBox(height: 5),
+              InkWell(
+                onTap: () async {
+                  DateTime? dateTime =
+                      await selectDateTime(context, widget.rating, null);
+                  if (dateTime != null) {
+                    setState(() {
+                      selectedDateTime = dateTime;
+                      widget.timeController.text =
+                          DateFormat('MMM d, yyyy h:mm a').format(dateTime);
+                    });
+                  }
+                },
+                child: IgnorePointer(
+                  child: WideTextBox(
+                    hintText: 'Notification Time',
+                    controller: widget.timeController,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 5),
+            ],
+          ),
         ),
       ],
     );

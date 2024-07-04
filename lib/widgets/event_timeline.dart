@@ -168,6 +168,8 @@ class EventTimeline extends StatelessWidget {
                               Text(
                                 '${data['phaseName']}',
                                 style: const TextStyle(color: AppColors.dark),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
                               if (data['phaseLocation'] != null)
                                 GestureDetector(

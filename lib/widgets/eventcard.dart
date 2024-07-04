@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/details_page.dart';
+import 'package:rsvp_rally/widgets/event_image_display.dart';
 
 class EventCard extends StatefulWidget {
   final String eventID;
@@ -23,6 +24,7 @@ class EventCard extends StatefulWidget {
 class EventCardState extends State<EventCard> {
   String eventName = "";
   String eventDate = "";
+  bool eventExists = true;
 
   @override
   void initState() {
@@ -47,7 +49,35 @@ class EventCardState extends State<EventCard> {
       }
     } else {
       log("Event not found");
+      // Remove the event reference from the user's document
+      await _removeEventFromUserDoc(widget.username, widget.eventID);
+      if (mounted) {
+        setState(() {
+          eventExists = false; // Mark the event as non-existent
+        });
+      }
     }
+  }
+
+  Future<void> _removeEventFromUserDoc(String username, String eventID) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentReference userDocRef = firestore.collection('Users').doc(username);
+
+    await firestore.runTransaction((transaction) async {
+      DocumentSnapshot userDoc = await transaction.get(userDocRef);
+
+      if (!userDoc.exists) {
+        log("No user found with username $username");
+        return;
+      }
+
+      List<String> events = List.from(userDoc.get('Events'));
+      if (events.contains(eventID)) {
+        events.remove(eventID);
+        transaction.update(userDocRef, {'Events': events});
+        log("Removed event $eventID from user $username");
+      }
+    });
   }
 
   String _monthToString(int month) {
@@ -70,6 +100,10 @@ class EventCardState extends State<EventCard> {
 
   @override
   Widget build(BuildContext context) {
+    if (!eventExists) {
+      return Container(); // Return an empty container if the event doesn't exist
+    }
+
     Size screenSize = MediaQuery.of(context).size;
 
     return Padding(
@@ -110,12 +144,16 @@ class EventCardState extends State<EventCard> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                EventImageDisplay(
+                    eventID: widget.eventID,
+                    rating: widget.userRating,
+                    clickable: false), // New widget
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SizedBox(
-                      width: screenSize.width * 0.85 - 60,
+                      width: screenSize.width * 0.4,
                       child: Text(
                         eventName,
                         style: const TextStyle(

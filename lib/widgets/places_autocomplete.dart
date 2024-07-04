@@ -118,6 +118,7 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
                       widget.onPlaceSelected(prediction.placeId!, detail.result.formattedAddress ?? '', geopoint);
                       widget.controller.text = detail.result.formattedAddress ?? '';
                       _hideOverlay();
+                      FocusScope.of(context).unfocus();
                     },
                   );
                 },

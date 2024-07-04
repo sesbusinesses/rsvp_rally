@@ -31,9 +31,12 @@ class PhasesSection extends StatefulWidget {
 }
 
 class _PhasesSectionState extends State<PhasesSection> {
-  Future<void> _selectDateTime(BuildContext context,
-      TextEditingController controller, double rating) async {
-    DateTime? dateTime = await selectDateTime(context, rating);
+  Future<void> _selectDateTime(
+      BuildContext context,
+      TextEditingController controller,
+      double rating,
+      DateTime? initialTime) async {
+    DateTime? dateTime = await selectDateTime(context, rating, initialTime);
     if (dateTime != null) {
       controller.text = DateFormat('MMM d, yyyy h:mm a').format(dateTime);
     }
@@ -94,6 +97,9 @@ class _PhasesSectionState extends State<PhasesSection> {
                 onRemove: () => widget.onRemovePhase(phaseIndex),
                 rating: widget.rating,
                 selectDateTime: _selectDateTime,
+                previousPhaseData: phaseIndex > 0
+                    ? widget.phaseControllers[phaseIndex - 1]
+                    : null,
                 eventID: widget.eventID,
                 phaseIndex: phaseIndex,
               );
@@ -105,6 +111,9 @@ class _PhasesSectionState extends State<PhasesSection> {
                 onRemove: () => widget.onRemovePhase(phaseIndex - 1),
                 rating: widget.rating,
                 selectDateTime: _selectDateTime,
+                previousPhaseData: phaseIndex > 0
+                    ? widget.phaseControllers[phaseIndex - 1]
+                    : null,
                 eventID: widget.eventID,
                 phaseIndex: phaseIndex - 1,
               );
@@ -117,6 +126,9 @@ class _PhasesSectionState extends State<PhasesSection> {
                 onRemove: () => widget.onRemovePhase(phaseIndex),
                 rating: widget.rating,
                 selectDateTime: _selectDateTime,
+                previousPhaseData: phaseIndex > 0
+                    ? widget.phaseControllers[phaseIndex - 1]
+                    : null,
                 eventID: widget.eventID,
                 phaseIndex: phaseIndex,
               );
@@ -136,28 +148,49 @@ class _PhasesSectionState extends State<PhasesSection> {
     required Map<String, dynamic> phaseData,
     required VoidCallback onRemove,
     required double rating,
-    required Function(BuildContext, TextEditingController, double)
+    required Function(
+            BuildContext, TextEditingController, double, DateTime? initialTime)
         selectDateTime,
+    Map<String, TextEditingController>? previousPhaseData,
     String? eventID,
     int? phaseIndex,
   }) {
+    DateTime? initialStartTime;
+    DateTime? initialEndTime;
+
+    if (!begins && previousPhaseData != null) {
+      initialStartTime = previousPhaseData['startTime'] != null &&
+              previousPhaseData['startTime']!.text.isNotEmpty
+          ? DateFormat('MMM d, yyyy h:mm a')
+              .parse(previousPhaseData['startTime']!.text)
+          : null;
+      initialEndTime = phaseData['startTime'] != null &&
+              phaseData['startTime']!.text.isNotEmpty
+          ? DateFormat('MMM d, yyyy h:mm a').parse(phaseData['startTime']!.text)
+          : null;
+    }
     return TimelineTile(
       alignment: TimelineAlign.manual,
       lineXY: 0.15,
       isFirst: begins,
       isLast: isEndNode,
       indicatorStyle: IndicatorStyle(
-        width: 30,
-        color: isStartNode || isEndNode
-            ? Colors.transparent
-            : getInterpolatedColor(rating),
-        iconStyle: IconStyle(
-          color: getInterpolatedColor(rating),
-          iconData: isStartNode || isEndNode
-              ? Icons.access_time
-              : Icons.fiber_manual_record,
-        ),
-      ),
+          width: 30,
+          padding: const EdgeInsets.all(0),
+          indicator: Container(
+            height: 30,
+            width: 30,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isStartNode | isEndNode
+                  ? Colors.transparent
+                  : getInterpolatedColor(rating),
+              border: Border.all(
+                  color: getInterpolatedColor(rating),
+                  width: AppColors.borderWidth),
+            ),
+          ),
+          drawGap: true),
       beforeLineStyle: LineStyle(
         color: getInterpolatedColor(rating),
         thickness: 4,
@@ -188,13 +221,25 @@ class _PhasesSectionState extends State<PhasesSection> {
                 children: [
                   if (isStartNode || isEndNode)
                     InkWell(
-                      onTap: () => selectDateTime(
-                        context,
-                        isStartNode
-                            ? phaseData['startTime']!
-                            : phaseData['endTime']!,
-                        rating,
-                      ),
+                      onTap: () async {
+                        FocusScope.of(context).unfocus();
+                        // if (MediaQuery.of(context).viewInsets.bottom > 0) {
+                        //   await Future.delayed(
+                        //       const Duration(milliseconds: 300));
+                        // }
+                        selectDateTime(
+                          context,
+                          isStartNode
+                              ? phaseData['startTime']!
+                              : phaseData['endTime']!,
+                          rating,
+                          begins
+                              ? null
+                              : (isStartNode
+                                  ? initialStartTime
+                                  : initialEndTime),
+                        );
+                      },
                       child: IgnorePointer(
                         child: WideTextBox(
                           hintText: isStartNode ? 'Start Time' : 'End Time',

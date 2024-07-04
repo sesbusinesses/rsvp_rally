@@ -54,38 +54,28 @@ class InboxPageState extends State<InboxPage> {
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
-    return PopScope(
-      onPopInvoked: (bool didPop) {
-        Future.delayed(Duration.zero, () {
-          Navigator.pop(context, true);
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return EventPage(username: widget.username);
-          }));
-        });
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Inbox'),
-          surfaceTintColor: Colors.transparent,
-        ),
-        body: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 0),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: messages.length,
-                itemBuilder: (context, index) {
-                  return MessageCard(
-                    username: widget.username,
-                    rating: widget.userRating,
-                    messageData: messages[index],
-                  );
-                },
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Inbox'),
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 0),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                return MessageCard(
+                  username: widget.username,
+                  rating: widget.userRating,
+                  messageData: messages[index],
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

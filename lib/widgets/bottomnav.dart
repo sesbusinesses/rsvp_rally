@@ -127,7 +127,7 @@ class _BottomNavState extends State<BottomNav> {
             ],
             border: Border.all(
               color: getInterpolatedColor(widget.rating),
-              width: 2,
+              width: AppColors.borderWidth,
             ),
           ),
           child: Row(

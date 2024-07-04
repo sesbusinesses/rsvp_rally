@@ -2,6 +2,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
@@ -36,6 +37,7 @@ class EditEventPageState extends State<EditEventPage> {
   List<String> attendees = [];
   List<String> originalAttendees = [];
   bool isLoading = true;
+  final dateFormat = DateFormat('MMM d, yyyy h:mm a');
 
   @override
   void initState() {
@@ -74,11 +76,13 @@ class EditEventPageState extends State<EditEventPage> {
                     TextEditingController(text: phase['PhaseLocation'] ?? ''),
                 'startTime': TextEditingController(
                     text: phase['StartTime'] != null
-                        ? (phase['StartTime'] as Timestamp).toDate().toString()
+                        ? dateFormat
+                            .format((phase['StartTime'] as Timestamp).toDate())
                         : ''),
                 'endTime': TextEditingController(
                     text: phase['EndTime'] != null
-                        ? (phase['EndTime'] as Timestamp).toDate().toString()
+                        ? dateFormat
+                            .format((phase['EndTime'] as Timestamp).toDate())
                         : ''),
                 'geopoint': geopointMap,
               };
@@ -92,9 +96,9 @@ class EditEventPageState extends State<EditEventPage> {
                         text: notification['NotificationText'] ?? ''),
                     'time': TextEditingController(
                         text: notification['NotificationTime'] != null
-                            ? (notification['NotificationTime'] as Timestamp)
-                                .toDate()
-                                .toString()
+                            ? dateFormat.format(
+                                (notification['NotificationTime'] as Timestamp)
+                                    .toDate())
                             : ''),
                   };
                 }).toList() ??
@@ -102,6 +106,16 @@ class EditEventPageState extends State<EditEventPage> {
 
         isLoading = false;
       });
+    }
+  }
+
+  // Function to parse DateTime from display format
+  DateTime? parseDateTimeFromController(TextEditingController controller) {
+    try {
+      return dateFormat.parse(controller.text);
+    } catch (e) {
+      print(e);
+      return null; // Handle invalid date format
     }
   }
 
@@ -166,9 +180,10 @@ class EditEventPageState extends State<EditEventPage> {
         controller['name']!.text.isEmpty ||
         controller['location']!.text.isEmpty ||
         controller['startTime']!.text.isEmpty ||
-        controller['endTime']!.text.isEmpty)) {
+        (controller['endTime']!.text.isEmpty &&
+            controller != phaseControllers.last))) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all phase details')),
+        const SnackBar(content: Text('Please fill out all phase details')),
       );
       return;
     } else if (notificationControllers.any((controller) =>
@@ -182,47 +197,49 @@ class EditEventPageState extends State<EditEventPage> {
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    List<Map<String, dynamic>> phases = phaseControllers.map((controller) {
-      DateTime? startTime;
-      DateTime? endTime;
-      try {
-        startTime = DateTime.parse(controller['startTime']!.text);
-      } catch (e) {
-        startTime = null;
-      }
-      try {
-        endTime = DateTime.parse(controller['endTime']!.text);
-      } catch (e) {
-        endTime = null;
-      }
+// Collect phases
+List<Map<String, dynamic>> phases = [];
 
-      // Properly handle the geopoint
-      GeoPoint? geopoint;
-      if (controller['geopoint'] != null &&
-          controller['geopoint'] is GeoPoint) {
-        geopoint = controller['geopoint'];
-      } else if (controller['geopoint'] != null) {
-        geopoint = GeoPoint(
-            controller['geopoint']['lat'], controller['geopoint']['lng']);
-      }
+for (int i = 0; i < phaseControllers.length; i++) {
+  DateTime? startTime = parseDateTimeFromController(phaseControllers[i]['startTime']!);
+  DateTime? endTime = parseDateTimeFromController(phaseControllers[i]['endTime']!);
 
-      return {
-        'PhaseName': controller['name']!.text,
-        'PhaseLocation': controller['location']!.text,
-        'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
-        'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
-        'PhaseGeopoint': geopoint,
-      };
-    }).toList();
+  // If endTime is null and it's not the last phase, set it to the startTime of the next phase
+  if (endTime == null && i < phaseControllers.length - 1) {
+    endTime = parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
+  }
 
-    List<Map<String, dynamic>> notifications =
-        notificationControllers.map((controller) {
-      DateTime? notificationTime;
-      try {
-        notificationTime = DateTime.parse(controller['time']!.text);
-      } catch (e) {
-        notificationTime = null;
-      }
+  // Properly handle the geopoint
+  GeoPoint? geopoint;
+  if (phaseControllers[i]['geopoint'] != null && phaseControllers[i]['geopoint'] is GeoPoint) {
+    geopoint = phaseControllers[i]['geopoint'];
+  } else if (phaseControllers[i]['geopoint'] != null) {
+    geopoint = GeoPoint(phaseControllers[i]['geopoint']['lat'], phaseControllers[i]['geopoint']['lng']);
+  }
+
+  phases.add({
+    'PhaseName': phaseControllers[i]['name']!.text,
+    'PhaseLocation': phaseControllers[i]['location']!.text,
+    'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
+    'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
+    'PhaseGeopoint': geopoint,
+  });
+}
+
+List<Map<String, dynamic>> notifications = notificationControllers.map((controller) {
+  DateTime? notificationTime;
+  try {
+    notificationTime = DateTime.parse(controller['time']!.text);
+  } catch (e) {
+    notificationTime = null;
+  }
+
+  return {
+    'NotificationTime': notificationTime != null ? Timestamp.fromDate(notificationTime) : null,
+    'NotificationMessage': controller['message']!.text,
+  };
+}).toList();
+
 
       return {
         'NotificationText': controller['text']!.text,
@@ -398,6 +415,7 @@ class EditEventPageState extends State<EditEventPage> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Edit Event'),
         backgroundColor: Colors.transparent,

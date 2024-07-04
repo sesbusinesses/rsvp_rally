@@ -8,7 +8,7 @@ class AppColors {
   static const Color accentDark = Color(0xFFaaaaaa); // Light accent color
   static const Color shadow = Color(0xFFd3d3d3); // Shadow color
   static const Color link = Colors.blue; // Link color
-  static const double borderWidth = 2;
+  static const double borderWidth = 2.5;
 }
 
 Color getInterpolatedColor(double value) {
