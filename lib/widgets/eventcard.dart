@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/details_page.dart';
+import 'package:rsvp_rally/widgets/event_image_display.dart';
 
 class EventCard extends StatefulWidget {
   final String eventID;
@@ -143,12 +144,16 @@ class EventCardState extends State<EventCard> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                EventImageDisplay(
+                    eventID: widget.eventID,
+                    rating: widget.userRating,
+                    clickable: false), // New widget
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SizedBox(
-                      width: screenSize.width * 0.85 - 60,
+                      width: screenSize.width * 0.4,
                       child: Text(
                         eventName,
                         style: const TextStyle(

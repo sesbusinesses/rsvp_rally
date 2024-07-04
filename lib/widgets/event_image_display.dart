@@ -7,12 +7,13 @@ import 'dart:convert';
 class EventImageDisplay extends StatefulWidget {
   final String eventID;
   final double rating;
+  final bool clickable;
 
-  const EventImageDisplay({
-    super.key,
-    required this.eventID,
-    required this.rating,
-  });
+  const EventImageDisplay(
+      {super.key,
+      required this.eventID,
+      required this.rating,
+      required this.clickable});
 
   @override
   _EventImageDisplayState createState() => _EventImageDisplayState();
@@ -66,30 +67,53 @@ class _EventImageDisplayState extends State<EventImageDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _pickImage,
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: _imageBase64 != null
-            ? ClipRRect(
+    return widget.clickable
+        ? GestureDetector(
+            onTap: _pickImage,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(10),
-                child: Image.memory(
-                  base64Decode(_imageBase64!),
-                  fit: BoxFit.cover,
-                ),
-              )
-            : const Center(
-                child: Icon(
-                  Icons.add_a_photo,
-                  color: Colors.grey,
-                ),
               ),
-      ),
-    );
+              child: _imageBase64 != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.memory(
+                        base64Decode(_imageBase64!),
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : const Center(
+                      child: Icon(
+                        Icons.add_a_photo,
+                        color: Colors.grey,
+                      ),
+                    ),
+            ),
+          )
+        : Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: _imageBase64 != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.memory(
+                      base64Decode(_imageBase64!),
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : const Center(
+                    child: Icon(
+                      Icons.add_a_photo,
+                      color: Colors.grey,
+                    ),
+                  ),
+          );
   }
 }

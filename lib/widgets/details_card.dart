@@ -17,8 +17,10 @@ class DetailsCard extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData) {
             return Padding(
-              padding: EdgeInsets.symmetric(
-                  vertical: 15, horizontal: screenSize.width * 0.075),
+              padding: EdgeInsets.only(
+                  bottom: 15,
+                  left: screenSize.width * 0.075,
+                  right: screenSize.width * 0.075),
               child: Container(
                 width: screenSize.width * 0.85,
                 decoration: BoxDecoration(

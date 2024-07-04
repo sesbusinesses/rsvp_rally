@@ -68,6 +68,7 @@ class EventTopDisplayState extends State<EventTopDisplay> {
           child: EventImageDisplay(
             eventID: widget.eventID,
             rating: widget.userRating,
+            clickable: true,
           ),
         ),
       ],
