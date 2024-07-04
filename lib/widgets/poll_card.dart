@@ -26,11 +26,13 @@ class PollCard extends StatefulWidget {
 
 class _PollCardState extends State<PollCard> {
   late Map<String, dynamic> pollData;
+  late DateTime closeTime;
 
   @override
   void initState() {
     super.initState();
     pollData = widget.pollData;
+    closeTime = (pollData['responses']['CloseTime'] as Timestamp).toDate();
   }
 
   Future<void> _vote(String selectedOption) async {
@@ -93,7 +95,9 @@ class _PollCardState extends State<PollCard> {
                   buttonText: option,
                   rating: widget.userRating,
                   onPressed: () {
-                    _vote(option);
+                    if (DateTime.now().isBefore(closeTime)) {
+                      _vote(option);
+                    }
                   },
                 ),
               ),
@@ -138,9 +142,7 @@ class _PollCardState extends State<PollCard> {
     });
 
     // Format CloseTime
-    Timestamp closeTime = pollData['responses']['CloseTime'];
-    String formattedCloseTime =
-        DateFormat.yMMMd().add_jm().format(closeTime.toDate());
+    String formattedCloseTime = DateFormat.yMMMd().add_jm().format(closeTime);
 
     return Center(
       child: Padding(
