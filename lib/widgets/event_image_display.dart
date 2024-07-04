@@ -68,22 +68,28 @@ class _EventImageDisplayState extends State<EventImageDisplay> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _pickImage,
-      child: _imageBase64 != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.memory(
-                base64Decode(_imageBase64!),
-                fit: BoxFit.cover,
-              ),
-            )
-          : const Expanded(
-              child: FittedBox(
+      child: Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: _imageBase64 != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.memory(
+                  base64Decode(_imageBase64!),
+                  fit: BoxFit.cover,
+                ),
+              )
+            : const Center(
                 child: Icon(
                   Icons.add_a_photo,
                   color: Colors.grey,
                 ),
               ),
-            ),
+      ),
     );
   }
 }
