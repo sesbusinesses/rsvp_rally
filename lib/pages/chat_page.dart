@@ -11,6 +11,7 @@ import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/message_bubble.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'dart:developer' as developer;
+import 'dart:math' as math;
 
 class ChatPage extends StatefulWidget {
   final String eventID;
@@ -77,6 +78,8 @@ class _ChatPageState extends State<ChatPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
+        title: Text(eventName, style: TextStyle(color: Colors.black)),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: Stack(
@@ -84,58 +87,61 @@ class _ChatPageState extends State<ChatPage> {
             Column(
               children: [
                 Expanded(
-                  child: rsvpStatus == 'yes'
-                      ? StreamBuilder<DocumentSnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('Chats')
-                              .doc(widget.eventID)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            }
+                  child: Container(
+                    color: Colors.grey[200], // Light grey background
+                    child: rsvpStatus == 'yes'
+                        ? StreamBuilder<DocumentSnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('Chats')
+                                .doc(widget.eventID)
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              }
 
-                            if (!snapshot.hasData || !snapshot.data!.exists) {
-                              return const Center(
-                                  child: Text('No messages yet.'));
-                            }
+                              if (!snapshot.hasData || !snapshot.data!.exists) {
+                                return const Center(
+                                    child: Text('No messages yet.'));
+                              }
 
-                            var messages =
-                                snapshot.data!['Messages'] as List<dynamic>;
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              _scrollToBottom();
-                            });
+                              var messages =
+                                  snapshot.data!['Messages'] as List<dynamic>;
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                _scrollToBottom();
+                              });
 
-                            return ListView.builder(
-                              controller: _scrollController,
-                              padding: const EdgeInsets.only(bottom: 60),
-                              itemCount: messages.length,
-                              itemBuilder: (context, index) {
-                                var messageEntry =
-                                    Map<String, dynamic>.from(messages[index]);
-                                var entry = messageEntry.entries.first;
-                                bool isPhoto = entry.value is String &&
-                                    entry.value
-                                        .toString()
-                                        .startsWith('data:image');
-                                return MessageBubble(
-                                  message: entry.value,
-                                  isMe: entry.key == widget.username,
-                                  username: entry.key,
-                                  isPhoto: isPhoto,
-                                );
-                              },
-                            );
-                          },
-                        )
-                      : const Center(
-                          child: Text(
-                            'RSVP \'Yes\' to access the chat',
-                            style: TextStyle(fontSize: 20),
+                              return ListView.builder(
+                                controller: _scrollController,
+                                padding: const EdgeInsets.only(bottom: 60),
+                                itemCount: messages.length,
+                                itemBuilder: (context, index) {
+                                  var messageEntry =
+                                      Map<String, dynamic>.from(messages[index]);
+                                  var entry = messageEntry.entries.first;
+                                  bool isPhoto = entry.value is String &&
+                                      entry.value
+                                          .toString()
+                                          .startsWith('data:image');
+                                  return MessageBubble(
+                                    message: entry.value,
+                                    isMe: entry.key == widget.username,
+                                    username: entry.key,
+                                    isPhoto: isPhoto,
+                                  );
+                                },
+                              );
+                            },
+                          )
+                        : const Center(
+                            child: Text(
+                              'RSVP \'Yes\' to access the chat',
+                              style: TextStyle(fontSize: 20),
+                            ),
                           ),
-                        ),
+                  ),
                 ),
                 if (rsvpStatus == 'yes') _buildMessageInputArea(),
                 const SizedBox(height: 50),
@@ -187,35 +193,32 @@ class _ChatPageState extends State<ChatPage> {
     if (_controller.text.isNotEmpty) {
       await sendMessage(widget.eventID, widget.username, _controller.text);
       _controller.clear();
+      _scrollToBottom();
     }
   }
 
-  void _pickAndSendPhoto() async {
+  Future<void> _pickAndSendPhoto() async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
-        final imageFile = File(image.path);
-        final bytes = await imageFile.readAsBytes();
-        final decodedImage = img.decodeImage(bytes);
+        File file = File(image.path);
+        List<int> imageBytes = await file.readAsBytes();
 
-        if (decodedImage != null) {
-          // Convert to PNG or JPEG
-          List<int> encodedBytes;
-          String mimeType;
-
-          // Convert to JPEG by default for all formats, including HEIC
-          encodedBytes = img.encodeJpg(decodedImage);
-          mimeType = 'image/jpeg';
-
-          final base64Image = base64Encode(encodedBytes);
-          await sendMessage(widget.eventID, widget.username,
-              'data:$mimeType;base64,$base64Image');
-        } else {
-          developer.log('Error decoding image');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error decoding image')),
-          );
+        // Resize the image if it is too large
+        if (imageBytes.length > 10000) { // Example threshold: 1MB
+          img.Image? originalImage = img.decodeImage(imageBytes);
+          if (originalImage != null) {
+            // Calculate the reduction factor to keep the size under 1MB
+            double reductionFactor = math.sqrt(10000 / imageBytes.length);
+            img.Image resizedImage = img.copyResize(originalImage, width: (originalImage.width * reductionFactor).toInt());
+            imageBytes = img.encodeJpg(resizedImage);
+          }
         }
+
+        String base64Image = base64Encode(imageBytes);
+
+        await sendMessage(widget.eventID, widget.username, 'data:image/jpeg;base64,$base64Image');
+        _scrollToBottom();
       }
     } catch (e) {
       developer.log('Error picking or sending photo: $e');

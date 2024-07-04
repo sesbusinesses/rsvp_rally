@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'package:image/image.dart' as img;
+import 'dart:math' as math;
 import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/models/database_pusher.dart';
 import 'package:rsvp_rally/models/colors.dart';
@@ -55,7 +57,20 @@ class _ProfileEditorState extends State<ProfileEditor> {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) {
         File file = File(image.path);
-        String base64Image = base64Encode(await file.readAsBytes());
+        List<int> imageBytes = await file.readAsBytes();
+
+        // Resize the image if it is too large
+        if (imageBytes.length > 1000000) { // Example threshold: 1MB
+          img.Image? originalImage = img.decodeImage(imageBytes);
+          if (originalImage != null) {
+            // Calculate the reduction factor to keep the size under 1MB
+            double reductionFactor = math.sqrt(1000000 / imageBytes.length);
+            img.Image resizedImage = img.copyResize(originalImage, width: (originalImage.width * reductionFactor).toInt());
+            imageBytes = img.encodeJpg(resizedImage);
+          }
+        }
+
+        String base64Image = base64Encode(imageBytes);
         await pushProfilePicture(widget.username, base64Image);
         setState(() {
           _profilePicBase64 = base64Image;

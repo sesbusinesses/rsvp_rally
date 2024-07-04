@@ -48,6 +48,7 @@ post_install do |installer|
         'PERMISSION_CAMERA=1',
         'PERMISSION_PHOTOS=1',
       ]
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
     end
   end
 end
