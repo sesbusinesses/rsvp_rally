@@ -197,142 +197,166 @@ class EditEventPageState extends State<EditEventPage> {
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-// Collect phases
-List<Map<String, dynamic>> phases = [];
+    // Collect phases
+    List<Map<String, dynamic>> phases = [];
 
-for (int i = 0; i < phaseControllers.length; i++) {
-  DateTime? startTime = parseDateTimeFromController(phaseControllers[i]['startTime']!);
-  DateTime? endTime = parseDateTimeFromController(phaseControllers[i]['endTime']!);
+    for (int i = 0; i < phaseControllers.length; i++) {
+      DateTime? startTime =
+          parseDateTimeFromController(phaseControllers[i]['startTime']!);
+      DateTime? endTime =
+          parseDateTimeFromController(phaseControllers[i]['endTime']!);
 
-  // If endTime is null and it's not the last phase, set it to the startTime of the next phase
-  if (endTime == null && i < phaseControllers.length - 1) {
-    endTime = parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
-  }
+      // If endTime is null and it's not the last phase, set it to the startTime of the next phase
+      if (endTime == null && i < phaseControllers.length - 1) {
+        endTime =
+            parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
+      }
 
-  // Properly handle the geopoint
-  GeoPoint? geopoint;
-  if (phaseControllers[i]['geopoint'] != null && phaseControllers[i]['geopoint'] is GeoPoint) {
-    geopoint = phaseControllers[i]['geopoint'];
-  } else if (phaseControllers[i]['geopoint'] != null) {
-    geopoint = GeoPoint(phaseControllers[i]['geopoint']['lat'], phaseControllers[i]['geopoint']['lng']);
-  }
+      // Properly handle the geopoint
+      GeoPoint? geopoint;
+      if (phaseControllers[i]['geopoint'] != null &&
+          phaseControllers[i]['geopoint'] is GeoPoint) {
+        geopoint = phaseControllers[i]['geopoint'];
+      } else if (phaseControllers[i]['geopoint'] != null) {
+        geopoint = GeoPoint(phaseControllers[i]['geopoint']['lat'],
+            phaseControllers[i]['geopoint']['lng']);
+      }
 
-  phases.add({
-    'PhaseName': phaseControllers[i]['name']!.text,
-    'PhaseLocation': phaseControllers[i]['location']!.text,
-    'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
-    'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
-    'PhaseGeopoint': geopoint,
-  });
-}
-
-List<Map<String, dynamic>> notifications = notificationControllers.map((controller) {
-  DateTime? notificationTime;
-  try {
-    notificationTime = DateTime.parse(controller['time']!.text);
-  } catch (e) {
-    notificationTime = null;
-  }
-
-  return {
-    'NotificationTime': notificationTime != null ? Timestamp.fromDate(notificationTime) : null,
-    'NotificationMessage': controller['message']!.text,
-  };
-}).toList();
-
-
-      return {
-        'NotificationText': controller['text']!.text,
-        'NotificationTime': notificationTime != null
-            ? Timestamp.fromDate(notificationTime)
-            : null,
-      };
-    }).toList();
-
-    Map<String, dynamic> eventData = {
-      'EventName': eventNameController.text,
-      'Details': eventDetailsController.text,
-      'HostName': widget.username,
-      'Attendees': attendees,
-      'Timeline': phases,
-      'Notifications': notifications,
-    };
-
-    try {
-      await firestore
-          .collection('Events')
-          .doc(widget.eventID)
-          .update(eventData);
-
-      WriteBatch batch = firestore.batch();
-
-      DocumentReference hostDocRef =
-          firestore.collection('Users').doc(widget.username);
-      batch.update(hostDocRef, {
-        'Events': FieldValue.arrayUnion([widget.eventID])
+      phases.add({
+        'PhaseName': phaseControllers[i]['name']!.text,
+        'PhaseLocation': phaseControllers[i]['location']!.text,
+        'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
+        'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
+        'PhaseGeopoint': geopoint,
       });
 
-      Timestamp timestamp = Timestamp.now();
-      DocumentSnapshot hostDoc =
-          await firestore.collection('Users').doc(widget.username).get();
-      String hostFirstName = hostDoc['FirstName'] ?? widget.username;
-      String hostLastName = hostDoc['LastName'] ?? '';
-      List<String> removedAttendees = originalAttendees
-          .where((attendee) => !attendees.contains(attendee))
-          .toList();
-
-      for (String friend in removedAttendees) {
-        DocumentReference userDocRef =
-            firestore.collection('Users').doc(friend);
-        batch.update(userDocRef, {
-          'Messages': FieldValue.arrayUnion([
-            {
-              'text':
-                  '$hostFirstName $hostLastName has cancelled ${eventData['EventName']}.',
-              'type': 'event cancelled',
-              'eventID': widget.eventID,
-              'timestamp': timestamp
-            }
-          ]),
-          'NewMessages': true,
-          'Events': FieldValue.arrayRemove([widget.eventID])
-        });
-      }
-
-      for (String attendee in attendees) {
-        DocumentReference userDocRef =
-            firestore.collection('Users').doc(attendee);
-        Map<String, dynamic> updateData = {
-          'Events': FieldValue.arrayUnion([widget.eventID]),
-        };
-
-        if (!originalAttendees.contains(attendee)) {
-          updateData['Messages'] = FieldValue.arrayUnion([
-            {
-              'text':
-                  '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!',
-              'type': 'event invitation',
-              'eventID': widget.eventID,
-              'timestamp': timestamp
-            }
-          ]);
-          updateData['NewMessages'] = true;
+      List<Map<String, dynamic>> notifications =
+          notificationControllers.map((controller) {
+        DateTime? notificationTime;
+        try {
+          notificationTime = DateTime.parse(controller['time']!.text);
+        } catch (e) {
+          notificationTime = null;
         }
 
-        batch.update(userDocRef, updateData);
+        return {
+          'NotificationTime': notificationTime != null
+              ? Timestamp.fromDate(notificationTime)
+              : null,
+          'NotificationMessage': controller['message']!.text,
+        };
+      }).toList();
+
+      //   return {
+      //     'NotificationText': controller['text']!.text,
+      //     'NotificationTime': notificationTime != null
+      //         ? Timestamp.fromDate(notificationTime)
+      //         : null,
+      //   };
+      // }).toList();
+
+      Map<String, dynamic> eventData = {
+        'EventName': eventNameController.text,
+        'Details': eventDetailsController.text,
+        'HostName': widget.username,
+        'Attendees': attendees,
+        'Timeline': phases,
+        'Notifications': notifications,
+      };
+
+      try {
+        await firestore
+            .collection('Events')
+            .doc(widget.eventID)
+            .update(eventData);
+
+        WriteBatch batch = firestore.batch();
+
+        DocumentReference hostDocRef =
+            firestore.collection('Users').doc(widget.username);
+        batch.update(hostDocRef, {
+          'Events': FieldValue.arrayUnion([widget.eventID])
+        });
+
+        Timestamp timestamp = Timestamp.now();
+        DocumentSnapshot hostDoc =
+            await firestore.collection('Users').doc(widget.username).get();
+        String hostFirstName = hostDoc['FirstName'] ?? widget.username;
+        String hostLastName = hostDoc['LastName'] ?? '';
+        List<String> removedAttendees = originalAttendees
+            .where((attendee) => !attendees.contains(attendee))
+            .toList();
+
+        for (String friend in removedAttendees) {
+          DocumentReference userDocRef =
+              firestore.collection('Users').doc(friend);
+          batch.update(userDocRef, {
+            'Messages': FieldValue.arrayUnion([
+              {
+                'text':
+                    '$hostFirstName $hostLastName has cancelled ${eventData['EventName']}.',
+                'type': 'event cancelled',
+                'eventID': widget.eventID,
+                'timestamp': timestamp
+              }
+            ]),
+            'NewMessages': true,
+            'Events': FieldValue.arrayRemove([widget.eventID])
+          });
+        }
+
+        for (String attendee in attendees) {
+          DocumentReference userDocRef =
+              firestore.collection('Users').doc(attendee);
+          Map<String, dynamic> updateData = {
+            'Events': FieldValue.arrayUnion([widget.eventID]),
+          };
+
+          if (!originalAttendees.contains(attendee)) {
+            updateData['Messages'] = FieldValue.arrayUnion([
+              {
+                'text':
+                    '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!',
+                'type': 'event invitation',
+                'eventID': widget.eventID,
+                'timestamp': timestamp
+              }
+            ]);
+            updateData['NewMessages'] = true;
+          }
+
+          batch.update(userDocRef, updateData);
+        }
+
+        await batch.commit();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Event updated successfully')),
+        );
+
+        Navigator.pop(context);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update event: $e')),
+        );
       }
+    }
 
-      await batch.commit();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Event updated successfully')),
-      );
-
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update event: $e')),
-      );
+    @override
+    void dispose() {
+      eventNameController.dispose();
+      eventDetailsController.dispose();
+      for (var controller in phaseControllers) {
+        controller['name']?.dispose();
+        controller['location']?.dispose();
+        controller['startTime']?.dispose();
+        controller['endTime']?.dispose();
+      }
+      for (var controller in notificationControllers) {
+        controller['text']?.dispose();
+        controller['time']?.dispose();
+      }
+      super.dispose();
     }
   }
 
@@ -558,22 +582,5 @@ List<Map<String, dynamic>> notifications = notificationControllers.map((controll
               ],
             ),
     );
-  }
-
-  @override
-  void dispose() {
-    eventNameController.dispose();
-    eventDetailsController.dispose();
-    for (var controller in phaseControllers) {
-      controller['name']?.dispose();
-      controller['location']?.dispose();
-      controller['startTime']?.dispose();
-      controller['endTime']?.dispose();
-    }
-    for (var controller in notificationControllers) {
-      controller['text']?.dispose();
-      controller['time']?.dispose();
-    }
-    super.dispose();
   }
 }

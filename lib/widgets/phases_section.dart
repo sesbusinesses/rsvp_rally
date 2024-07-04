@@ -151,7 +151,7 @@ class _PhasesSectionState extends State<PhasesSection> {
     required Function(
             BuildContext, TextEditingController, double, DateTime? initialTime)
         selectDateTime,
-    Map<String, TextEditingController>? previousPhaseData,
+    Map<String, dynamic>? previousPhaseData,
     String? eventID,
     int? phaseIndex,
   }) {

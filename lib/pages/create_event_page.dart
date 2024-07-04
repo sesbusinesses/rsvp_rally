@@ -123,25 +123,24 @@ class CreateEventPageState extends State<CreateEventPage> {
     List<Map<String, dynamic>> phases = [];
 
     for (int i = 0; i < phaseControllers.length; i++) {
-
       DateTime? startTime =
           parseDateTimeFromController(phaseControllers[i]['startTime']!);
       DateTime? endTime =
           parseDateTimeFromController(phaseControllers[i]['endTime']!);
-      
+
       // If endTime is null and it's not the last phase, set it to the startTime of the next phase
       if (endTime == null && i < phaseControllers.length - 1) {
         endTime =
             parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
       }
-      
-            GeoPoint? geopoint = controller['geopoint'];
+
+      GeoPoint? geopoint = phaseControllers[i]['geopoint'];
 
       if (geopoint == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(
-                  'Could not fetch geopoint for phase ${controller['name']!.text}')),
+                  'Could not fetch geopoint for phase ${phaseControllers[i]['name']!.text}')),
         );
         return;
       }
@@ -151,7 +150,6 @@ class CreateEventPageState extends State<CreateEventPage> {
         'PhaseLocation': phaseControllers[i]['location']!.text,
         'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
         'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
-
       });
     }
 
