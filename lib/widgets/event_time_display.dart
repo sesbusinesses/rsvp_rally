@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'dart:developer';
 
+import 'package:rsvp_rally/models/colors.dart';
+
 Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>> timelineData = [];
@@ -81,28 +83,31 @@ class EventTimeDisplay extends StatelessWidget {
               timelineWidgets.add(Expanded(
                   child: FittedBox(
                 fit: BoxFit.contain,
-                child: Text(startDateStr),
+                child: Text(startDateStr, style: AppColors.darkDateStyle),
               )));
               timelineWidgets.add(Expanded(
                   child: FittedBox(
                 fit: BoxFit.contain,
-                child: Text('$startTimeStr - $endTimeStr'),
+                child: Text('$startTimeStr - $endTimeStr',
+                    style: AppColors.darkDateStyle),
               )));
             } else {
               timelineWidgets.add(Expanded(
                   child: FittedBox(
                 fit: BoxFit.contain,
-                child: Text('$startDateStr $startTimeStr'),
+                child: Text('$startDateStr $startTimeStr',
+                    style: AppColors.darkDateStyle),
               )));
               timelineWidgets.add(const Expanded(
                   child: FittedBox(
                 fit: BoxFit.contain,
-                child: Text('-'),
+                child: Text('-', style: AppColors.darkDateStyle),
               )));
               timelineWidgets.add(Expanded(
                   child: FittedBox(
                 fit: BoxFit.contain,
-                child: Text('$endDateStr $endTimeStr'),
+                child: Text('$endDateStr $endTimeStr',
+                    style: AppColors.darkDateStyle),
               )));
             }
           }

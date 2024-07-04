@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/route_observer.dart';
 import 'package:rsvp_rally/widgets/create_event_button.dart';
 import 'package:rsvp_rally/widgets/eventcard.dart';
@@ -97,7 +98,10 @@ class EventPageState extends State<EventPage> with RouteAware {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('RSVP Rally'),
+        title: const Text(
+          'RSVP Rally',
+          style: AppColors.topStyle,
+        ),
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
@@ -163,7 +167,7 @@ class EventPageState extends State<EventPage> with RouteAware {
                       padding: EdgeInsets.all(40),
                       child: Text(
                         'Error fetching events. Please try again later.',
-                        style: TextStyle(fontSize: 20),
+                        style: AppColors.bodyStyle,
                       ),
                     ),
                   ],
@@ -185,7 +189,7 @@ class EventPageState extends State<EventPage> with RouteAware {
                       padding: EdgeInsets.all(40),
                       child: Text(
                         'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
-                        style: TextStyle(fontSize: 20),
+                        style: AppColors.bodyStyle,
                       ),
                     ),
                   ],
@@ -232,7 +236,7 @@ class EventPageState extends State<EventPage> with RouteAware {
                               padding: EdgeInsets.all(40),
                               child: Text(
                                 'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
-                                style: TextStyle(fontSize: 20),
+                                style: AppColors.bodyStyle,
                               ),
                             ),
                           ],

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
@@ -45,17 +46,14 @@ class DetailsCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 10),
-                      const Text('Details',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      const Text('Details', style: AppColors.titleStyle),
                       Text(
                         'Host: ${snapshot.data!['hostName']}',
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.accentDark),
+                        style: AppColors.subtitleStyle,
                       ),
                       const SizedBox(height: 15),
                       Text(snapshot.data!['details'],
-                          style: const TextStyle(fontSize: 16)),
+                          style: AppColors.bodyStyle),
                       const SizedBox(height: 10),
                     ],
                   ),
@@ -72,7 +70,7 @@ class DetailsCard extends StatelessWidget {
         }
         return const Padding(
           padding: EdgeInsets.all(16.0),
-          child: CircularProgressIndicator(),
+          child: CupertinoActivityIndicator(radius: 15),
         );
       },
     );

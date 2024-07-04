@@ -54,8 +54,9 @@ class _LogInState extends State<LogInPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           "Please enter both email and password",
-          style: TextStyle(fontSize: 18.0, color: AppColors.dark),
+          style: AppColors.bodyStyle,
         ),
+        backgroundColor: AppColors.accentLight,
       ));
       return;
     }
@@ -78,22 +79,25 @@ class _LogInState extends State<LogInPage> {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
             "Incorrect Email or Password",
-            style: TextStyle(fontSize: 18.0, color: AppColors.dark),
+            style: AppColors.bodyStyle,
           ),
+          backgroundColor: AppColors.accentLight,
         ));
       } else if (e.code == 'invalid-email' && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
             "Invalid Email Address",
-            style: TextStyle(fontSize: 18.0, color: AppColors.dark),
+            style: AppColors.bodyStyle,
           ),
+          backgroundColor: AppColors.accentLight,
         ));
       } else if (e.code == 'too-many-requests' && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
             "Too many login attempts. Try again later.",
-            style: TextStyle(fontSize: 18.0, color: AppColors.dark),
+            style: AppColors.bodyStyle,
           ),
+          backgroundColor: AppColors.accentLight,
         ));
       }
     }
@@ -114,19 +118,11 @@ class _LogInState extends State<LogInPage> {
               const SizedBox(
                 height: 100,
               ),
-              const Text('RSVP Rally',
-                  style: TextStyle(
-                    color: AppColors.dark,
-                    fontSize: 30.0,
-                    fontWeight: FontWeight.bold,
-                  )),
+              const Text('RSVP Rally', style: AppColors.topStyle),
               const SizedBox(height: 100),
               const Text(
                 "Welcome back, you've been missed!",
-                style: TextStyle(
-                  color: AppColors.dark,
-                  fontSize: 16.0,
-                ),
+                style: AppColors.bodyStyle,
               ),
               const SizedBox(height: 10.0),
               WideTextBox(
@@ -149,11 +145,7 @@ class _LogInState extends State<LogInPage> {
                               builder: (context) => const ForgotPassword()));
                     },
                     child: const Text("Forgot Password?",
-                        style: TextStyle(
-                          color: AppColors.link,
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.bold,
-                        )),
+                        style: AppColors.linkStyle),
                   )
                 ],
               ),
@@ -177,7 +169,7 @@ class _LogInState extends State<LogInPage> {
                 children: [
                   const Text(
                     "Don't have an account? ",
-                    style: TextStyle(fontSize: 16.0, color: AppColors.dark),
+                    style: AppColors.bodyStyle,
                   ),
                   GestureDetector(
                     onTap: () {
@@ -189,12 +181,8 @@ class _LogInState extends State<LogInPage> {
                           MaterialPageRoute(
                               builder: (context) => const SignUpPage()));
                     },
-                    child: const Text("Register now",
-                        style: TextStyle(
-                          color: AppColors.link,
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                        )),
+                    child:
+                        const Text("Register now", style: AppColors.linkStyle),
                   )
                 ],
               ),

@@ -156,21 +156,13 @@ class EventCardState extends State<EventCard> {
                       width: screenSize.width * 0.4,
                       child: Text(
                         eventName,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.dark, // Light text color
-                        ),
+                        style: AppColors.titleStyle, // Light text color
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Text(
                       eventDate,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.accentDark, // Medium light text color
-                      ),
+                      style: AppColors.lightDateStyle,
                     ),
                   ],
                 ),

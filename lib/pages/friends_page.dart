@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
 import 'package:rsvp_rally/widgets/view_settings_button.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
@@ -175,7 +176,7 @@ class FriendsPageState extends State<FriendsPage> {
                               padding: EdgeInsets.all(40),
                               child: Text(
                                 'You don\'t have any friends yet. Click the button below to find some!',
-                                style: TextStyle(fontSize: 20),
+                                style: AppColors.bodyStyle,
                               ),
                             ),
                           if (filteredFriends.isEmpty && friendsData.isNotEmpty)
@@ -183,7 +184,7 @@ class FriendsPageState extends State<FriendsPage> {
                               padding: EdgeInsets.all(40),
                               child: Text(
                                 'You don\'t have any friends for this search. Click the button below to find some!',
-                                style: TextStyle(fontSize: 20),
+                                style: AppColors.bodyStyle,
                               ),
                             ),
                           const SizedBox(height: 80)

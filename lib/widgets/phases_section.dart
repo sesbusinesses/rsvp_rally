@@ -68,9 +68,7 @@ class _PhasesSectionState extends State<PhasesSection> {
         children: [
           const Text(
             'Add Phases',
-            style: TextStyle(
-              fontSize: 20,
-            ),
+            style: AppColors.titleStyle,
           ),
           ElevatedButton(
             onPressed: widget.onAddPhase,
@@ -79,7 +77,7 @@ class _PhasesSectionState extends State<PhasesSection> {
             ),
             child: const Text(
               'Add Phase',
-              style: TextStyle(color: AppColors.dark),
+              style: AppColors.buttonStyle,
             ),
           ),
           const SizedBox(height: 10),

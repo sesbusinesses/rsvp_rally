@@ -55,11 +55,10 @@ class UserCardState extends State<UserCard> {
   }
 
   String getEmoji(double rating) {
-    if (rating <= 0.2) return '😡'; // Mad
-    if (rating <= 0.4) return '😢'; // Sad
-    if (rating <= 0.6) return '😐'; // Straight face
-    if (rating <= 0.8) return '😊'; // Smiling
-    return '🤩'; // Joyful
+    if (rating <= 0.25) return '😡'; // Mad
+    if (rating <= 0.5) return '😕'; // Confused
+    if (rating <= 0.75) return '😐'; // Straight face
+    return '😊'; // Joyful
   }
 
   @override
@@ -136,21 +135,11 @@ class UserCardState extends State<UserCard> {
               children: [
                 Text(
                   "$firstName $lastName",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.normal,
-                  ),
+                  style: AppColors.bodyStyle,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (widget.showUsername)
-                  Text(
-                    widget.username,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.accentDark,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(widget.username, style: AppColors.usernameStyle),
               ],
             ),
           ),

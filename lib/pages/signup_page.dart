@@ -58,11 +58,12 @@ class _SignUpState extends State<SignUpPage> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              backgroundColor: Colors.redAccent,
-              content: Text(
-                "Registered Successfully",
-                style: TextStyle(fontSize: 20.0),
-              )));
+            content: Text(
+              "Registered Successfully",
+              style: AppColors.bodyStyle,
+            ),
+            backgroundColor: AppColors.accentLight,
+          ));
         }
 
         await NotificationService().ensureTokenUploaded();
@@ -76,25 +77,28 @@ class _SignUpState extends State<SignUpPage> {
       if (mounted) {
         if (e.code == 'weak-password') {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              backgroundColor: Colors.orangeAccent,
-              content: Text(
-                "Password has to be at least 6 characters",
-                style: TextStyle(fontSize: 18.0),
-              )));
+            content: Text(
+              "Password has to be at least 6 characters",
+              style: AppColors.bodyStyle,
+            ),
+            backgroundColor: AppColors.accentLight,
+          ));
         } else if (e.code == "email-already-in-use") {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              backgroundColor: Colors.orangeAccent,
-              content: Text(
-                "Account Already exists",
-                style: TextStyle(fontSize: 18.0),
-              )));
+            content: Text(
+              "Account Already exists",
+              style: AppColors.bodyStyle,
+            ),
+            backgroundColor: AppColors.accentLight,
+          ));
         } else if (e.code == "invalid-email") {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              backgroundColor: Colors.orangeAccent,
-              content: Text(
-                "The email address is badly formatted",
-                style: TextStyle(fontSize: 18.0),
-              )));
+            content: Text(
+              "The email address is badly formatted",
+              style: AppColors.bodyStyle,
+            ),
+            backgroundColor: AppColors.accentLight,
+          ));
         }
       }
     }
@@ -114,13 +118,8 @@ class _SignUpState extends State<SignUpPage> {
           key: _formkey,
           child: Column(
             children: [
-              const Text(
-                "Fill your information below",
-                style: TextStyle(
-                  color: AppColors.dark,
-                  fontSize: 16.0,
-                ),
-              ),
+              const Text("Fill your information below",
+                  style: AppColors.bodyStyle),
               const SizedBox(height: 10.0),
               WideTextBox(
                 controller: usernameController,

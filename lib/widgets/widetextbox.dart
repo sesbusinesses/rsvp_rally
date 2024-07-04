@@ -26,6 +26,7 @@ class WideTextBox extends StatelessWidget {
         child: TextField(
           controller: controller,
           onChanged: onChanged,
+          style: AppColors.bodyStyle,
           decoration: InputDecoration(
             hintText: hintText,
             border: InputBorder.none,

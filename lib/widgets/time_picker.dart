@@ -14,7 +14,10 @@ Future<DateTime?> selectDateTime(
     builder: (BuildContext context) {
       return AlertDialog(
         surfaceTintColor: getInterpolatedColor(rating),
-        title: const Text('Select Date and Time'),
+        title: const Text(
+          'Select Date and Time',
+          style: AppColors.titleStyle,
+        ),
         content: SingleChildScrollView(
           child: SizedBox(
             width: double.maxFinite,
@@ -34,7 +37,8 @@ Future<DateTime?> selectDateTime(
               FocusScope.of(context).unfocus();
             },
             child: Text('OK',
-                style: TextStyle(color: getInterpolatedColor(rating))),
+                style: AppColors.buttonStyle
+                    .copyWith(color: getInterpolatedColor(rating))),
           ),
         ],
       );

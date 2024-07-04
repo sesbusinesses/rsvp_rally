@@ -121,12 +121,7 @@ class MessageBubble extends StatelessWidget {
                             },
                           ),
                         )
-                      : Text(
-                          message,
-                          style: const TextStyle(
-                            color: Colors.black,
-                          ),
-                        ),
+                      : Text(message, style: AppColors.bodyStyle),
                 ),
               ),
               if (isMe)

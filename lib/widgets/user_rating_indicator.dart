@@ -10,11 +10,10 @@ class UserRatingIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     // Determine the emoji based on the user rating
     String getEmoji(double rating) {
-      if (rating <= 0.2) return '😡'; // Mad
-      if (rating <= 0.4) return '😢'; // Sad
-      if (rating <= 0.6) return '😐'; // Straight face
-      if (rating <= 0.8) return '😊'; // Smiling
-      return '🤩'; // Joyful
+      if (rating <= 0.25) return '😡'; // Mad
+      if (rating <= 0.5) return '😕'; // Confused
+      if (rating <= 0.75) return '😐'; // Straight face
+      return '😊'; // Joyful
     }
 
     return Container(

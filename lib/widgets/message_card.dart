@@ -171,9 +171,13 @@ class MessageCardState extends State<MessageCard> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('The event was cancelled.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          'The event was cancelled.',
+          style: AppColors.bodyStyle,
+        ),
+        backgroundColor: AppColors.accentLight,
+      ));
     }
   }
 
@@ -224,7 +228,7 @@ class MessageCardState extends State<MessageCard> {
                   Expanded(
                     child: Text(
                       messageText,
-                      style: const TextStyle(fontSize: 16),
+                      style: AppColors.bodyStyle,
                     ),
                   ),
                   const SizedBox(width: 20),
@@ -241,7 +245,7 @@ class MessageCardState extends State<MessageCard> {
               children: [
                 Text(
                   messageText,
-                  style: const TextStyle(fontSize: 16),
+                  style: AppColors.bodyStyle,
                 ),
                 if (messageType == 'friend request received' ||
                     messageType == 'friend request sent') ...[

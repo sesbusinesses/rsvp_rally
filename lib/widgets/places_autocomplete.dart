@@ -6,7 +6,8 @@ import 'package:rsvp_rally/config/config.dart'; // Ensure this is imported
 
 class PlacesAutocomplete extends StatefulWidget {
   final String apiKey;
-  final Function(String placeId, String description, GeoPoint? geopoint) onPlaceSelected; // Updated callback
+  final Function(String placeId, String description, GeoPoint? geopoint)
+      onPlaceSelected; // Updated callback
   final String? eventID; // Make eventID optional
   final int? phaseIndex; // Make phaseIndex optional
   final TextEditingController controller;
@@ -110,13 +111,17 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
                 itemBuilder: (context, index) {
                   final prediction = _predictions[index];
                   return ListTile(
-                    title: Text(prediction.description ?? ''),
+                    title: Text(prediction.description ?? '',
+                        style: AppColors.bodyStyle),
                     onTap: () async {
                       final detail = await _places
                           .getDetailsByPlaceId(prediction.placeId!);
-                      GeoPoint? geopoint = await _getGeopoint(detail.result.geometry!.location);
-                      widget.onPlaceSelected(prediction.placeId!, detail.result.formattedAddress ?? '', geopoint);
-                      widget.controller.text = detail.result.formattedAddress ?? '';
+                      GeoPoint? geopoint =
+                          await _getGeopoint(detail.result.geometry!.location);
+                      widget.onPlaceSelected(prediction.placeId!,
+                          detail.result.formattedAddress ?? '', geopoint);
+                      widget.controller.text =
+                          detail.result.formattedAddress ?? '';
                       _hideOverlay();
                       FocusScope.of(context).unfocus();
                     },
@@ -174,9 +179,12 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
             controller: widget.controller,
             focusNode: _focusNode,
             onChanged: _searchPlaces,
+            style: AppColors.bodyStyle,
             decoration: InputDecoration(
               hintText: _hintText,
-              prefixIcon: const Icon(Icons.location_on),
+              prefixIcon: const Icon(
+                Icons.location_on,
+              ),
               border: InputBorder.none,
             ),
           ),

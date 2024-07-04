@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/create_poll_button.dart';
 import 'package:rsvp_rally/widgets/poll_card.dart';
 import 'package:rsvp_rally/widgets/bottomnav.dart';
@@ -46,7 +48,7 @@ class _PollPageState extends State<PollPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Event Poll'),
+        title: const Text('Event Poll', style: AppColors.topStyle),
         backgroundColor:
             Colors.transparent, // Transparent background for AppBar
         surfaceTintColor: Colors.transparent,
@@ -105,18 +107,22 @@ class _PollPageState extends State<PollPage> {
                     );
                   } else if (snapshot.hasError) {
                     return Center(
-                        child: Text("Error fetching data: ${snapshot.error}"));
+                        child: Text("Error fetching data: ${snapshot.error}",
+                            style: AppColors.bodyStyle));
                   } else {
                     return const Center(
-                        child: Text("No data available for this event."));
+                        child: Text("No data available for this event.",
+                            style: AppColors.bodyStyle));
                   }
                 }
-                return const Center(child: CircularProgressIndicator());
+                return const Center(
+                    child: CupertinoActivityIndicator(radius: 15));
               },
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(bottom: 20.0), // 20 pixels above the bottom
+            padding: const EdgeInsets.only(
+                bottom: 20.0), // 20 pixels above the bottom
             child: BottomNav(
               rating: widget.rating,
               eventID: widget.eventID,
@@ -128,7 +134,8 @@ class _PollPageState extends State<PollPage> {
       ),
       floatingActionButton: isHost
           ? Padding(
-              padding: const EdgeInsets.only(bottom: 40.0), // Adjust offset as needed
+              padding: const EdgeInsets.only(
+                  bottom: 40.0), // Adjust offset as needed
               child: CreatePollButton(
                 eventID: widget.eventID,
                 userRating: widget.rating,

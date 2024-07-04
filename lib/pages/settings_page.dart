@@ -103,7 +103,9 @@ class _SettingsPageState extends State<SettingsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
+          SnackBar(
+              content: Text(message, style: AppColors.bodyStyle),
+              backgroundColor: AppColors.accentLight),
         );
       }
     });
@@ -141,7 +143,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text('Settings', style: AppColors.topStyle),
       ),
       body: Center(
         child: Padding(
@@ -169,19 +171,12 @@ class _SettingsPageState extends State<SettingsPage> {
                       children: [
                         const Text(
                           "Have any questions? ",
-                          style:
-                              TextStyle(fontSize: 16.0, color: AppColors.dark),
+                          style: AppColors.bodyStyle,
                         ),
                         GestureDetector(
                           onTap: _launchURL,
-                          child: Text(
-                            "Visit our website",
-                            style: TextStyle(
-                              color: getInterpolatedColor(widget.userRating),
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: const Text("Visit our website",
+                              style: AppColors.linkStyle),
                         ),
                       ],
                     ),

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/bracket_painter.dart';
@@ -40,12 +41,18 @@ class EventTimeline extends StatelessWidget {
             );
           } else {
             return const SliverFillRemaining(
-              child: Text("No data available for this event."),
+              child: Text(
+                "No data available for this event.",
+                style: AppColors.bodyStyle,
+              ),
             );
           }
         } else {
           return const SliverFillRemaining(
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+                child: CupertinoActivityIndicator(
+              radius: 15,
+            )),
           );
         }
       },
@@ -156,8 +163,7 @@ class EventTimeline extends StatelessWidget {
                       if (isStartNode && !isLastNode)
                         Text(
                           formatter.format(data['startTime'].toDate()),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
+                          style: AppColors.darkDateStyle,
                         ),
                       if (!isStartNode && !isLastNode)
                         Padding(
@@ -167,7 +173,7 @@ class EventTimeline extends StatelessWidget {
                             children: [
                               Text(
                                 '${data['phaseName']}',
-                                style: const TextStyle(color: AppColors.dark),
+                                style: AppColors.bodyStyle,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
@@ -185,15 +191,14 @@ class EventTimeline extends StatelessWidget {
                                   child: RichText(
                                     text: TextSpan(
                                       text: '${data['phaseLocation']}',
-                                      style: const TextStyle(
-                                          color: AppColors.link),
+                                      style: AppColors.linkStyle,
                                     ),
                                   ),
                                 )
                               else
                                 const Text(
                                   'Location not specified',
-                                  style: TextStyle(color: AppColors.dark),
+                                  style: AppColors.darkDateStyle,
                                 ),
                             ],
                           ),
@@ -202,8 +207,7 @@ class EventTimeline extends StatelessWidget {
                       if (isLastNode)
                         Text(
                           formatter.format(data['endTime'].toDate()),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
+                          style: AppColors.darkDateStyle,
                         ),
                     ],
                   ),

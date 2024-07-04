@@ -42,18 +42,21 @@ class _ForgotPasswordState extends State<ForgotPassword> {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-        "Password Reset Email has been sent!",
-        style: TextStyle(fontSize: 18.0),
-      )));
+        content: Text(
+          "Password Reset Email has been sent!",
+          style: AppColors.bodyStyle,
+        ),
+        backgroundColor: AppColors.accentLight,
+      ));
       // Optionally navigate to login page
     } on FirebaseAuthException catch (e) {
       if (e.code == "user-not-found") {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text(
-          "No user found for that email.",
-          style: TextStyle(fontSize: 18.0),
-        )));
+              "No user found for that email.",
+              style: AppColors.bodyStyle,
+            ),
+            backgroundColor: AppColors.accentLight));
       }
     }
   }
@@ -73,20 +76,10 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const Text('RSVP Rally',
-                    style: TextStyle(
-                      color: AppColors.dark,
-                      fontSize: 30.0,
-                      fontWeight: FontWeight.bold,
-                    )),
+                const Text('RSVP Rally', style: AppColors.topStyle),
                 const SizedBox(height: 100),
-                const Text(
-                  "Recover your password below",
-                  style: TextStyle(
-                    color: AppColors.dark,
-                    fontSize: 16.0,
-                  ),
-                ),
+                const Text("Recover your password below",
+                    style: AppColors.bodyStyle),
                 const SizedBox(height: 10.0),
                 WideTextBox(
                   controller: mailcontroller,
@@ -119,11 +112,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                         logAllUsers();
                       },
                       child: const Text("Login as SES",
-                          style: TextStyle(
-                            color: AppColors.link,
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                          )),
+                          style: AppColors.linkStyle),
                     )
                   ],
                 ),

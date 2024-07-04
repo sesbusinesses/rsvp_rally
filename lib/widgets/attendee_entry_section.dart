@@ -184,12 +184,7 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
         children: [
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(
-              'Select Friends to Invite',
-              style: TextStyle(
-                fontSize: 20,
-              ),
-            ),
+            child: Text('Select Friends to Invite', style: AppColors.bodyStyle),
           ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),

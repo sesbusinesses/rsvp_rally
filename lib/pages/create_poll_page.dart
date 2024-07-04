@@ -48,13 +48,19 @@ class CreatePollPageState extends State<CreatePollPage> {
   Future<void> createPoll() async {
     if (pollQuestionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the poll question')),
+        const SnackBar(
+            content: Text('Please enter the poll question',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     } else if (optionControllers.length < 2 ||
         optionControllers.any((controller) => controller.text.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter at least two poll options')),
+        const SnackBar(
+            content: Text('Please enter at least two poll options',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     }
@@ -116,7 +122,10 @@ class CreatePollPageState extends State<CreatePollPage> {
 
       // Show a confirmation message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Poll created successfully')),
+        const SnackBar(
+            content:
+                Text('Poll created successfully', style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
 
       // Clear inputs
@@ -141,7 +150,10 @@ class CreatePollPageState extends State<CreatePollPage> {
     } catch (e) {
       // Show an error message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create poll: $e')),
+        SnackBar(
+            content:
+                Text('Failed to create poll: $e', style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
     }
   }
@@ -151,7 +163,7 @@ class CreatePollPageState extends State<CreatePollPage> {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create New Poll'),
+        title: const Text('Create New Poll', style: AppColors.topStyle),
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
       ),
@@ -189,7 +201,7 @@ class CreatePollPageState extends State<CreatePollPage> {
                       child: Column(
                         children: [
                           const Text('Poll Question',
-                              style: TextStyle(fontSize: 20)),
+                              style: AppColors.titleStyle),
                           WideTextBox(
                             hintText: 'Poll Question',
                             controller: pollQuestionController,
@@ -220,7 +232,7 @@ class CreatePollPageState extends State<CreatePollPage> {
                       child: Column(
                         children: [
                           const Text('Poll Options',
-                              style: TextStyle(fontSize: 20)),
+                              style: AppColors.titleStyle),
                           ...List.generate(optionControllers.length, (index) {
                             return Row(
                               children: [
@@ -244,7 +256,7 @@ class CreatePollPageState extends State<CreatePollPage> {
                                   getInterpolatedColor(widget.rating),
                             ),
                             child: const Text('Add Option',
-                                style: TextStyle(color: AppColors.dark)),
+                                style: AppColors.buttonStyle),
                           ),
                         ],
                       ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
-import 'package:rsvp_rally/widgets/rating_indicator.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
 
 class AttendeesCard extends StatelessWidget {
@@ -50,9 +49,7 @@ class AttendeesCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      const Text('Attendees',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      const Text('Attendees', style: AppColors.titleStyle),
                       Expanded(child: Container()),
                       Icon(Icons.people, color: getInterpolatedColor(rating)),
                       const SizedBox(width: 5),

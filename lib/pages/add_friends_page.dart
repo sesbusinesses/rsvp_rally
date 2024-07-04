@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 
@@ -167,7 +168,9 @@ class AddFriendsPageState extends State<AddFriendsPage> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('$friendUsername added to your friend requests list'),
+        content: Text('$friendUsername added to your friend requests list',
+            style: AppColors.bodyStyle),
+        backgroundColor: AppColors.accentLight,
       ));
 
       setState(() {
@@ -175,7 +178,9 @@ class AddFriendsPageState extends State<AddFriendsPage> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('$friendUsername is already in your friends list'),
+        content: Text('$friendUsername is already in your friends list',
+            style: AppColors.bodyStyle),
+        backgroundColor: AppColors.accentLight,
       ));
     }
   }

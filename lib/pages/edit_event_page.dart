@@ -163,17 +163,26 @@ class EditEventPageState extends State<EditEventPage> {
   Future<void> updateEvent() async {
     if (eventNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the event name')),
+        const SnackBar(
+            content:
+                Text('Please enter the event name', style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     } else if (eventDetailsController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the event details')),
+        const SnackBar(
+            content: Text('Please enter the event details',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     } else if (attendees.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please invite at least one person')),
+        const SnackBar(
+            content: Text('Please invite at least one person',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     } else if (phaseControllers.any((controller) =>
@@ -183,14 +192,19 @@ class EditEventPageState extends State<EditEventPage> {
         (controller['endTime']!.text.isEmpty &&
             controller != phaseControllers.last))) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill out all phase details')),
+        const SnackBar(
+            content: Text('Please fill out all phase details',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     } else if (notificationControllers.any((controller) =>
         controller['text']!.text.isEmpty || controller['time']!.text.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Please fill in all notification details')),
+            content: Text('Please fill in all notification details',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     }
@@ -331,13 +345,19 @@ class EditEventPageState extends State<EditEventPage> {
         await batch.commit();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Event updated successfully')),
+          const SnackBar(
+              content: Text('Event updated successfully',
+                  style: AppColors.bodyStyle),
+              backgroundColor: AppColors.accentLight),
         );
 
         Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update event: $e')),
+          SnackBar(
+              content: Text('Failed to update event: $e',
+                  style: AppColors.bodyStyle),
+              backgroundColor: AppColors.accentLight),
         );
       }
     }
@@ -441,7 +461,7 @@ class EditEventPageState extends State<EditEventPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Edit Event'),
+        title: const Text('Edit Event', style: AppColors.topStyle),
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
       ),
@@ -481,7 +501,7 @@ class EditEventPageState extends State<EditEventPage> {
                             child: Column(
                               children: [
                                 const Text('Event Name',
-                                    style: TextStyle(fontSize: 20)),
+                                    style: AppColors.titleStyle),
                                 WideTextBox(
                                   hintText: 'Event Name',
                                   controller: eventNameController,
@@ -522,7 +542,7 @@ class EditEventPageState extends State<EditEventPage> {
                             child: Column(
                               children: [
                                 const Text('Additional Details',
-                                    style: TextStyle(fontSize: 20)),
+                                    style: AppColors.titleStyle),
                                 WideTextBox(
                                   hintText: 'Event Details',
                                   controller: eventDetailsController,

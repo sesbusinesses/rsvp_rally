@@ -78,7 +78,7 @@ class _ChatPageState extends State<ChatPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        title: Text(eventName, style: TextStyle(color: Colors.black)),
+        title: Text(eventName, style: AppColors.topStyle),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -104,7 +104,8 @@ class _ChatPageState extends State<ChatPage> {
 
                               if (!snapshot.hasData || !snapshot.data!.exists) {
                                 return const Center(
-                                    child: Text('No messages yet.'));
+                                    child: Text('No messages yet.',
+                                        style: AppColors.bodyStyle));
                               }
 
                               var messages =
@@ -118,8 +119,8 @@ class _ChatPageState extends State<ChatPage> {
                                 padding: const EdgeInsets.only(bottom: 60),
                                 itemCount: messages.length,
                                 itemBuilder: (context, index) {
-                                  var messageEntry =
-                                      Map<String, dynamic>.from(messages[index]);
+                                  var messageEntry = Map<String, dynamic>.from(
+                                      messages[index]);
                                   var entry = messageEntry.entries.first;
                                   bool isPhoto = entry.value is String &&
                                       entry.value
@@ -138,7 +139,7 @@ class _ChatPageState extends State<ChatPage> {
                         : const Center(
                             child: Text(
                               'RSVP \'Yes\' to access the chat',
-                              style: TextStyle(fontSize: 20),
+                              style: AppColors.bodyStyle,
                             ),
                           ),
                   ),
@@ -205,25 +206,31 @@ class _ChatPageState extends State<ChatPage> {
         List<int> imageBytes = await file.readAsBytes();
 
         // Resize the image if it is too large
-        if (imageBytes.length > 10000) { // Example threshold: 1MB
+        if (imageBytes.length > 10000) {
+          // Example threshold: 1MB
           img.Image? originalImage = img.decodeImage(imageBytes);
           if (originalImage != null) {
             // Calculate the reduction factor to keep the size under 1MB
             double reductionFactor = math.sqrt(10000 / imageBytes.length);
-            img.Image resizedImage = img.copyResize(originalImage, width: (originalImage.width * reductionFactor).toInt());
+            img.Image resizedImage = img.copyResize(originalImage,
+                width: (originalImage.width * reductionFactor).toInt());
             imageBytes = img.encodeJpg(resizedImage);
           }
         }
 
         String base64Image = base64Encode(imageBytes);
 
-        await sendMessage(widget.eventID, widget.username, 'data:image/jpeg;base64,$base64Image');
+        await sendMessage(widget.eventID, widget.username,
+            'data:image/jpeg;base64,$base64Image');
         _scrollToBottom();
       }
     } catch (e) {
       developer.log('Error picking or sending photo: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking or sending photo: $e')),
+        SnackBar(
+            content: Text('Error picking or sending photo: $e',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
     }
   }

@@ -84,11 +84,10 @@ class _ProfileEditorState extends State<ProfileEditor> {
   }
 
   String getEmoji(double rating) {
-    if (rating <= 0.2) return '😡'; // Mad
-    if (rating <= 0.4) return '😢'; // Sad
-    if (rating <= 0.6) return '😐'; // Straight face
-    if (rating <= 0.8) return '😊'; // Smiling
-    return '🤩'; // Joyful
+    if (rating <= 0.25) return '😡'; // Mad
+    if (rating <= 0.5) return '😕'; // Confused
+    if (rating <= 0.75) return '😐'; // Straight face
+    return '😊'; // Joyful
   }
 
   @override
@@ -161,11 +160,11 @@ class _ProfileEditorState extends State<ProfileEditor> {
           const SizedBox(height: 10),
           Text(
             '$_firstName $_lastName',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: AppColors.titleStyle,
           ),
           Text(
             widget.username,
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
+            style: AppColors.usernameStyle,
           ),
         ],
       ),

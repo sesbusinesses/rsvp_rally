@@ -33,14 +33,7 @@ class WideButton extends StatelessWidget {
                 ),
               ]),
           child: Center(
-            child: Text(
-              buttonText,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
+            child: Text(buttonText, style: AppColors.buttonStyle),
           ),
         ),
       ),

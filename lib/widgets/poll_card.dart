@@ -171,11 +171,7 @@ class _PollCardState extends State<PollCard> {
               children: [
                 Text(
                   pollData['question'],
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.dark,
-                  ),
+                  style: AppColors.titleStyle,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
@@ -206,9 +202,7 @@ class _PollCardState extends State<PollCard> {
                 const SizedBox(height: 10),
                 Text(
                   "Poll responses locked at $formattedCloseTime",
-                  style: const TextStyle(
-                    color: AppColors.accentDark,
-                  ),
+                  style: AppColors.subtitleStyle,
                 ),
               ],
             ),
