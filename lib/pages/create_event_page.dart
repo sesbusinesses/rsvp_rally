@@ -155,15 +155,19 @@ class CreateEventPageState extends State<CreateEventPage> {
       };
     }).toList();
 
-    // Create polls for each phase
+// Create polls for each phase
     Map<String, dynamic> polls = {};
     for (var phase in phases) {
       String pollQuestion = 'RSVP for ${phase['PhaseName']}';
+      // Calculate the close time as the end of the next day at 11:59 PM
+      DateTime now = DateTime.now();
+      DateTime tomorrowLateNight =
+          DateTime(now.year, now.month, now.day + 1, 23, 59);
       polls[pollQuestion] = {
         'Yes': [],
         'No': [],
         'CloseTime': Timestamp.fromDate(
-            DateTime.now().add(const Duration(days: 1))), // Example close time
+            tomorrowLateNight), // Close time at 11:59 PM next day
         'IsClosed': false,
       };
     }

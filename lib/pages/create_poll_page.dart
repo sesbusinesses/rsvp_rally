@@ -68,11 +68,14 @@ class CreatePollPageState extends State<CreatePollPage> {
     }
 
     // Create poll data
+    DateTime now = DateTime.now();
+    DateTime tomorrowLateNight =
+        DateTime(now.year, now.month, now.day + 1, 23, 59);
     String pollQuestion = pollQuestionController.text;
     Map<String, dynamic> pollData = {
       ...options,
-      'CloseTime':
-          Timestamp.fromDate(DateTime.now().add(const Duration(days: 1))),
+      'CloseTime': Timestamp.fromDate(
+          tomorrowLateNight), // Close time at 11:59 PM next day
       'IsClosed': false
     };
 
