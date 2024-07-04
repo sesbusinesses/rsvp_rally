@@ -10,7 +10,8 @@ import 'package:intl/intl.dart';
 
 class PhasesSection extends StatefulWidget {
   final double rating;
-  final List<Map<String, TextEditingController>> phaseControllers;
+  final List<Map<String, dynamic>> phaseControllers;
+  final List<Map<String, double>>? phaseGeopoints; // Optional geopoints
   final VoidCallback onAddPhase;
   final Function(int) onRemovePhase;
   final String? eventID; // Make eventID optional
@@ -21,7 +22,8 @@ class PhasesSection extends StatefulWidget {
     required this.phaseControllers,
     required this.onAddPhase,
     required this.onRemovePhase,
-    this.eventID, // Make eventID optional
+    this.eventID,
+    this.phaseGeopoints, // Optional geopoints
   });
 
   @override
@@ -92,8 +94,8 @@ class _PhasesSectionState extends State<PhasesSection> {
                 onRemove: () => widget.onRemovePhase(phaseIndex),
                 rating: widget.rating,
                 selectDateTime: _selectDateTime,
-                eventID: widget.eventID, // Pass eventID
-                phaseIndex: phaseIndex, // Pass phaseIndex
+                eventID: widget.eventID,
+                phaseIndex: phaseIndex,
               );
             } else if (isEndNode && widget.phaseControllers.isNotEmpty) {
               return buildTimelineTile(
@@ -103,8 +105,8 @@ class _PhasesSectionState extends State<PhasesSection> {
                 onRemove: () => widget.onRemovePhase(phaseIndex - 1),
                 rating: widget.rating,
                 selectDateTime: _selectDateTime,
-                eventID: widget.eventID, // Pass eventID
-                phaseIndex: phaseIndex - 1, // Pass phaseIndex
+                eventID: widget.eventID,
+                phaseIndex: phaseIndex - 1,
               );
             } else if (!isStartNode &&
                 phaseIndex < widget.phaseControllers.length) {
@@ -115,8 +117,8 @@ class _PhasesSectionState extends State<PhasesSection> {
                 onRemove: () => widget.onRemovePhase(phaseIndex),
                 rating: widget.rating,
                 selectDateTime: _selectDateTime,
-                eventID: widget.eventID, // Pass eventID
-                phaseIndex: phaseIndex, // Pass phaseIndex
+                eventID: widget.eventID,
+                phaseIndex: phaseIndex,
               );
             } else {
               return Container(); // Return an empty container if indices are out of range
@@ -131,13 +133,13 @@ class _PhasesSectionState extends State<PhasesSection> {
     begins = false,
     required bool isStartNode,
     required bool isEndNode,
-    required Map<String, TextEditingController> phaseData,
+    required Map<String, dynamic> phaseData,
     required VoidCallback onRemove,
     required double rating,
     required Function(BuildContext, TextEditingController, double)
         selectDateTime,
-    String? eventID, // Make eventID optional
-    int? phaseIndex, // Make phaseIndex optional
+    String? eventID,
+    int? phaseIndex,
   }) {
     return TimelineTile(
       alignment: TimelineAlign.manual,
@@ -219,10 +221,11 @@ class _PhasesSectionState extends State<PhasesSection> {
                         ),
                         PlacesAutocomplete(
                           apiKey: Config.googleMapsApiKey,
-                          onPlaceSelected: (placeId, description) {
+                          onPlaceSelected: (placeId, description, geopoint) {
                             phaseData['location']!.text = description;
+                            phaseData['geopoint'] = geopoint;
                           },
-                          eventID: widget.eventID,
+                          eventID: eventID,
                           phaseIndex: phaseIndex,
                           controller: phaseData['location']!,
                         ),
