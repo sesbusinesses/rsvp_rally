@@ -33,6 +33,14 @@ class _CustomDateTimePickerState extends State<CustomDateTimePicker> {
     selectedHour = selectedDate.hour % 12 == 0 ? 12 : selectedDate.hour % 12;
     selectedMinute = (selectedDate.minute ~/ 30) * 30;
     isAm = selectedDate.hour < 12;
+    selectedDate = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      isAm ? selectedHour % 12 : (selectedHour % 12) + 12,
+      selectedMinute,
+    );
+    widget.onDateTimeSelected(selectedDate);
   }
 
   void _onDateSelected(DateTime date) {
