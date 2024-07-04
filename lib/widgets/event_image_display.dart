@@ -74,7 +74,6 @@ class _EventImageDisplayState extends State<EventImageDisplay> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: _imageBase64 != null
@@ -97,7 +96,6 @@ class _EventImageDisplayState extends State<EventImageDisplay> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(10),
             ),
             child: _imageBase64 != null
