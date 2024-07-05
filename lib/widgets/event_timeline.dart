@@ -61,7 +61,8 @@ class EventTimeline extends StatelessWidget {
 
   Widget buildTimelineTile(Map<String, dynamic> data, int index, int length,
       bool isStartNode, bool isLastNode) {
-    final DateFormat formatter = DateFormat('MMM d, yyyy h:mm a');
+    final DateFormat dateFormatter = DateFormat('MMM d, yyyy');
+    final DateFormat timeFormatter = DateFormat('h:mm a');
     final currentTime = DateTime.now();
     final startTime = data['startTime'].toDate();
     final endTime = data['endTime'].toDate();
@@ -162,7 +163,9 @@ class EventTimeline extends StatelessWidget {
                     children: [
                       if (isStartNode && !isLastNode)
                         Text(
-                          formatter.format(data['startTime'].toDate()),
+                          startTime.day == endTime.day
+                              ? timeFormatter.format(startTime)
+                              : '${dateFormatter.format(startTime)} ${timeFormatter.format(startTime)}',
                           style: AppColors.darkDateStyle,
                         ),
                       if (!isStartNode && !isLastNode)
@@ -205,10 +208,11 @@ class EventTimeline extends StatelessWidget {
                             ],
                           ),
                         ),
-                      if (isLastNode) const SizedBox(height: 4),
                       if (isLastNode)
                         Text(
-                          formatter.format(data['endTime'].toDate()),
+                          startTime.day == endTime.day
+                              ? timeFormatter.format(endTime)
+                              : '${dateFormatter.format(endTime)} ${timeFormatter.format(endTime)}',
                           style: AppColors.darkDateStyle,
                         ),
                     ],

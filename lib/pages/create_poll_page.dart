@@ -63,6 +63,23 @@ class CreatePollPageState extends State<CreatePollPage> {
             backgroundColor: AppColors.accentLight),
       );
       return;
+    } else if (pollQuestionController.text.contains('/')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Poll question cannot contain "/"',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
+      );
+      return;
+    } else if (optionControllers
+        .any((controller) => controller.text.contains('/'))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Poll options cannot contain "/"',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
+      );
+      return;
     }
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
