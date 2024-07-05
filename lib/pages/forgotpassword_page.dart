@@ -41,7 +41,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   resetPassword() async {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
           "Password Reset Email has been sent!",
           style: AppColors.bodyStyle,
@@ -51,7 +51,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
       // Optionally navigate to login page
     } on FirebaseAuthException catch (e) {
       if (e.code == "user-not-found") {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
               "No user found for that email.",
               style: AppColors.bodyStyle,
@@ -76,10 +76,9 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                const Text('RSVP Rally', style: AppColors.topStyle),
+                Text('RSVP Rally', style: AppColors.topStyle),
                 const SizedBox(height: 100),
-                const Text("Recover your password below",
-                    style: AppColors.bodyStyle),
+                Text("Recover your password below", style: AppColors.bodyStyle),
                 const SizedBox(height: 10.0),
                 WideTextBox(
                   controller: mailcontroller,
@@ -111,8 +110,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                     const EventPage(username: 'SES')));
                         logAllUsers();
                       },
-                      child: const Text("Login as SES",
-                          style: AppColors.linkStyle),
+                      child: Text("Login as SES", style: AppColors.linkStyle),
                     )
                   ],
                 ),

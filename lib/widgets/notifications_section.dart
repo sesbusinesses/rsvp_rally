@@ -40,13 +40,16 @@ class NotificationsSection extends StatelessWidget {
         ),
         child: Column(
           children: [
-            const Text('Add Reminders', style: AppColors.titleStyle),
+            Text('Add Reminders', style: AppColors.titleStyle),
             ElevatedButton(
               onPressed: onAddNotification,
               style: ElevatedButton.styleFrom(
                 backgroundColor: getInterpolatedColor(rating),
               ),
-              child: const Text('Add Reminder', style: AppColors.buttonStyle),
+              child: Text('Add Reminder',
+                  style: AppColors.buttonStyle.copyWith(
+                    color: getTextOnRatingColor(rating),
+                  )),
             ),
             const SizedBox(height: 10),
             ...List.generate(notificationControllers.length, (index) {

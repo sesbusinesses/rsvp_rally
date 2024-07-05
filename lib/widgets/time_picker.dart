@@ -14,7 +14,7 @@ Future<DateTime?> selectDateTime(
     builder: (BuildContext context) {
       return AlertDialog(
         surfaceTintColor: getInterpolatedColor(rating),
-        title: const Text(
+        title: Text(
           'Select Date and Time',
           style: AppColors.titleStyle,
         ),

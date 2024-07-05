@@ -48,7 +48,7 @@ class _PollPageState extends State<PollPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Event Poll', style: AppColors.topStyle),
+        title: Text('Event Poll', style: AppColors.topStyle),
         backgroundColor:
             Colors.transparent, // Transparent background for AppBar
         surfaceTintColor: Colors.transparent,
@@ -110,7 +110,7 @@ class _PollPageState extends State<PollPage> {
                         child: Text("Error fetching data: ${snapshot.error}",
                             style: AppColors.bodyStyle));
                   } else {
-                    return const Center(
+                    return Center(
                         child: Text("No data available for this event.",
                             style: AppColors.bodyStyle));
                   }

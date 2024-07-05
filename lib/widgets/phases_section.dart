@@ -66,7 +66,7 @@ class _PhasesSectionState extends State<PhasesSection> {
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'Add Phases',
             style: AppColors.titleStyle,
           ),
@@ -75,9 +75,10 @@ class _PhasesSectionState extends State<PhasesSection> {
             style: ElevatedButton.styleFrom(
               backgroundColor: getInterpolatedColor(widget.rating),
             ),
-            child: const Text(
+            child: Text(
               'Add Phase',
-              style: AppColors.buttonStyle,
+              style: AppColors.buttonStyle
+                  .copyWith(color: getTextOnRatingColor(widget.rating)),
             ),
           ),
           const SizedBox(height: 10),

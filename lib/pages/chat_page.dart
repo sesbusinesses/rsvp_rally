@@ -103,7 +103,7 @@ class _ChatPageState extends State<ChatPage> {
                               }
 
                               if (!snapshot.hasData || !snapshot.data!.exists) {
-                                return const Center(
+                                return Center(
                                     child: Text('No messages yet.',
                                         style: AppColors.bodyStyle));
                               }
@@ -136,7 +136,7 @@ class _ChatPageState extends State<ChatPage> {
                               );
                             },
                           )
-                        : const Center(
+                        : Center(
                             child: Text(
                               'RSVP \'Yes\' to access the chat',
                               style: AppColors.bodyStyle,

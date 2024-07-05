@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/create_event_page.dart';
 
 class CreateEventButton extends StatelessWidget {
@@ -41,7 +42,7 @@ class CreateEventButton extends StatelessWidget {
         );
       },
       backgroundColor: buttonColor,
-      child: const Icon(Icons.add, color: Color(0xFFfefdfd)),
+      child: const Icon(Icons.add, color: AppColors.light),
     );
   }
 }

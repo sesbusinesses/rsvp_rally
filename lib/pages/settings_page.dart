@@ -143,7 +143,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings', style: AppColors.topStyle),
+        title: Text('Settings', style: AppColors.topStyle),
       ),
       body: Center(
         child: Padding(
@@ -169,13 +169,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
+                        Text(
                           "Have any questions? ",
                           style: AppColors.bodyStyle,
                         ),
                         GestureDetector(
                           onTap: _launchURL,
-                          child: const Text("Visit our website",
+                          child: Text("Visit our website",
                               style: AppColors.linkStyle),
                         ),
                       ],

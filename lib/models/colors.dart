@@ -1,56 +1,77 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   static const Color light = Color(0xFFfefdfd); // Light color
   static const Color dark = Color(0xFF010101); // Dark color
   static const Color accentLight = Color(0xFFdddddd); // Light accent color
-  static const Color accentDark = Color(0xFFaaaaaa); // Light accent color
+  static const Color accentDark =
+      Color.fromARGB(255, 109, 109, 109); // Light accent color
   static const Color shadow = Color(0xFFd3d3d3); // Shadow color
   static const Color link = Colors.blue; // Link color
   static const double borderWidth = 2.5;
-  static const TextStyle titleStyle = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.bold,
-    color: dark,
+  static TextStyle titleStyle = GoogleFonts.arsenal(
+    textStyle: const TextStyle(
+      fontSize: 25,
+      fontWeight: FontWeight.w400,
+      color: dark,
+    ),
   );
-  static const TextStyle topStyle = TextStyle(
+  static TextStyle topStyle = GoogleFonts.bonaNova(
     fontSize: 24,
     fontWeight: FontWeight.bold,
     color: dark,
   );
-  static const TextStyle subtitleStyle = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.bold,
+  static TextStyle subtitleStyle = GoogleFonts.roboto(
+    fontSize: 14,
+    fontWeight: FontWeight.normal,
     color: accentDark,
   );
-  static const TextStyle lightDateStyle = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.bold,
-    color: dark,
-  );
-  static const TextStyle darkDateStyle = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.bold,
-    color: dark,
-  );
-  static const TextStyle bodyStyle = TextStyle(
+  static TextStyle lightDateStyle = GoogleFonts.roboto(
     fontSize: 16,
-    color: dark,
-  );
-  static const TextStyle usernameStyle = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.normal,
     color: accentDark,
   );
-  static const TextStyle buttonStyle = TextStyle(
+  static TextStyle darkDateStyle = GoogleFonts.poppins(
     fontSize: 16,
+    fontWeight: FontWeight.w300,
+    color: dark,
+  );
+  static TextStyle eventTimeDisplayStyle = GoogleFonts.playfair(
+    fontWeight: FontWeight.w900,
+    color: dark,
+  );
+  static TextStyle bodyStyle = GoogleFonts.poppins(
+    fontSize: 18,
+    fontWeight: FontWeight.w300,
+    color: dark,
+  );
+  static TextStyle usernameStyle = GoogleFonts.poppins(
+    textStyle: const TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w200,
+      color: accentDark,
+    ),
+  );
+  static TextStyle buttonStyle = GoogleFonts.poppins(
+    fontSize: 18,
     fontWeight: FontWeight.bold,
     color: light,
   );
-  static const TextStyle linkStyle = TextStyle(
-    fontSize: 16,
+  static TextStyle linkStyle = GoogleFonts.poppins(
+      textStyle: const TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.normal,
     color: link,
-  );
+  ));
+}
+
+Color getTextOnRatingColor(double rating) {
+  if ((rating - 0.5).abs() < 0.15) {
+    return AppColors.dark;
+  } else {
+    return AppColors.light;
+  }
 }
 
 Color getInterpolatedColor(double value) {

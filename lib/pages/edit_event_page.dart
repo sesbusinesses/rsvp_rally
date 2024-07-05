@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, avoid_print
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
@@ -163,7 +164,7 @@ class EditEventPageState extends State<EditEventPage> {
   Future<void> updateEvent() async {
     if (eventNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content:
                 Text('Please enter the event name', style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -171,7 +172,7 @@ class EditEventPageState extends State<EditEventPage> {
       return;
     } else if (eventDetailsController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content: Text('Please enter the event details',
                 style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -179,7 +180,7 @@ class EditEventPageState extends State<EditEventPage> {
       return;
     } else if (attendees.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content: Text('Please invite at least one person',
                 style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -192,7 +193,7 @@ class EditEventPageState extends State<EditEventPage> {
         (controller['endTime']!.text.isEmpty &&
             controller != phaseControllers.last))) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content: Text('Please fill out all phase details',
                 style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -201,7 +202,7 @@ class EditEventPageState extends State<EditEventPage> {
     } else if (notificationControllers.any((controller) =>
         controller['text']!.text.isEmpty || controller['time']!.text.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content: Text('Please fill in all notification details',
                 style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -345,7 +346,7 @@ class EditEventPageState extends State<EditEventPage> {
         await batch.commit();
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
               content: Text('Event updated successfully',
                   style: AppColors.bodyStyle),
               backgroundColor: AppColors.accentLight),
@@ -461,12 +462,12 @@ class EditEventPageState extends State<EditEventPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Edit Event', style: AppColors.topStyle),
+        title: Text('Edit Event', style: AppColors.topStyle),
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CupertinoActivityIndicator(radius: 15))
           : Stack(
               children: [
                 SingleChildScrollView(
@@ -500,8 +501,7 @@ class EditEventPageState extends State<EditEventPage> {
                             ),
                             child: Column(
                               children: [
-                                const Text('Event Name',
-                                    style: AppColors.titleStyle),
+                                Text('Event Name', style: AppColors.titleStyle),
                                 WideTextBox(
                                   hintText: 'Event Name',
                                   controller: eventNameController,
@@ -541,7 +541,7 @@ class EditEventPageState extends State<EditEventPage> {
                             ),
                             child: Column(
                               children: [
-                                const Text('Additional Details',
+                                Text('Additional Details',
                                     style: AppColors.titleStyle),
                                 WideTextBox(
                                   hintText: 'Event Details',

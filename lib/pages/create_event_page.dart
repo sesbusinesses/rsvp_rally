@@ -80,7 +80,7 @@ class CreateEventPageState extends State<CreateEventPage> {
   Future<void> createEvent() async {
     if (eventNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content:
                 Text('Please enter the event name', style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -88,7 +88,7 @@ class CreateEventPageState extends State<CreateEventPage> {
       return;
     } else if (eventDetailsController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content: Text('Please enter the event details',
                 style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -96,7 +96,7 @@ class CreateEventPageState extends State<CreateEventPage> {
       return;
     } else if (attendees.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content: Text('Please invite at least one person',
                 style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -109,7 +109,7 @@ class CreateEventPageState extends State<CreateEventPage> {
         (controller['endTime']!.text.isEmpty &&
             controller == phaseControllers.last))) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content: Text('Please fill out all phase details',
                 style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -118,7 +118,7 @@ class CreateEventPageState extends State<CreateEventPage> {
     } else if (notificationControllers.any((controller) =>
         controller['text']!.text.isEmpty || controller['time']!.text.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content: Text('Please fill out all notification details',
                 style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -264,7 +264,7 @@ class CreateEventPageState extends State<CreateEventPage> {
 
       // Show a confirmation message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
             content:
                 Text('Event created successfully', style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight),
@@ -303,7 +303,7 @@ class CreateEventPageState extends State<CreateEventPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Create New Event', style: AppColors.topStyle),
+        title: Text('Create New Event', style: AppColors.topStyle),
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
       ),
@@ -344,8 +344,7 @@ class CreateEventPageState extends State<CreateEventPage> {
                         ),
                         child: Column(
                           children: [
-                            const Text('Event Name',
-                                style: AppColors.titleStyle),
+                            Text('Event Name', style: AppColors.titleStyle),
                             WideTextBox(
                               hintText: 'Event Name',
                               controller: eventNameController,
@@ -382,7 +381,7 @@ class CreateEventPageState extends State<CreateEventPage> {
                         ),
                         child: Column(
                           children: [
-                            const Text('Additional Details',
+                            Text('Additional Details',
                                 style: AppColors.titleStyle),
                             WideTextBox(
                               hintText: 'Event Details',

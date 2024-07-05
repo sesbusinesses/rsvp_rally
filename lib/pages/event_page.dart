@@ -98,7 +98,7 @@ class EventPageState extends State<EventPage> with RouteAware {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'RSVP Rally',
           style: AppColors.topStyle,
         ),
@@ -163,8 +163,8 @@ class EventPageState extends State<EventPage> with RouteAware {
                         );
                       },
                     ),
-                    const Padding(
-                      padding: EdgeInsets.all(40),
+                    Padding(
+                      padding: const EdgeInsets.all(40),
                       child: Text(
                         'Error fetching events. Please try again later.',
                         style: AppColors.bodyStyle,
@@ -185,8 +185,8 @@ class EventPageState extends State<EventPage> with RouteAware {
                         );
                       },
                     ),
-                    const Padding(
-                      padding: EdgeInsets.all(40),
+                    Padding(
+                      padding: const EdgeInsets.all(40),
                       child: Text(
                         'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
                         style: AppColors.bodyStyle,
@@ -232,8 +232,8 @@ class EventPageState extends State<EventPage> with RouteAware {
                                 );
                               },
                             ),
-                            const Padding(
-                              padding: EdgeInsets.all(40),
+                            Padding(
+                              padding: const EdgeInsets.all(40),
                               child: Text(
                                 'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
                                 style: AppColors.bodyStyle,

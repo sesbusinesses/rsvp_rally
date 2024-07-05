@@ -51,7 +51,7 @@ class _LogInState extends State<LogInPage> {
 
   userLogin() async {
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
           "Please enter both email and password",
           style: AppColors.bodyStyle,
@@ -76,7 +76,7 @@ class _LogInState extends State<LogInPage> {
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential' && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
             "Incorrect Email or Password",
             style: AppColors.bodyStyle,
@@ -84,7 +84,7 @@ class _LogInState extends State<LogInPage> {
           backgroundColor: AppColors.accentLight,
         ));
       } else if (e.code == 'invalid-email' && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
             "Invalid Email Address",
             style: AppColors.bodyStyle,
@@ -92,7 +92,7 @@ class _LogInState extends State<LogInPage> {
           backgroundColor: AppColors.accentLight,
         ));
       } else if (e.code == 'too-many-requests' && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
             "Too many login attempts. Try again later.",
             style: AppColors.bodyStyle,
@@ -118,9 +118,9 @@ class _LogInState extends State<LogInPage> {
               const SizedBox(
                 height: 100,
               ),
-              const Text('RSVP Rally', style: AppColors.topStyle),
+              Text('RSVP Rally', style: AppColors.topStyle),
               const SizedBox(height: 100),
-              const Text(
+              Text(
                 "Welcome back, you've been missed!",
                 style: AppColors.bodyStyle,
               ),
@@ -144,8 +144,7 @@ class _LogInState extends State<LogInPage> {
                           MaterialPageRoute(
                               builder: (context) => const ForgotPassword()));
                     },
-                    child: const Text("Forgot Password?",
-                        style: AppColors.linkStyle),
+                    child: Text("Forgot Password?", style: AppColors.linkStyle),
                   )
                 ],
               ),
@@ -167,7 +166,7 @@ class _LogInState extends State<LogInPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     "Don't have an account? ",
                     style: AppColors.bodyStyle,
                   ),
@@ -181,8 +180,7 @@ class _LogInState extends State<LogInPage> {
                           MaterialPageRoute(
                               builder: (context) => const SignUpPage()));
                     },
-                    child:
-                        const Text("Register now", style: AppColors.linkStyle),
+                    child: Text("Register now", style: AppColors.linkStyle),
                   )
                 ],
               ),

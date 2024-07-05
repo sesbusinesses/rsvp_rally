@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'dart:developer';
 
@@ -39,8 +40,10 @@ Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
 
 class EventTimeDisplay extends StatelessWidget {
   final String eventID;
+  final double rating;
 
-  const EventTimeDisplay({super.key, required this.eventID});
+  const EventTimeDisplay(
+      {super.key, required this.eventID, required this.rating});
 
   @override
   Widget build(BuildContext context) {
@@ -83,32 +86,36 @@ class EventTimeDisplay extends StatelessWidget {
               timelineWidgets.add(Expanded(
                   child: FittedBox(
                 fit: BoxFit.contain,
-                child: Text(startDateStr, style: AppColors.darkDateStyle),
-              )));
-              timelineWidgets.add(Expanded(
-                  child: FittedBox(
-                fit: BoxFit.contain,
-                child: Text('$startTimeStr - $endTimeStr',
-                    style: AppColors.darkDateStyle),
+                child: Text(
+                    '${startDateStr.substring(0, 3)} ${startDateStr.substring(startDateStr.length - 2).trim()}',
+                    style: AppColors.eventTimeDisplayStyle
+                        .copyWith(color: getTextOnRatingColor(rating))),
               )));
             } else {
               timelineWidgets.add(Expanded(
                   child: FittedBox(
-                fit: BoxFit.contain,
-                child: Text('$startDateStr $startTimeStr',
-                    style: AppColors.darkDateStyle),
-              )));
-              timelineWidgets.add(const Expanded(
-                  child: FittedBox(
-                fit: BoxFit.contain,
-                child: Text('-', style: AppColors.darkDateStyle),
-              )));
+                      fit: BoxFit.contain,
+                      child: Text(
+                        '${startDateStr.substring(0, 3)} ${startDateStr.substring(startDateStr.length - 2).trim()}',
+                        style: AppColors.eventTimeDisplayStyle
+                            .copyWith(color: getTextOnRatingColor(rating)),
+                      ))));
               timelineWidgets.add(Expanded(
                   child: FittedBox(
-                fit: BoxFit.contain,
-                child: Text('$endDateStr $endTimeStr',
-                    style: AppColors.darkDateStyle),
-              )));
+                      fit: BoxFit.contain,
+                      child: Text(
+                        '-',
+                        style: AppColors.eventTimeDisplayStyle
+                            .copyWith(color: getTextOnRatingColor(rating)),
+                      ))));
+              timelineWidgets.add(Expanded(
+                  child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Text(
+                        '${endDateStr.substring(0, 3)} ${endDateStr.substring(endDateStr.length - 2).trim()}',
+                        style: AppColors.eventTimeDisplayStyle
+                            .copyWith(color: getTextOnRatingColor(rating)),
+                      ))));
             }
           }
 

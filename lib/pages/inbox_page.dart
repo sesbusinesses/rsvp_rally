@@ -56,7 +56,7 @@ class InboxPageState extends State<InboxPage> {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Inbox',
           style: AppColors.topStyle,
         ),

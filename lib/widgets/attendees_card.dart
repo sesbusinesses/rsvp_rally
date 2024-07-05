@@ -49,7 +49,7 @@ class AttendeesCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      const Text('Attendees', style: AppColors.titleStyle),
+                      Text('Attendees', style: AppColors.titleStyle),
                       Expanded(child: Container()),
                       Icon(Icons.people, color: getInterpolatedColor(rating)),
                       const SizedBox(width: 5),

@@ -40,7 +40,7 @@ class EventTimeline extends StatelessWidget {
               ),
             );
           } else {
-            return const SliverFillRemaining(
+            return SliverFillRemaining(
               child: Text(
                 "No data available for this event.",
                 style: AppColors.bodyStyle,
@@ -189,6 +189,8 @@ class EventTimeline extends StatelessWidget {
                                     }
                                   },
                                   child: RichText(
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
                                     text: TextSpan(
                                       text: '${data['phaseLocation']}',
                                       style: AppColors.linkStyle,
@@ -196,7 +198,7 @@ class EventTimeline extends StatelessWidget {
                                   ),
                                 )
                               else
-                                const Text(
+                                Text(
                                   'Location not specified',
                                   style: AppColors.darkDateStyle,
                                 ),

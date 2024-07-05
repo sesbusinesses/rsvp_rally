@@ -46,7 +46,7 @@ class DetailsCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 10),
-                      const Text('Details', style: AppColors.titleStyle),
+                      Text('Details', style: AppColors.titleStyle),
                       Text(
                         'Host: ${snapshot.data!['hostName']}',
                         style: AppColors.subtitleStyle,

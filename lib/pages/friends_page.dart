@@ -172,16 +172,16 @@ class FriendsPageState extends State<FriendsPage> {
                             ...filteredFriends.map((friendData) =>
                                 UserCard(username: friendData['username'])),
                           if (filteredFriends.isEmpty && friendsData.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.all(40),
+                            Padding(
+                              padding: const EdgeInsets.all(40),
                               child: Text(
                                 'You don\'t have any friends yet. Click the button below to find some!',
                                 style: AppColors.bodyStyle,
                               ),
                             ),
                           if (filteredFriends.isEmpty && friendsData.isNotEmpty)
-                            const Padding(
-                              padding: EdgeInsets.all(40),
+                            Padding(
+                              padding: const EdgeInsets.all(40),
                               child: Text(
                                 'You don\'t have any friends for this search. Click the button below to find some!',
                                 style: AppColors.bodyStyle,

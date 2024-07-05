@@ -171,7 +171,7 @@ class MessageCardState extends State<MessageCard> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
           'The event was cancelled.',
           style: AppColors.bodyStyle,

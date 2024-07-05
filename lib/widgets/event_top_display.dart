@@ -29,7 +29,7 @@ class EventTopDisplayState extends State<EventTopDisplay> {
           width: screenSize.width * 0.3875,
           height: screenSize.width * 0.3875,
           decoration: BoxDecoration(
-            color: AppColors.light,
+            color: getInterpolatedLight(widget.userRating),
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
               color: getInterpolatedColor(widget.userRating),
@@ -43,11 +43,12 @@ class EventTopDisplayState extends State<EventTopDisplay> {
               ),
             ],
           ),
-          child: EventTimeDisplay(eventID: widget.eventID),
+          child: EventTimeDisplay(
+              eventID: widget.eventID, rating: widget.userRating),
         ),
         SizedBox(width: screenSize.width * 0.075),
         Container(
-          padding: const EdgeInsets.all(15),
+          // padding: const EdgeInsets.all(15),
           width: screenSize.width * 0.3875,
           height: screenSize.width * 0.3875,
           decoration: BoxDecoration(

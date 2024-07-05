@@ -57,7 +57,7 @@ class _SignUpState extends State<SignUpPage> {
         await _dataPusher.createNewUser(username, firstName, lastName);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
               "Registered Successfully",
               style: AppColors.bodyStyle,
@@ -76,7 +76,7 @@ class _SignUpState extends State<SignUpPage> {
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         if (e.code == 'weak-password') {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
               "Password has to be at least 6 characters",
               style: AppColors.bodyStyle,
@@ -84,7 +84,7 @@ class _SignUpState extends State<SignUpPage> {
             backgroundColor: AppColors.accentLight,
           ));
         } else if (e.code == "email-already-in-use") {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
               "Account Already exists",
               style: AppColors.bodyStyle,
@@ -92,7 +92,7 @@ class _SignUpState extends State<SignUpPage> {
             backgroundColor: AppColors.accentLight,
           ));
         } else if (e.code == "invalid-email") {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
               "The email address is badly formatted",
               style: AppColors.bodyStyle,
@@ -118,8 +118,7 @@ class _SignUpState extends State<SignUpPage> {
           key: _formkey,
           child: Column(
             children: [
-              const Text("Fill your information below",
-                  style: AppColors.bodyStyle),
+              Text("Fill your information below", style: AppColors.bodyStyle),
               const SizedBox(height: 10.0),
               WideTextBox(
                 controller: usernameController,
