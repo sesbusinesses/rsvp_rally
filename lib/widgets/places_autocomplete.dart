@@ -6,8 +6,7 @@ import 'package:rsvp_rally/config/config.dart'; // Ensure this is imported
 
 class PlacesAutocomplete extends StatefulWidget {
   final String apiKey;
-  final Function(String placeId, String description, GeoPoint? geopoint)
-      onPlaceSelected; // Updated callback
+  final Function(String placeId, String description, GeoPoint? geopoint) onPlaceSelected;
   final String? eventID; // Make eventID optional
   final int? phaseIndex; // Make phaseIndex optional
   final TextEditingController controller;
@@ -39,6 +38,9 @@ class _PlacesAutocompleteState extends State<PlacesAutocomplete> {
     _places = GoogleMapsPlaces(apiKey: widget.apiKey);
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
+        if (widget.controller.text.isNotEmpty) {
+          widget.controller.clear();
+        }
         _showOverlay();
       } else {
         _hideOverlay();
