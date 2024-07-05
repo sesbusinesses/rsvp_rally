@@ -97,23 +97,6 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                   },
                 ),
                 const SizedBox(height: 120),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () async {
-                        await NotificationService().uploadFcmTokenSES();
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const EventPage(username: 'SES')));
-                        logAllUsers();
-                      },
-                      child: Text("Login as SES", style: AppColors.linkStyle),
-                    )
-                  ],
-                ),
               ],
             ),
           ),
