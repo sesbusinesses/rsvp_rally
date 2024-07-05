@@ -208,6 +208,41 @@ class EditEventPageState extends State<EditEventPage> {
             backgroundColor: AppColors.accentLight),
       );
       return;
+    } else if (eventNameController.text.contains('/')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Event name cannot contain "/"',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
+      );
+      return;
+    } else if (eventDetailsController.text.contains('/')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Event details cannot contain "/"',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
+      );
+      return;
+    } else if (phaseControllers.any((controller) =>
+        controller['name']!.text.contains('/') ||
+        controller['location']!.text.contains('/'))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Phase name or location cannot contain "/"',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
+      );
+      return;
+    } else if (notificationControllers
+        .any((controller) => controller['text']!.text.contains('/'))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Notification text cannot contain "/"',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
+      );
+      return;
     }
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
