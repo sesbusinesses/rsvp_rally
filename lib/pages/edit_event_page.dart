@@ -389,12 +389,14 @@ class EditEventPageState extends State<EditEventPage> {
 
         Navigator.pop(context);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Failed to update event: $e',
-                  style: AppColors.bodyStyle),
-              backgroundColor: AppColors.accentLight),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Failed to update event: $e',
+                    style: AppColors.bodyStyle),
+                backgroundColor: AppColors.accentLight),
+          );
+        }
       }
     }
 
