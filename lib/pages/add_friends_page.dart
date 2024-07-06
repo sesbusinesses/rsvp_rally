@@ -191,7 +191,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
-        title: const Text('Add Friends'),
+        title: Text('Add Friends', style: AppColors.topStyle),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,

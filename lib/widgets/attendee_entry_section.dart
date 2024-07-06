@@ -184,7 +184,7 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text('Select Friends to Invite', style: AppColors.bodyStyle),
+            child: Text('Invite Friends', style: AppColors.titleStyle),
           ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
@@ -199,8 +199,12 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
                 .map((friend) => CheckboxListTile(
                       title: UserCard(
                         username: friend['username'],
+                        smallVersion: false,
+                        removePadding: true,
                         showUsername: false,
                       ),
+                      activeColor: getInterpolatedColor(widget.rating),
+                      checkColor: getTextOnRatingColor(widget.rating),
                       value: selectedFriends[friend['username']],
                       onChanged: (bool? value) {
                         updateSelectedFriends(friend['username'], value!);
