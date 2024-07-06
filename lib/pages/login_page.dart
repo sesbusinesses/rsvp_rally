@@ -68,7 +68,7 @@ class _LogInState extends State<LogInPage> {
       User? user = userCredential.user;
       final name = user?.displayName ?? 'User';
 
-      await NotificationService().ensureTokenUploaded();
+      await NotificationService().uploadFcmToken();
 
       if (mounted) {
         Navigator.pushReplacement(context,

@@ -129,6 +129,10 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _signOut() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentReference userRef =
+        firestore.collection('Users').doc(widget.username);
+    await userRef.update({'notificationToken': ''});
     await FirebaseAuth.instance.signOut();
     if (mounted) {
       Navigator.pushAndRemoveUntil(
