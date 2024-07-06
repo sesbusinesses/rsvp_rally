@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
@@ -99,7 +100,8 @@ class _ChatPageState extends State<ChatPage> {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
                                 return const Center(
-                                    child: CircularProgressIndicator());
+                                    child:
+                                        CupertinoActivityIndicator(radius: 15));
                               }
 
                               if (!snapshot.hasData || !snapshot.data!.exists) {
