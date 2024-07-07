@@ -199,7 +199,8 @@ Future<String?> pullProfilePicture(String username) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   try {
-    DocumentSnapshot userDoc = await firestore.collection('Users').doc(username).get();
+    DocumentSnapshot userDoc =
+        await firestore.collection('Users').doc(username).get();
 
     if (!userDoc.exists) {
       print("No user found with username $username");
@@ -276,14 +277,15 @@ Future<List<Map<String, dynamic>>> fetchEventAttendees(String eventID) async {
   if (eventDoc.exists) {
     var eventData = eventDoc.data() as Map<String, dynamic>;
     List<dynamic> attendeesUsernames = eventData['Attendees'] ?? [];
+    List<dynamic> declinedUsernames = eventData['Declined'] ?? [];
     String hostUsername = eventData['HostName'];
 
-    // Add host to the attendees list if not already present
-    if (!attendeesUsernames.contains(hostUsername)) {
-      attendeesUsernames.add(hostUsername);
-    }
+    // Combine attendees and declined lists, and ensure host is included if not already present
+    Set<String> allUsernames = Set.from(attendeesUsernames.cast<String>())
+      ..addAll(declinedUsernames.cast<String>())
+      ..add(hostUsername);
 
-    for (String username in attendeesUsernames) {
+    for (String username in allUsernames) {
       DocumentSnapshot userDoc =
           await firestore.collection('Users').doc(username).get();
       if (userDoc.exists) {
