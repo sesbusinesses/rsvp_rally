@@ -85,9 +85,10 @@ class EventPageState extends State<EventPage> with RouteAware {
     DocumentReference userDocRef = firestore.collection('Users').doc(username);
     DocumentReference eventDocRef = firestore.collection('Events').doc(eventID);
 
-    await firestore.runTransaction((transaction) async {
-      DocumentSnapshot userDoc = await transaction.get(userDocRef);
+    WriteBatch batch = firestore.batch();
 
+    try {
+      DocumentSnapshot userDoc = await userDocRef.get();
       if (!userDoc.exists) {
         log("No user found with username $username");
         return;
@@ -96,7 +97,7 @@ class EventPageState extends State<EventPage> with RouteAware {
       List<String> events = List.from(userDoc.get('Events'));
       if (events.contains(eventID)) {
         events.remove(eventID);
-        transaction.update(userDocRef, {'Events': events});
+        batch.update(userDocRef, {'Events': events});
 
         Timestamp timestamp = Timestamp.now();
         String messageText = eventExpired
@@ -109,26 +110,38 @@ class EventPageState extends State<EventPage> with RouteAware {
           'timestamp': timestamp,
           'NewMessages': true
         };
-        transaction.update(userDocRef, {
+        batch.update(userDocRef, {
           'Messages': FieldValue.arrayUnion([message]),
           'NewMessages': true
         });
 
-        log("Removed event $eventID from user $username");
+        print("Removed event $eventID from user $username");
 
         if (!eventExpired) {
-          // Add user to the Declined list in the event document
-          DocumentSnapshot eventDoc = await transaction.get(eventDocRef);
+          DocumentSnapshot eventDoc = await eventDocRef.get();
           if (eventDoc.exists) {
-            List<String> declined = List.from(eventDoc.get('Declined') ?? []);
+            List<String> declined;
+            if ((eventDoc.data() as Map).containsKey('Declined')) {
+              declined = List.from(eventDoc.get('Declined'));
+            } else {
+              declined = [];
+            }
+
             if (!declined.contains(username)) {
               declined.add(username);
-              transaction.update(eventDocRef, {'Declined': declined});
+              batch.update(eventDocRef, {'Declined': declined});
+              print("Added $username to Declined list for event $eventID");
             }
           }
         }
       }
-    });
+
+      await batch.commit();
+      print(
+          "Batch commit successful for removing event $eventID from user $username");
+    } catch (e) {
+      print("Error in _removeEventFromUserDoc: $e");
+    }
   }
 
   @override
