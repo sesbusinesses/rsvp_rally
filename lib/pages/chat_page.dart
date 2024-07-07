@@ -147,22 +147,16 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
                 if (rsvpStatus == 'yes') _buildMessageInputArea(),
-                const SizedBox(height: 50),
               ],
-            ),
-            Positioned(
-              bottom: -10,
-              left: 0,
-              right: 0,
-              child: BottomNav(
-                rating: widget.rating,
-                eventID: widget.eventID,
-                username: widget.username,
-                selectedIndex: 2,
-              ),
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNav(
+        rating: widget.rating,
+        eventID: widget.eventID,
+        username: widget.username,
+        selectedIndex: 2,
       ),
     );
   }

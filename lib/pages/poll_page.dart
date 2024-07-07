@@ -120,16 +120,6 @@ class _PollPageState extends State<PollPage> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(
-                bottom: 20.0), // 20 pixels above the bottom
-            child: BottomNav(
-              rating: widget.rating,
-              eventID: widget.eventID,
-              username: widget.username,
-              selectedIndex: 1, // Index for PollPage
-            ),
-          ),
         ],
       ),
       floatingActionButton: isHost
@@ -143,6 +133,12 @@ class _PollPageState extends State<PollPage> {
               ),
             )
           : null,
+      bottomNavigationBar: BottomNav(
+        rating: widget.rating,
+        eventID: widget.eventID,
+        username: widget.username,
+        selectedIndex: 1, // Index for PollPage
+      ),
     );
   }
 }

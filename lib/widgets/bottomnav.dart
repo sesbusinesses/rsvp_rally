@@ -51,112 +51,98 @@ class _BottomNavState extends State<BottomNav> {
 
   void _onItemTapped(int index) {
     if (index != widget.selectedIndex) {
-      switch (index) {
-        case 0:
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailsPage(
-                username: widget.username,
-                eventID: widget.eventID,
-                userRating: widget.rating,
-              ),
-            ),
-          );
-          break;
-        case 1:
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PollPage(
-                rating: widget.rating,
-                eventID: widget.eventID,
-                username: widget.username,
-              ),
-            ),
-          );
-          break;
-        case 2:
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatPage(
-                rating: widget.rating,
-                eventID: widget.eventID,
-                username: widget.username,
-              ),
-            ),
-          );
-          break;
-        case 3:
-          if (isHost) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EditEventPage(
+      final direction = index > widget.selectedIndex ? AxisDirection.right : AxisDirection.left;
+
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) {
+            switch (index) {
+              case 0:
+                return DetailsPage(
+                  username: widget.username,
+                  eventID: widget.eventID,
+                  userRating: widget.rating,
+                );
+              case 1:
+                return PollPage(
                   rating: widget.rating,
                   eventID: widget.eventID,
                   username: widget.username,
-                ),
-              ),
+                );
+              case 2:
+                return ChatPage(
+                  rating: widget.rating,
+                  eventID: widget.eventID,
+                  username: widget.username,
+                );
+              case 3:
+                if (isHost) {
+                  return EditEventPage(
+                    rating: widget.rating,
+                    eventID: widget.eventID,
+                    username: widget.username,
+                  );
+                }
+                break;
+            }
+            return Container(); // Fallback in case of incorrect index
+          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+
+            var tween = Tween(begin: direction == AxisDirection.right ? begin : Offset(-1.0, 0.0), end: end).chain(CurveTween(curve: curve));
+
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
             );
-          }
-          break;
-      }
+          },
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Container(
-          height: 50, // Increased height to fit icons and dot
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: const Offset(0, 3),
-              ),
-            ],
-            border: Border.all(
-              color: getInterpolatedColor(widget.rating),
-              width: AppColors.borderWidth,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildNavItem(
-                icon: Icons.document_scanner,
-                index: 0,
-                selected: widget.selectedIndex == 0,
-              ),
-              _buildNavItem(
-                icon: Icons.bar_chart,
-                index: 1,
-                selected: widget.selectedIndex == 1,
-              ),
-              _buildNavItem(
-                icon: Icons.chat,
-                index: 2,
-                selected: widget.selectedIndex == 2,
-              ),
-              if (isHost)
-                _buildNavItem(
-                  icon: Icons.edit,
-                  index: 3,
-                  selected: widget.selectedIndex == 3,
-                ),
-            ],
+    return Container(
+      height: 60, // Adjust height if needed
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: getInterpolatedColor(widget.rating),
+            width: AppColors.borderWidth,
           ),
         ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildNavItem(
+            icon: Icons.document_scanner,
+            index: 0,
+            selected: widget.selectedIndex == 0,
+          ),
+          _buildNavItem(
+            icon: Icons.bar_chart,
+            index: 1,
+            selected: widget.selectedIndex == 1,
+          ),
+          _buildNavItem(
+            icon: Icons.chat,
+            index: 2,
+            selected: widget.selectedIndex == 2,
+          ),
+          if (isHost)
+            _buildNavItem(
+              icon: Icons.edit,
+              index: 3,
+              selected: widget.selectedIndex == 3,
+            ),
+        ],
       ),
     );
   }
@@ -171,10 +157,10 @@ class _BottomNavState extends State<BottomNav> {
         children: [
           if (selected)
             Positioned(
-              top: -10, // Positioned above the icon
+              top: -12, // Adjust as necessary
               child: Container(
                 width: 8,
-                height: 10,
+                height: 8,
                 decoration: BoxDecoration(
                   color: getInterpolatedColor(widget.rating),
                   shape: BoxShape.circle,
