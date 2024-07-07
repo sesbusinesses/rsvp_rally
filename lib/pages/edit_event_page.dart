@@ -625,19 +625,14 @@ class EditEventPageState extends State<EditEventPage> {
                     ),
                   ),
                 ),
-                Positioned(
-                  bottom: 20,
-                  left: 0,
-                  right: 0,
-                  child: BottomNav(
-                    rating: widget.rating,
-                    eventID: widget.eventID,
-                    username: widget.username,
-                    selectedIndex: 3,
-                  ),
-                ),
               ],
             ),
+      bottomNavigationBar: BottomNav(
+        rating: widget.rating,
+        eventID: widget.eventID,
+        username: widget.username,
+        selectedIndex: 3,
+      ),
     );
   }
 }

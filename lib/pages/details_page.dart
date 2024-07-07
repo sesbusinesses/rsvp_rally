@@ -82,18 +82,13 @@ class DetailsPageState extends State<DetailsPage> {
               ),
             ],
           ),
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: BottomNav(
-              rating: widget.userRating,
-              eventID: widget.eventID,
-              username: widget.username,
-              selectedIndex: 0, // Index for DetailsPage
-            ),
-          ),
         ],
+      ),
+      bottomNavigationBar: BottomNav(
+        rating: widget.userRating,
+        eventID: widget.eventID,
+        username: widget.username,
+        selectedIndex: 0, // Index for DetailsPage
       ),
     );
   }
