@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -59,23 +58,32 @@ class EventPageState extends State<EventPage> with RouteAware {
     });
   }
 
-  Future<void> checkEventsExistence(List<String> eventIds) async {
+  Future<void> checkEventsExistenceAndRSVP(List<String> eventIds) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     existingEventIds.clear(); // Clear existingEventIds to avoid duplication
     for (String eventId in eventIds) {
       DocumentSnapshot eventDoc =
           await firestore.collection('Events').doc(eventId).get();
       if (eventDoc.exists) {
-        existingEventIds.add(eventId);
+        String rsvpStatus = await isComing(eventId, widget.username);
+        if (rsvpStatus != 'no') {
+          existingEventIds.add(eventId);
+        } else {
+          await _removeEventFromUserDoc(
+              widget.username, eventId, eventDoc['EventName'], false);
+        }
       } else {
-        await _removeEventFromUserDoc(widget.username, eventId);
+        await _removeEventFromUserDoc(
+            widget.username, eventId, eventDoc['EventName'], true);
       }
     }
   }
 
-  Future<void> _removeEventFromUserDoc(String username, String eventID) async {
+  Future<void> _removeEventFromUserDoc(String username, String eventID,
+      String eventName, bool eventExpired) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     DocumentReference userDocRef = firestore.collection('Users').doc(username);
+    DocumentReference eventDocRef = firestore.collection('Events').doc(eventID);
 
     await firestore.runTransaction((transaction) async {
       DocumentSnapshot userDoc = await transaction.get(userDocRef);
@@ -89,7 +97,36 @@ class EventPageState extends State<EventPage> with RouteAware {
       if (events.contains(eventID)) {
         events.remove(eventID);
         transaction.update(userDocRef, {'Events': events});
+
+        Timestamp timestamp = Timestamp.now();
+        String messageText = eventExpired
+            ? '$eventName has expired'
+            : 'You have been automatically removed from $eventName because you either RSVP\'d no or didn\'t RSVP in time.';
+        Map<String, dynamic> message = {
+          'text': messageText,
+          'type': 'event cancelled',
+          'eventID': eventID,
+          'timestamp': timestamp,
+          'NewMessages': true
+        };
+        transaction.update(userDocRef, {
+          'Messages': FieldValue.arrayUnion([message]),
+          'NewMessages': true
+        });
+
         log("Removed event $eventID from user $username");
+
+        if (!eventExpired) {
+          // Add user to the Declined list in the event document
+          DocumentSnapshot eventDoc = await transaction.get(eventDocRef);
+          if (eventDoc.exists) {
+            List<String> declined = List.from(eventDoc.get('Declined') ?? []);
+            if (!declined.contains(username)) {
+              declined.add(username);
+              transaction.update(eventDocRef, {'Declined': declined});
+            }
+          }
+        }
       }
     });
   }
@@ -197,7 +234,7 @@ class EventPageState extends State<EventPage> with RouteAware {
               } else {
                 List<String> eventIds = snapshot.data!;
                 return FutureBuilder<void>(
-                  future: checkEventsExistence(eventIds),
+                  future: checkEventsExistenceAndRSVP(eventIds),
                   builder: (context, checkSnapshot) {
                     if (checkSnapshot.connectionState ==
                         ConnectionState.waiting) {
