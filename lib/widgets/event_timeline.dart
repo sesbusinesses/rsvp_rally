@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
@@ -10,8 +13,35 @@ import 'package:url_launcher/url_launcher.dart';
 class EventTimeline extends StatelessWidget {
   final double rating;
   final String eventID;
+  final String username;
 
-  const EventTimeline({super.key, required this.eventID, required this.rating});
+  const EventTimeline(
+      {super.key,
+      required this.eventID,
+      required this.rating,
+      required this.username});
+
+  Future<bool> hasRSVPdYes(String phaseName) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    try {
+      DocumentSnapshot eventDoc =
+          await firestore.collection('Events').doc(eventID).get();
+      if (eventDoc.exists) {
+        Map<String, dynamic> eventData =
+            eventDoc.data() as Map<String, dynamic>;
+        Map<String, dynamic> polls = eventData['Polls'] ?? {};
+
+        if (polls.containsKey('RSVP for $phaseName')) {
+          var responses = polls['RSVP for $phaseName'];
+          return responses['Yes'] != null &&
+              responses['Yes'].contains(username);
+        }
+      }
+    } catch (e) {
+      log("Error fetching event or processing data: $e");
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,12 +58,36 @@ class EventTimeline extends StatelessWidget {
                   final bool isStartNode = index % 2 == 0;
                   if (phaseIndex < timelineData.length) {
                     final data = timelineData[phaseIndex];
-                    return buildTimelineTile(data, phaseIndex,
-                        timelineData.length, isStartNode, false);
+                    return FutureBuilder<bool>(
+                      future: hasRSVPdYes(data['phaseName']),
+                      builder: (context, rsvpSnapshot) {
+                        if (rsvpSnapshot.connectionState ==
+                            ConnectionState.done) {
+                          bool rsvpYes = rsvpSnapshot.data ?? false;
+                          return buildTimelineTile(data, phaseIndex,
+                              timelineData.length, isStartNode, false, rsvpYes);
+                        } else {
+                          return const Center(
+                              child: CupertinoActivityIndicator(radius: 15));
+                        }
+                      },
+                    );
                   } else {
                     final lastData = timelineData.last;
-                    return buildTimelineTile(
-                        lastData, phaseIndex, timelineData.length, false, true);
+                    return FutureBuilder<bool>(
+                      future: hasRSVPdYes(lastData['phaseName']),
+                      builder: (context, rsvpSnapshot) {
+                        if (rsvpSnapshot.connectionState ==
+                            ConnectionState.done) {
+                          bool rsvpYes = rsvpSnapshot.data ?? false;
+                          return buildTimelineTile(lastData, phaseIndex,
+                              timelineData.length, false, true, rsvpYes);
+                        } else {
+                          return const Center(
+                              child: CupertinoActivityIndicator(radius: 15));
+                        }
+                      },
+                    );
                   }
                 },
                 childCount: timelineData.length * 2 + 1,
@@ -60,7 +114,7 @@ class EventTimeline extends StatelessWidget {
   }
 
   Widget buildTimelineTile(Map<String, dynamic> data, int index, int length,
-      bool isStartNode, bool isLastNode) {
+      bool isStartNode, bool isLastNode, bool rsvpYes) {
     final DateFormat dateFormatter = DateFormat('MMM d, yyyy');
     final DateFormat timeFormatter = DateFormat('h:mm a');
     final currentTime = DateTime.now();
@@ -180,7 +234,7 @@ class EventTimeline extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
-                              if (data['phaseLocation'] != null)
+                              if (rsvpYes && data['phaseLocation'] != null)
                                 GestureDetector(
                                   onTap: () async {
                                     final String url =
@@ -202,8 +256,8 @@ class EventTimeline extends StatelessWidget {
                                 )
                               else
                                 Text(
-                                  'Location not specified',
-                                  style: AppColors.darkDateStyle,
+                                  'RSVP \'Yes\' to view the location',
+                                  style: AppColors.bodyStyle,
                                 ),
                             ],
                           ),

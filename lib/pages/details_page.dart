@@ -67,7 +67,11 @@ class DetailsPageState extends State<DetailsPage> {
                           userRating: widget.userRating)
                     ]),
               ),
-              EventTimeline(eventID: widget.eventID, rating: widget.userRating),
+              EventTimeline(
+                eventID: widget.eventID,
+                rating: widget.userRating,
+                username: widget.username,
+              ),
               SliverToBoxAdapter(
                 child: DetailsCard(
                     eventID: widget.eventID, rating: widget.userRating),
