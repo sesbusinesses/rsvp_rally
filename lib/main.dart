@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rsvp_rally/models/notification_service.dart';
 import 'package:rsvp_rally/models/route_observer.dart';
 import 'package:rsvp_rally/pages/login_page.dart';
@@ -21,6 +22,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.leanBack, overlays: [
+      SystemUiOverlay.top,
+    ]);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: const LogInPage(),
