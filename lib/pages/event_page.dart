@@ -11,6 +11,8 @@ import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
 import 'package:rsvp_rally/widgets/view_friends_button.dart';
 import 'package:rsvp_rally/widgets/view_inbox_button.dart';
 
+import 'package:rsvp_rally/models/location_service.dart';
+
 class EventPage extends StatefulWidget {
   final String username;
 
@@ -29,6 +31,8 @@ class EventPageState extends State<EventPage> with RouteAware {
   void initState() {
     super.initState();
     loadData();
+    requestPermission(context);
+    enableLocationTracking(widget.username, context);
   }
 
   void loadData() {
