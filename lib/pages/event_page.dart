@@ -106,24 +106,10 @@ class EventPageState extends State<EventPage> with RouteAware {
         batch.update(userDocRef, {'Events': events});
 
         if (eventExpired) {
-          Timestamp timestamp = Timestamp.now();
-          String messageText = '$eventName has passed';
-          Map<String, dynamic> message = {
-            'text': messageText,
-            'type': 'event cancelled',
-            'eventID': eventID,
-            'timestamp': timestamp,
-            'NewMessages': true
-          };
-          batch.update(userDocRef, {
-            'Messages': FieldValue.arrayUnion([message]),
-            'NewMessages': true
-          });
           DocumentReference eventChatRef =
               firestore.collection('Chats').doc(eventID);
           batch.delete(eventChatRef);
-          print(
-              "Event $eventID has expired and user $username has been notified");
+          print("Event $eventID has expired");
         } else {
           DocumentSnapshot eventDoc = await eventDocRef.get();
           if (eventDoc.exists) {
@@ -132,6 +118,13 @@ class EventPageState extends State<EventPage> with RouteAware {
               declined = List.from(eventDoc.get('Declined'));
             } else {
               declined = [];
+            }
+
+            List<String> attendees = List.from(eventDoc.get('Attendees'));
+            if (attendees.contains(username)) {
+              attendees.remove(username);
+              batch.update(eventDocRef, {'Attendees': attendees});
+              print("Removed $username from Attendees list for event $eventID");
             }
 
             if (!declined.contains(username)) {
