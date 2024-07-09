@@ -113,6 +113,9 @@ class EventPageState extends State<EventPage> with RouteAware {
             'Messages': FieldValue.arrayUnion([message]),
             'NewMessages': true
           });
+          DocumentReference eventChatRef =
+              firestore.collection('Chats').doc(eventID);
+          batch.delete(eventChatRef);
         }
 
         print("Removed event $eventID from user $username");
