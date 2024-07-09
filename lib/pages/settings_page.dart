@@ -57,21 +57,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _checkLocationTrackingStatus() async {
     bool isTrackingEnabled = await checkLocationPermissionStatus();
-    _showSnackBar(isTrackingEnabled
+    print(isTrackingEnabled
         ? 'Location tracking is enabled.'
         : 'Location tracking is disabled.');
-  }
-
-  void _showSnackBar(String message) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(message, style: AppColors.bodyStyle),
-              backgroundColor: AppColors.accentLight),
-        );
-      }
-    });
   }
 
   @override
