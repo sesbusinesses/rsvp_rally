@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/models/notification_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -29,6 +30,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   StreamSubscription<Position>? _positionStreamSubscription;
+  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
@@ -128,12 +130,8 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _signOut() async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    DocumentReference userRef =
-        firestore.collection('Users').doc(widget.username);
-    await userRef.update({'notificationToken': ''});
-    await FirebaseAuth.instance.signOut();
+  void _handleSignOut() async {
+    await _notificationService.signOut();
     if (mounted) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -167,7 +165,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(height: 10),
                     WideButton(
                       buttonText: 'Sign Out',
-                      onPressed: _signOut,
+                      onPressed: _handleSignOut,
                     ),
                     const SizedBox(height: 20),
                     Row(
