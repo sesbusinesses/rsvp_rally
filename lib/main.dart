@@ -5,6 +5,7 @@ import 'package:rsvp_rally/models/route_observer.dart';
 import 'package:rsvp_rally/pages/login_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:rsvp_rally/models/location_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
