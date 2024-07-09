@@ -22,8 +22,8 @@ class WideTextBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10),
-        child: TextField(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: TextFormField(
           controller: controller,
           onChanged: onChanged,
           style: AppColors.bodyStyle,
@@ -31,6 +31,10 @@ class WideTextBox extends StatelessWidget {
             hintText: hintText,
             border: InputBorder.none,
           ),
+          keyboardType: TextInputType.multiline,
+          maxLines:
+              null, // This allows the input to grow as long as the user types
+          minLines: 1, // Minimum line count for the text field
         ),
       ),
     );

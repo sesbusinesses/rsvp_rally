@@ -472,6 +472,9 @@ class EditEventPageState extends State<EditEventPage> {
         DocumentReference eventDocRef =
             firestore.collection('Events').doc(eventID);
         batch.delete(eventDocRef);
+        DocumentReference eventChatRef =
+            firestore.collection('Chats').doc(eventID);
+        batch.delete(eventChatRef);
 
         await batch.commit();
 
