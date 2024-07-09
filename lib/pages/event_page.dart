@@ -24,6 +24,7 @@ class EventPageState extends State<EventPage> with RouteAware {
   late Future<double?> userRatingFuture;
   late Future<List<String>> userEventsFuture;
   List<String> existingEventIds = [];
+  Map<String, DateTime?> eventStartTimes = {};
 
   @override
   void initState() {
@@ -61,6 +62,7 @@ class EventPageState extends State<EventPage> with RouteAware {
   Future<void> checkEventsExistenceAndRSVP(List<String> eventIds) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     existingEventIds.clear(); // Clear existingEventIds to avoid duplication
+    eventStartTimes.clear(); // Clear event start times to avoid duplication
     for (String eventId in eventIds) {
       print("Checking event existence for eventID: $eventId");
       DocumentSnapshot eventDoc =
@@ -72,16 +74,92 @@ class EventPageState extends State<EventPage> with RouteAware {
             "RSVP status for user ${widget.username} on event $eventId: $rsvpStatus");
         if (rsvpStatus != 'no') {
           existingEventIds.add(eventId);
+          print("Added event $eventId to existingEventIds");
+          DateTime? startTime = await getEventStartTime(eventId);
+          print("Start time for event $eventId: $startTime");
+          eventStartTimes[eventId] = startTime;
         } else {
           await _removeEventFromUserDoc(
               widget.username, eventId, eventDoc['EventName'], false);
+          print(
+              "Removed event $eventId for user ${widget.username} due to RSVP 'no'");
         }
       } else {
         print("Event $eventId does not exist");
         await _removeEventFromUserDoc(
             widget.username, eventId, "Unknown Event", true);
+        print(
+            "Removed non-existing event $eventId for user ${widget.username}");
       }
     }
+
+    // Sort existingEventIds based on start times
+    existingEventIds.sort((a, b) {
+      DateTime? startTimeA = eventStartTimes[a];
+      DateTime? startTimeB = eventStartTimes[b];
+      if (startTimeA == null && startTimeB == null) return 0;
+      if (startTimeA == null) return 1;
+      if (startTimeB == null) return -1;
+      return startTimeA.compareTo(startTimeB);
+    });
+
+    print("Sorted event IDs by start time: $existingEventIds");
+  }
+
+  Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    List<Map<String, dynamic>> timelineData = [];
+
+    try {
+      DocumentSnapshot eventDoc =
+          await firestore.collection('Events').doc(eventID).get();
+
+      if (eventDoc.exists) {
+        var eventData = eventDoc.data() as Map<String, dynamic>;
+        var timeline = eventData['Timeline'] as List<dynamic>;
+
+        for (var phase in timeline) {
+          Map<String, dynamic> phaseData = {
+            'startTime': (phase['StartTime'] as Timestamp).toDate(),
+            'phaseName': phase['PhaseName'],
+            'phaseLocation': phase['PhaseLocation'],
+            'endTime': phase.containsKey('EndTime')
+                ? (phase['EndTime'] as Timestamp).toDate()
+                : null
+          };
+          timelineData.add(phaseData);
+        }
+      }
+    } catch (e) {
+      log("Error fetching timeline: $e");
+    }
+    log("Fetched timeline data: $timelineData");
+
+    return timelineData;
+  }
+
+  Future<DateTime?> getEventStartTime(String eventID) async {
+    print("Fetching timeline for eventID: $eventID");
+    List<Map<String, dynamic>> timelineData = await fetchTimeline(eventID);
+    print("Fetched timeline data: $timelineData");
+    DateTime? startTime;
+
+    for (var phase in timelineData) {
+      print("Processing phase: $phase");
+      var phaseStartTime = phase['startTime'] as DateTime?;
+      if (phaseStartTime != null) {
+        print("Phase startTime: $phaseStartTime");
+        if (startTime == null || phaseStartTime.isBefore(startTime)) {
+          startTime = phaseStartTime;
+          print("Updated startTime: $startTime");
+        }
+      } else {
+        print("No startTime for phase: $phase");
+      }
+    }
+
+    print("Determined start time for eventID $eventID: $startTime");
+    return startTime;
   }
 
   Future<void> _removeEventFromUserDoc(String username, String eventID,
