@@ -10,6 +10,8 @@ class NotificationService {
       FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
 
   Future<void> initialize() async {
     // Request permissions for Android.
@@ -66,33 +68,33 @@ class NotificationService {
     //await _firebaseMessaging.subscribeToTopic('all');
   }
 
-  final firebaseFirestore = FirebaseFirestore.instance;
-  final _currentUser = FirebaseAuth.instance.currentUser;
-
   Future<void> ensureTokenUploaded() async {
-    final username = _currentUser!.displayName;
+    final String? username = _currentUser?.displayName;
+    if (username == null) return;
+    final String? token = await FirebaseMessaging.instance.getToken();
 
-    bool tokenUploaded = await isTokenUploaded(username!);
-
+    bool tokenUploaded = await isTokenUploaded(username, token);
     if (!tokenUploaded) {
       await uploadFcmToken();
     } else {
-      //print("Token is already uploaded.");
+      print("Token is already uploaded.");
     }
   }
 
-  Future<bool> isTokenUploaded(String username) async {
+  Future<bool> isTokenUploaded(String username, String? token) async {
     try {
+      if (token == null) {
+        print("FCM token is null.");
+        return false;
+      }
       DocumentSnapshot snapshot =
           await firebaseFirestore.collection('Users').doc(username).get();
-
       if (snapshot.exists) {
         var data = snapshot.data() as Map<String, dynamic>;
         return data.containsKey('notificationToken') &&
-            data['notificationToken'] != null;
-      } else {
-        return false;
+            data['notificationToken'].contains(token);
       }
+      return false;
     } catch (e) {
       print("Error checking token: ${e.toString()}");
       return false;
@@ -102,21 +104,23 @@ class NotificationService {
   Future<void> uploadFcmToken() async {
     try {
       await FirebaseMessaging.instance.getToken().then((token) async {
+        if (token == null) return;
         print('getToken :: $token');
         await firebaseFirestore
             .collection('Users')
-            .doc(_currentUser!.displayName)
+            .doc(_currentUser?.displayName)
             .update({
-          'notificationToken': token,
+          'notificationToken': FieldValue.arrayUnion([token])
         });
       });
+
       FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
         print('onTokenRefresh :: $token');
         await firebaseFirestore
             .collection('Users')
-            .doc(_currentUser!.displayName)
+            .doc(_currentUser?.displayName)
             .update({
-          'notificationToken': token,
+          'notificationToken': FieldValue.arrayUnion([token])
         });
       });
     } catch (e) {
@@ -124,41 +128,15 @@ class NotificationService {
     }
   }
 
-  //delte when it's not in use
-  Future<void> uploadFcmTokenSES() async {
-    try {
-      await FirebaseMessaging.instance.getToken().then((token) async {
-        //print('getToken :: $token');
-        await firebaseFirestore.collection('Users').doc('SES').update({
-          'notificationToken': token,
-        });
-      });
-      FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
-        //print('onTokenRefresh :: $token');
-        await firebaseFirestore.collection('Users').doc('SES').update({
-          'notificationToken': token,
-        });
-      });
-    } catch (e) {
-      print(e.toString());
-    }
-  }
-
-  // Get the FCM device token
-  static Future<String?> getFCMToken({int maxRetries = 3}) async {
-    try {
-      final token = await _firebaseMessaging.getToken();
-      print("Device Token: $token");
-      return token;
-    } catch (e) {
-      print("Failed to get device token: $e");
-      if (maxRetries > 0) {
-        print("Retrying after 10 seconds...");
-        await Future.delayed(const Duration(seconds: 10));
-        return getFCMToken(maxRetries: maxRetries - 1);
-      } else {
-        return null;
-      }
+  Future<void> signOut() async {
+    String? username = _currentUser?.displayName;
+    if (username != null) {
+      DocumentReference userRef =
+          firebaseFirestore.collection('Users').doc(username);
+      // Clearing all tokens when signing out, adjust as necessary
+      await userRef.update({'notificationToken': []});
+      await FirebaseAuth.instance.signOut();
+      // Since this is a service class, navigation isn't handled here, might need to be triggered elsewhere.
     }
   }
 
@@ -172,29 +150,20 @@ class NotificationService {
       priority: Priority.high,
     );
 
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-    );
-
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
     await _flutterLocalNotificationsPlugin.show(
-      0,
-      title,
-      body,
-      platformChannelSpecifics,
-      payload: 'Default_Sound',
-    );
+        0, title, body, platformChannelSpecifics,
+        payload: 'Default_Sound');
   }
 
   static Future<void> _firebaseMessagingBackgroundHandler(
       RemoteMessage message) async {
     await Firebase.initializeApp();
-
     print('Message received when the app is in the background:');
-
     NotificationService notificationService = NotificationService();
     notificationService._showNotification(
-      message.notification?.title ?? 'No Title',
-      message.notification?.body ?? 'No Body',
-    );
+        message.notification?.title ?? 'No Title',
+        message.notification?.body ?? 'No Body');
   }
 }
