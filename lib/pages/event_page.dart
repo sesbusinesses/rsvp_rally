@@ -62,10 +62,14 @@ class EventPageState extends State<EventPage> with RouteAware {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     existingEventIds.clear(); // Clear existingEventIds to avoid duplication
     for (String eventId in eventIds) {
+      print("Checking event existence for eventID: $eventId");
       DocumentSnapshot eventDoc =
           await firestore.collection('Events').doc(eventId).get();
       if (eventDoc.exists) {
+        print("Event $eventId exists");
         String rsvpStatus = await isComing(eventId, widget.username);
+        print(
+            "RSVP status for user ${widget.username} on event $eventId: $rsvpStatus");
         if (rsvpStatus != 'no') {
           existingEventIds.add(eventId);
         } else {
@@ -73,8 +77,9 @@ class EventPageState extends State<EventPage> with RouteAware {
               widget.username, eventId, eventDoc['EventName'], false);
         }
       } else {
+        print("Event $eventId does not exist");
         await _removeEventFromUserDoc(
-            widget.username, eventId, eventDoc['EventName'], true);
+            widget.username, eventId, "Unknown Event", true);
       }
     }
   }
@@ -88,6 +93,7 @@ class EventPageState extends State<EventPage> with RouteAware {
     WriteBatch batch = firestore.batch();
 
     try {
+      print("Fetching user document for username: $username");
       DocumentSnapshot userDoc = await userDocRef.get();
       if (!userDoc.exists) {
         log("No user found with username $username");
@@ -116,11 +122,9 @@ class EventPageState extends State<EventPage> with RouteAware {
           DocumentReference eventChatRef =
               firestore.collection('Chats').doc(eventID);
           batch.delete(eventChatRef);
-        }
-
-        print("Removed event $eventID from user $username");
-
-        if (!eventExpired) {
+          print(
+              "Event $eventID has expired and user $username has been notified");
+        } else {
           DocumentSnapshot eventDoc = await eventDocRef.get();
           if (eventDoc.exists) {
             List<String> declined;
@@ -137,11 +141,13 @@ class EventPageState extends State<EventPage> with RouteAware {
             }
           }
         }
-      }
 
-      await batch.commit();
-      print(
-          "Batch commit successful for removing event $eventID from user $username");
+        await batch.commit();
+        print(
+            "Batch commit successful for removing event $eventID from user $username");
+      } else {
+        print("Event $eventID not found in user $username's events list");
+      }
     } catch (e) {
       print("Error in _removeEventFromUserDoc: $e");
     }
