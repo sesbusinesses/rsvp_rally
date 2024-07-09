@@ -24,6 +24,7 @@ class EventPageState extends State<EventPage> with RouteAware {
   late Future<double?> userRatingFuture;
   late Future<List<String>> userEventsFuture;
   List<String> existingEventIds = [];
+  Map<String, DateTime?> eventStartTimes = {};
 
   @override
   void initState() {
@@ -61,27 +62,82 @@ class EventPageState extends State<EventPage> with RouteAware {
   Future<void> checkEventsExistenceAndRSVP(List<String> eventIds) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     existingEventIds.clear(); // Clear existingEventIds to avoid duplication
+    eventStartTimes.clear(); // Clear event start times to avoid duplication
     for (String eventId in eventIds) {
-      print("Checking event existence for eventID: $eventId");
       DocumentSnapshot eventDoc =
           await firestore.collection('Events').doc(eventId).get();
       if (eventDoc.exists) {
-        print("Event $eventId exists");
         String rsvpStatus = await isComing(eventId, widget.username);
-        print(
-            "RSVP status for user ${widget.username} on event $eventId: $rsvpStatus");
         if (rsvpStatus != 'no') {
           existingEventIds.add(eventId);
+          DateTime? startTime = await getEventStartTime(eventId);
+          eventStartTimes[eventId] = startTime;
         } else {
           await _removeEventFromUserDoc(
               widget.username, eventId, eventDoc['EventName'], false);
         }
       } else {
-        print("Event $eventId does not exist");
         await _removeEventFromUserDoc(
             widget.username, eventId, "Unknown Event", true);
       }
     }
+
+    // Sort existingEventIds based on start times
+    existingEventIds.sort((a, b) {
+      DateTime? startTimeA = eventStartTimes[a];
+      DateTime? startTimeB = eventStartTimes[b];
+      if (startTimeA == null && startTimeB == null) return 0;
+      if (startTimeA == null) return 1;
+      if (startTimeB == null) return -1;
+      return startTimeA.compareTo(startTimeB);
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    List<Map<String, dynamic>> timelineData = [];
+
+    try {
+      DocumentSnapshot eventDoc =
+          await firestore.collection('Events').doc(eventID).get();
+
+      if (eventDoc.exists) {
+        var eventData = eventDoc.data() as Map<String, dynamic>;
+        var timeline = eventData['Timeline'] as List<dynamic>;
+
+        for (var phase in timeline) {
+          Map<String, dynamic> phaseData = {
+            'startTime': (phase['StartTime'] as Timestamp).toDate(),
+            'phaseName': phase['PhaseName'],
+            'phaseLocation': phase['PhaseLocation'],
+            'endTime': phase.containsKey('EndTime')
+                ? (phase['EndTime'] as Timestamp).toDate()
+                : null
+          };
+          timelineData.add(phaseData);
+        }
+      }
+    } catch (e) {
+      log("Error fetching timeline: $e");
+    }
+
+    return timelineData;
+  }
+
+  Future<DateTime?> getEventStartTime(String eventID) async {
+    List<Map<String, dynamic>> timelineData = await fetchTimeline(eventID);
+    DateTime? startTime;
+
+    for (var phase in timelineData) {
+      var phaseStartTime = phase['startTime'] as DateTime?;
+      if (phaseStartTime != null) {
+        if (startTime == null || phaseStartTime.isBefore(startTime)) {
+          startTime = phaseStartTime;
+        }
+      }
+    }
+
+    return startTime;
   }
 
   Future<void> _removeEventFromUserDoc(String username, String eventID,
@@ -93,7 +149,6 @@ class EventPageState extends State<EventPage> with RouteAware {
     WriteBatch batch = firestore.batch();
 
     try {
-      print("Fetching user document for username: $username");
       DocumentSnapshot userDoc = await userDocRef.get();
       if (!userDoc.exists) {
         log("No user found with username $username");
@@ -109,7 +164,6 @@ class EventPageState extends State<EventPage> with RouteAware {
           DocumentReference eventChatRef =
               firestore.collection('Chats').doc(eventID);
           batch.delete(eventChatRef);
-          print("Event $eventID has expired");
         } else {
           DocumentSnapshot eventDoc = await eventDocRef.get();
           if (eventDoc.exists) {
@@ -124,25 +178,21 @@ class EventPageState extends State<EventPage> with RouteAware {
             if (attendees.contains(username)) {
               attendees.remove(username);
               batch.update(eventDocRef, {'Attendees': attendees});
-              print("Removed $username from Attendees list for event $eventID");
             }
 
             if (!declined.contains(username)) {
               declined.add(username);
               batch.update(eventDocRef, {'Declined': declined});
-              print("Added $username to Declined list for event $eventID");
             }
           }
         }
 
         await batch.commit();
-        print(
-            "Batch commit successful for removing event $eventID from user $username");
       } else {
-        print("Event $eventID not found in user $username's events list");
+        log("Event $eventID not found in user $username's events list");
       }
     } catch (e) {
-      print("Error in _removeEventFromUserDoc: $e");
+      log("Error in _removeEventFromUserDoc: $e");
     }
   }
 
