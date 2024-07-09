@@ -131,10 +131,17 @@ class NotificationService {
   Future<void> signOut() async {
     String? username = _currentUser?.displayName;
     if (username != null) {
+      final String? token = await FirebaseMessaging.instance.getToken();
       DocumentReference userRef =
           firebaseFirestore.collection('Users').doc(username);
-      // Clearing all tokens when signing out, adjust as necessary
-      await userRef.update({'notificationToken': []});
+
+      if (token != null) {
+        // Only remove the current device's token from the array
+        await userRef.update({
+          'notificationToken': FieldValue.arrayRemove([token])
+        });
+      }
+
       await FirebaseAuth.instance.signOut();
       // Since this is a service class, navigation isn't handled here, might need to be triggered elsewhere.
     }

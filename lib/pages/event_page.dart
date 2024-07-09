@@ -99,21 +99,21 @@ class EventPageState extends State<EventPage> with RouteAware {
         events.remove(eventID);
         batch.update(userDocRef, {'Events': events});
 
-        Timestamp timestamp = Timestamp.now();
-        String messageText = eventExpired
-            ? '$eventName has expired'
-            : 'You have been automatically removed from $eventName because you either RSVP\'d no or didn\'t RSVP in time.';
-        Map<String, dynamic> message = {
-          'text': messageText,
-          'type': 'event cancelled',
-          'eventID': eventID,
-          'timestamp': timestamp,
-          'NewMessages': true
-        };
-        batch.update(userDocRef, {
-          'Messages': FieldValue.arrayUnion([message]),
-          'NewMessages': true
-        });
+        if (eventExpired) {
+          Timestamp timestamp = Timestamp.now();
+          String messageText = '$eventName has passed';
+          Map<String, dynamic> message = {
+            'text': messageText,
+            'type': 'event cancelled',
+            'eventID': eventID,
+            'timestamp': timestamp,
+            'NewMessages': true
+          };
+          batch.update(userDocRef, {
+            'Messages': FieldValue.arrayUnion([message]),
+            'NewMessages': true
+          });
+        }
 
         print("Removed event $eventID from user $username");
 
