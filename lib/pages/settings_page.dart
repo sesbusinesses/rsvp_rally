@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/models/notification_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rsvp_rally/pages/login_page.dart';
@@ -43,7 +44,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _signOut() async {
+  Future<void> _handleSignOut() async {
     await FirebaseAuth.instance.signOut();
     if (mounted) {
       Navigator.pushAndRemoveUntil(
@@ -96,7 +97,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(height: 10),
                     WideButton(
                       buttonText: 'Sign Out',
-                      onPressed: _signOut,
+                      onPressed: _handleSignOut,
                     ),
                     const SizedBox(height: 20),
                     Row(

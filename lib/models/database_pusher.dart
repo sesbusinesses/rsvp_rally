@@ -6,11 +6,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+import 'package:intl/intl.dart';
+
 class DataPusher {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> createNewUser(
       String username, String firstName, String lastName) async {
+    final DateFormat formatter = DateFormat('MMMM d, y');
+    final String formattedDate = formatter.format(DateTime.now());
+
     final newUser = {
       'FirstName': firstName,
       'LastName': lastName,
@@ -19,8 +24,7 @@ class DataPusher {
       'Friends': [],
       'Messages': [
         {
-          'text':
-              'Account created at ${DateTime.now()}! Welcome to RSVP Rally!',
+          'text': 'Account created at $formattedDate! Welcome to RSVP Rally!',
           'type': 'account creation',
         }
       ],
