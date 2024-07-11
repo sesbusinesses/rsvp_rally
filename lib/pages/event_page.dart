@@ -6,11 +6,9 @@ import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/route_observer.dart';
 import 'package:rsvp_rally/widgets/create_event_button.dart';
 import 'package:rsvp_rally/widgets/eventcard.dart';
-import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
 import 'package:rsvp_rally/widgets/view_friends_button.dart';
 import 'package:rsvp_rally/widgets/view_inbox_button.dart';
-
 import 'package:rsvp_rally/models/location_service.dart';
 
 class EventPage extends StatefulWidget {
@@ -27,55 +25,145 @@ class EventPageState extends State<EventPage> with RouteAware {
   late Future<List<String>> userEventsFuture;
   List<String> existingEventIds = [];
   Map<String, DateTime?> eventStartTimes = {};
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    userRatingFuture = Future.value(null); // Initialize with a default value
+    userEventsFuture = Future.value([]); // Initialize with a default value
     loadData();
     requestPermission(context);
     enableLocationTracking(widget.username, context);
   }
 
-  void loadData() {
-    userRatingFuture = getUserRating(widget.username);
-    userEventsFuture = getUserEvents(widget.username);
+  void loadData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final userRating = await getUserRating(widget.username);
+    final eventIds = await getUserEvents(widget.username);
+    await checkEventsExistenceAndRSVP(eventIds);
+
+    setState(() {
+      userRatingFuture = Future.value(userRating);
+      userEventsFuture = Future.value(existingEventIds);
+      isLoading = false;
+    });
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Subscribe to RouteObserver
     routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
   }
 
   @override
   void dispose() {
-    // Unsubscribe from RouteObserver
     routeObserver.unsubscribe(this);
     super.dispose();
   }
 
   @override
   void didPopNext() {
-    // Reload the data when coming back to this page
-    setState(() {
-      loadData();
-    });
+    loadData();
+  }
+
+  Future<List<String>> getUserEvents(String username) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    List<String> eventIds = [];
+
+    try {
+      DocumentSnapshot userDoc =
+          await firestore.collection('Users').doc(username).get();
+
+      if (!userDoc.exists) {
+        log("No user found with username $username");
+        return eventIds;
+      }
+
+      eventIds = List.from(userDoc.get('Events'));
+      return eventIds;
+    } catch (e) {
+      log("Error fetching user events: $e");
+      return eventIds;
+    }
+  }
+
+  Future<double?> getUserRating(String username) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    try {
+      DocumentSnapshot userDoc =
+          await firestore.collection('Users').doc(username).get();
+
+      if (!userDoc.exists) {
+        log("No user found with username $username");
+        return null;
+      }
+
+      double? rating = userDoc.get('Rating');
+      return rating;
+    } catch (e) {
+      log("Error fetching user rating: $e");
+      return null;
+    }
+  }
+
+  Future<String> isComing(String eventID, String username) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    try {
+      DocumentSnapshot eventDoc =
+          await firestore.collection('Events').doc(eventID).get();
+      if (eventDoc.exists) {
+        Map<String, dynamic> eventData =
+            eventDoc.data() as Map<String, dynamic>;
+        Map<String, dynamic> polls = eventData['Polls'] ?? {};
+
+        bool hasRespondedYes = false;
+        bool hasRespondedNo = true;
+
+        for (var pollName in polls.keys) {
+          if (pollName.startsWith('RSVP for')) {
+            var responses = polls[pollName];
+            if (responses['Yes'] != null &&
+                responses['Yes'].contains(username)) {
+              hasRespondedYes = true;
+            }
+            if (responses['No'] != null && responses['No'].contains(username)) {
+              hasRespondedNo = hasRespondedNo && true;
+            } else {
+              hasRespondedNo = false;
+            }
+          }
+        }
+
+        if (hasRespondedYes) return 'yes';
+        if (hasRespondedNo) return 'no';
+        return 'maybe';
+      } else {
+        return 'maybe';
+      }
+    } catch (e) {
+      log("Error fetching event or processing data: $e");
+      return 'maybe';
+    }
   }
 
   Future<void> checkEventsExistenceAndRSVP(List<String> eventIds) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    existingEventIds.clear(); // Clear existingEventIds to avoid duplication
-    eventStartTimes.clear(); // Clear event start times to avoid duplication
+    List<String> tempEventIds = [];
+    Map<String, DateTime?> tempEventStartTimes = {};
     for (String eventId in eventIds) {
       DocumentSnapshot eventDoc =
           await firestore.collection('Events').doc(eventId).get();
       if (eventDoc.exists) {
         String rsvpStatus = await isComing(eventId, widget.username);
         if (rsvpStatus != 'no') {
-          existingEventIds.add(eventId);
+          tempEventIds.add(eventId);
           DateTime? startTime = await getEventStartTime(eventId);
-          eventStartTimes[eventId] = startTime;
+          tempEventStartTimes[eventId] = startTime;
         } else {
           await _removeEventFromUserDoc(
               widget.username, eventId, eventDoc['EventName'], false);
@@ -86,15 +174,17 @@ class EventPageState extends State<EventPage> with RouteAware {
       }
     }
 
-    // Sort existingEventIds based on start times
-    existingEventIds.sort((a, b) {
-      DateTime? startTimeA = eventStartTimes[a];
-      DateTime? startTimeB = eventStartTimes[b];
+    tempEventIds.sort((a, b) {
+      DateTime? startTimeA = tempEventStartTimes[a];
+      DateTime? startTimeB = tempEventStartTimes[b];
       if (startTimeA == null && startTimeB == null) return 0;
       if (startTimeA == null) return 1;
       if (startTimeB == null) return -1;
       return startTimeA.compareTo(startTimeB);
     });
+
+    existingEventIds = tempEventIds;
+    eventStartTimes = tempEventStartTimes;
   }
 
   Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
@@ -237,11 +327,8 @@ class EventPageState extends State<EventPage> with RouteAware {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.only(top: 40),
-          child: FutureBuilder<List<String>>(
-            future: userEventsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Column(
+          child: isLoading
+              ? Column(
                   children: [
                     FutureBuilder<double?>(
                       future: userRatingFuture,
@@ -255,58 +342,11 @@ class EventPageState extends State<EventPage> with RouteAware {
                     ),
                     const CupertinoActivityIndicator(radius: 15),
                   ],
-                );
-              } else if (snapshot.hasError) {
-                return Column(
-                  children: [
-                    FutureBuilder<double?>(
-                      future: userRatingFuture,
-                      builder: (context, ratingSnapshot) {
-                        double userRating = ratingSnapshot.data ?? 0;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: UserRatingIndicator(userRating: userRating),
-                        );
-                      },
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: Text(
-                        'Error fetching events. Please try again later.',
-                        style: AppColors.bodyStyle,
-                      ),
-                    ),
-                  ],
-                );
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Column(
-                  children: [
-                    FutureBuilder<double?>(
-                      future: userRatingFuture,
-                      builder: (context, ratingSnapshot) {
-                        double userRating = ratingSnapshot.data ?? 0;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: UserRatingIndicator(userRating: userRating),
-                        );
-                      },
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(40),
-                      child: Text(
-                        'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
-                        style: AppColors.bodyStyle,
-                      ),
-                    ),
-                  ],
-                );
-              } else {
-                List<String> eventIds = snapshot.data!;
-                return FutureBuilder<void>(
-                  future: checkEventsExistenceAndRSVP(eventIds),
-                  builder: (context, checkSnapshot) {
-                    if (checkSnapshot.connectionState ==
-                        ConnectionState.waiting) {
+                )
+              : FutureBuilder<List<String>>(
+                  future: userEventsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
                       return Column(
                         children: [
                           FutureBuilder<double?>(
@@ -323,75 +363,153 @@ class EventPageState extends State<EventPage> with RouteAware {
                           const CupertinoActivityIndicator(radius: 15),
                         ],
                       );
+                    } else if (snapshot.hasError) {
+                      return Column(
+                        children: [
+                          FutureBuilder<double?>(
+                            future: userRatingFuture,
+                            builder: (context, ratingSnapshot) {
+                              double userRating = ratingSnapshot.data ?? 0;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 20),
+                                child:
+                                    UserRatingIndicator(userRating: userRating),
+                              );
+                            },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(40),
+                            child: Text(
+                              'Error fetching events. Please try again later.',
+                              style: AppColors.bodyStyle,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Column(
+                        children: [
+                          FutureBuilder<double?>(
+                            future: userRatingFuture,
+                            builder: (context, ratingSnapshot) {
+                              double userRating = ratingSnapshot.data ?? 0;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 20),
+                                child:
+                                    UserRatingIndicator(userRating: userRating),
+                              );
+                            },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(40),
+                            child: Text(
+                              'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
+                              style: AppColors.bodyStyle,
+                            ),
+                          ),
+                        ],
+                      );
                     } else {
-                      if (existingEventIds.isEmpty) {
-                        return Column(
-                          children: [
-                            FutureBuilder<double?>(
-                              future: userRatingFuture,
-                              builder: (context, ratingSnapshot) {
-                                double userRating = ratingSnapshot.data ?? 0;
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 20),
-                                  child: UserRatingIndicator(
-                                      userRating: userRating),
-                                );
-                              },
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(40),
-                              child: Text(
-                                'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
-                                style: AppColors.bodyStyle,
-                              ),
-                            ),
-                          ],
-                        );
-                      } else {
-                        return Column(
-                          children: [
-                            FutureBuilder<double?>(
-                              future: userRatingFuture,
-                              builder: (context, ratingSnapshot) {
-                                double userRating = ratingSnapshot.data ?? 0;
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 20),
-                                  child: UserRatingIndicator(
-                                      userRating: userRating),
-                                );
-                              },
-                            ),
-                            Expanded(
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: existingEventIds.map((eventId) {
-                                    return FutureBuilder<double?>(
-                                      future: userRatingFuture,
-                                      builder: (context, ratingSnapshot) {
-                                        double userRating =
-                                            ratingSnapshot.data ?? 0;
-                                        return EventCard(
-                                          eventID: eventId,
-                                          userRating: userRating,
-                                          username: widget.username,
-                                        );
-                                      },
+                      List<String> eventIds = snapshot.data!;
+                      return FutureBuilder<void>(
+                        future: checkEventsExistenceAndRSVP(eventIds),
+                        builder: (context, checkSnapshot) {
+                          if (checkSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Column(
+                              children: [
+                                FutureBuilder<double?>(
+                                  future: userRatingFuture,
+                                  builder: (context, ratingSnapshot) {
+                                    double userRating =
+                                        ratingSnapshot.data ?? 0;
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 20),
+                                      child: UserRatingIndicator(
+                                          userRating: userRating),
                                     );
-                                  }).toList(),
+                                  },
                                 ),
-                              ),
-                            ),
-                          ],
-                        );
-                      }
+                                const CupertinoActivityIndicator(radius: 15),
+                              ],
+                            );
+                          } else {
+                            if (existingEventIds.isEmpty) {
+                              return Column(
+                                children: [
+                                  FutureBuilder<double?>(
+                                    future: userRatingFuture,
+                                    builder: (context, ratingSnapshot) {
+                                      double userRating =
+                                          ratingSnapshot.data ?? 0;
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 20),
+                                        child: UserRatingIndicator(
+                                            userRating: userRating),
+                                      );
+                                    },
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(40),
+                                    child: Text(
+                                      'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
+                                      style: AppColors.bodyStyle,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            } else {
+                              return Column(
+                                children: [
+                                  FutureBuilder<double?>(
+                                    future: userRatingFuture,
+                                    builder: (context, ratingSnapshot) {
+                                      double userRating =
+                                          ratingSnapshot.data ?? 0;
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 20),
+                                        child: UserRatingIndicator(
+                                            userRating: userRating),
+                                      );
+                                    },
+                                  ),
+                                  Expanded(
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children:
+                                            existingEventIds.map((eventId) {
+                                          return FutureBuilder<double?>(
+                                            future: userRatingFuture,
+                                            builder: (context, ratingSnapshot) {
+                                              double userRating =
+                                                  ratingSnapshot.data ?? 0;
+                                              return EventCard(
+                                                eventID: eventId,
+                                                userRating: userRating,
+                                                username: widget.username,
+                                              );
+                                            },
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                          }
+                        },
+                      );
                     }
                   },
-                );
-              }
-            },
-          ),
+                ),
         ),
       ),
       floatingActionButton: FutureBuilder<double?>(
