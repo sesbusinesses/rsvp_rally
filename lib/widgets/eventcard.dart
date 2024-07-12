@@ -47,6 +47,7 @@ class EventCardState extends State<EventCard> {
           eventDate = "${_monthToString(date.month)} ${date.day}";
         });
       }
+      print("Loaded event data for event: ${widget.eventID}");
     } else {
       log("Event not found");
       // Remove the event reference from the user's document
@@ -56,6 +57,7 @@ class EventCardState extends State<EventCard> {
           eventExists = false; // Mark the event as non-existent
         });
       }
+      print("Event does not exist: ${widget.eventID}");
     }
   }
 
@@ -100,6 +102,8 @@ class EventCardState extends State<EventCard> {
 
   @override
   Widget build(BuildContext context) {
+    print("Building EventCard for event: ${widget.eventID}");
+
     if (!eventExists) {
       return Container(); // Return an empty container if the event doesn't exist
     }

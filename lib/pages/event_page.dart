@@ -25,6 +25,7 @@ class EventPageState extends State<EventPage> with RouteAware {
   late Future<List<String>> userEventsFuture;
   List<String> existingEventIds = [];
   Map<String, DateTime?> eventStartTimes = {};
+  double userRating = 0;
   bool isLoading = false;
 
   @override
@@ -42,15 +43,86 @@ class EventPageState extends State<EventPage> with RouteAware {
       isLoading = true;
     });
 
-    final userRating = await getUserRating(widget.username);
-    final eventIds = await getUserEvents(widget.username);
-    await checkEventsExistenceAndRSVP(eventIds);
+    try {
+      print("Starting parallel data fetching...");
+      // Parallel data fetching
+      final results = await Future.wait([
+        getUserRating(widget.username),
+        getUserEvents(widget.username),
+      ]);
 
-    setState(() {
-      userRatingFuture = Future.value(userRating);
-      userEventsFuture = Future.value(existingEventIds);
-      isLoading = false;
-    });
+      final fetchedUserRating = results[0] as double?;
+      final eventIds = results[1] as List<String>;
+
+      setState(() {
+        userRating = fetchedUserRating ?? 0;
+        userRatingFuture = Future.value(userRating);
+        userEventsFuture = Future.value(eventIds);
+        isLoading = false;
+      });
+
+      print(
+          "Finished parallel data fetching. User rating: $userRating, Event IDs: ${eventIds.length}");
+
+      // Process all events and update the state once
+      List<String> tempEventIds = [];
+      Map<String, DateTime?> tempEventStartTimes = {};
+
+      for (String eventId in eventIds) {
+        print("Processing event: $eventId");
+        await processEvent(eventId, tempEventIds, tempEventStartTimes);
+        print("Event processed: $eventId");
+      }
+
+      setState(() {
+        existingEventIds = tempEventIds;
+        eventStartTimes = tempEventStartTimes;
+      });
+    } catch (e) {
+      log("Error in loadData: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> processEvent(String eventId, List<String> tempEventIds,
+      Map<String, DateTime?> tempEventStartTimes) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    try {
+      DocumentSnapshot eventDoc =
+          await firestore.collection('Events').doc(eventId).get();
+      if (eventDoc.exists) {
+        print("Event exists: $eventId");
+        String rsvpStatus = await isComing(eventId, widget.username);
+        if (rsvpStatus != 'no') {
+          DateTime? startTime = await getEventStartTime(eventId);
+          tempEventStartTimes[eventId] = startTime;
+          tempEventIds.add(eventId);
+          tempEventIds.sort((a, b) {
+            DateTime? startTimeA = tempEventStartTimes[a];
+            DateTime? startTimeB = tempEventStartTimes[b];
+            if (startTimeA == null && startTimeB == null) return 0;
+            if (startTimeA == null) return 1;
+            if (startTimeB == null) return -1;
+            return startTimeA.compareTo(startTimeB);
+          });
+          print(
+              "Added event: $eventId, RSVP status: $rsvpStatus, Start time: $startTime");
+        } else {
+          await _removeEventFromUserDoc(
+              widget.username, eventId, eventDoc['EventName'], false);
+          print("Removed event (RSVP no): $eventId");
+        }
+      } else {
+        await _removeEventFromUserDoc(
+            widget.username, eventId, "Unknown Event", true);
+        print("Removed event (does not exist): $eventId");
+      }
+    } catch (e) {
+      log("Error processing event $eventId: $e");
+    }
   }
 
   @override
@@ -84,6 +156,7 @@ class EventPageState extends State<EventPage> with RouteAware {
       }
 
       eventIds = List.from(userDoc.get('Events'));
+      print("Fetched user events: $eventIds");
       return eventIds;
     } catch (e) {
       log("Error fetching user events: $e");
@@ -104,6 +177,7 @@ class EventPageState extends State<EventPage> with RouteAware {
       }
 
       double? rating = userDoc.get('Rating');
+      print("Fetched user rating: $rating");
       return rating;
     } catch (e) {
       log("Error fetching user rating: $e");
@@ -151,42 +225,6 @@ class EventPageState extends State<EventPage> with RouteAware {
     }
   }
 
-  Future<void> checkEventsExistenceAndRSVP(List<String> eventIds) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    List<String> tempEventIds = [];
-    Map<String, DateTime?> tempEventStartTimes = {};
-    for (String eventId in eventIds) {
-      DocumentSnapshot eventDoc =
-          await firestore.collection('Events').doc(eventId).get();
-      if (eventDoc.exists) {
-        String rsvpStatus = await isComing(eventId, widget.username);
-        if (rsvpStatus != 'no') {
-          tempEventIds.add(eventId);
-          DateTime? startTime = await getEventStartTime(eventId);
-          tempEventStartTimes[eventId] = startTime;
-        } else {
-          await _removeEventFromUserDoc(
-              widget.username, eventId, eventDoc['EventName'], false);
-        }
-      } else {
-        await _removeEventFromUserDoc(
-            widget.username, eventId, "Unknown Event", true);
-      }
-    }
-
-    tempEventIds.sort((a, b) {
-      DateTime? startTimeA = tempEventStartTimes[a];
-      DateTime? startTimeB = tempEventStartTimes[b];
-      if (startTimeA == null && startTimeB == null) return 0;
-      if (startTimeA == null) return 1;
-      if (startTimeB == null) return -1;
-      return startTimeA.compareTo(startTimeB);
-    });
-
-    existingEventIds = tempEventIds;
-    eventStartTimes = tempEventStartTimes;
-  }
-
   Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     List<Map<String, dynamic>> timelineData = [];
@@ -231,6 +269,7 @@ class EventPageState extends State<EventPage> with RouteAware {
       }
     }
 
+    print("Fetched event start time for $eventID: $startTime");
     return startTime;
   }
 
@@ -282,6 +321,7 @@ class EventPageState extends State<EventPage> with RouteAware {
         }
 
         await batch.commit();
+        print("Removed event: $eventID from user $username's document.");
       } else {
         log("Event $eventID not found in user $username's events list");
       }
@@ -292,6 +332,7 @@ class EventPageState extends State<EventPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -410,117 +451,41 @@ class EventPageState extends State<EventPage> with RouteAware {
                         ],
                       );
                     } else {
-                      List<String> eventIds = snapshot.data!;
-                      return FutureBuilder<void>(
-                        future: checkEventsExistenceAndRSVP(eventIds),
-                        builder: (context, checkSnapshot) {
-                          if (checkSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return Column(
-                              children: [
-                                FutureBuilder<double?>(
-                                  future: userRatingFuture,
-                                  builder: (context, ratingSnapshot) {
-                                    double userRating =
-                                        ratingSnapshot.data ?? 0;
-                                    return Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 20),
-                                      child: UserRatingIndicator(
-                                          userRating: userRating),
-                                    );
-                                  },
-                                ),
-                                const CupertinoActivityIndicator(radius: 15),
-                              ],
-                            );
-                          } else {
-                            if (existingEventIds.isEmpty) {
-                              return Column(
-                                children: [
-                                  FutureBuilder<double?>(
-                                    future: userRatingFuture,
-                                    builder: (context, ratingSnapshot) {
-                                      double userRating =
-                                          ratingSnapshot.data ?? 0;
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 20),
-                                        child: UserRatingIndicator(
-                                            userRating: userRating),
-                                      );
-                                    },
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(40),
-                                    child: Text(
-                                      'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
-                                      style: AppColors.bodyStyle,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            } else {
-                              return Column(
-                                children: [
-                                  FutureBuilder<double?>(
-                                    future: userRatingFuture,
-                                    builder: (context, ratingSnapshot) {
-                                      double userRating =
-                                          ratingSnapshot.data ?? 0;
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 20),
-                                        child: UserRatingIndicator(
-                                            userRating: userRating),
-                                      );
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: SingleChildScrollView(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children:
-                                            existingEventIds.map((eventId) {
-                                          return FutureBuilder<double?>(
-                                            future: userRatingFuture,
-                                            builder: (context, ratingSnapshot) {
-                                              double userRating =
-                                                  ratingSnapshot.data ?? 0;
-                                              return EventCard(
-                                                eventID: eventId,
-                                                userRating: userRating,
-                                                username: widget.username,
-                                              );
-                                            },
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-                          }
-                        },
+                      print(
+                          "Rendering event cards for ${existingEventIds.length} events.");
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: UserRatingIndicator(userRating: userRating),
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: screenSize.width * 0.075),
+                              itemCount: existingEventIds.length,
+                              itemBuilder: (context, index) {
+                                String eventId = existingEventIds[index];
+                                print(
+                                    "Rendering event card for event: $eventId");
+                                return EventCard(
+                                  eventID: eventId,
+                                  userRating: userRating,
+                                  username: widget.username,
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       );
                     }
                   },
                 ),
         ),
       ),
-      floatingActionButton: FutureBuilder<double?>(
-        future: userRatingFuture,
-        builder: (context, snapshot) {
-          double userRating = snapshot.data ?? 0;
-          return CreateEventButton(
-            userRating: userRating,
-            username: widget.username,
-          );
-        },
+      floatingActionButton: CreateEventButton(
+        userRating: userRating,
+        username: widget.username,
       ),
     );
   }
