@@ -108,7 +108,7 @@ class _BottomNavState extends State<BottomNav> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 60, // Adjust height if needed
+      height: 80, // Adjust height if needed
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(
