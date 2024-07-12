@@ -44,8 +44,8 @@ class EventPageState extends State<EventPage> with RouteAware {
     });
 
     try {
-      print("Starting parallel data fetching...");
       // Parallel data fetching
+
       final results = await Future.wait([
         getUserRating(widget.username),
         getUserEvents(widget.username),
@@ -61,17 +61,12 @@ class EventPageState extends State<EventPage> with RouteAware {
         isLoading = false;
       });
 
-      print(
-          "Finished parallel data fetching. User rating: $userRating, Event IDs: ${eventIds.length}");
-
       // Process all events and update the state once
       List<String> tempEventIds = [];
       Map<String, DateTime?> tempEventStartTimes = {};
 
       for (String eventId in eventIds) {
-        print("Processing event: $eventId");
         await processEvent(eventId, tempEventIds, tempEventStartTimes);
-        print("Event processed: $eventId");
       }
 
       setState(() {
@@ -94,7 +89,6 @@ class EventPageState extends State<EventPage> with RouteAware {
       DocumentSnapshot eventDoc =
           await firestore.collection('Events').doc(eventId).get();
       if (eventDoc.exists) {
-        print("Event exists: $eventId");
         String rsvpStatus = await isComing(eventId, widget.username);
         if (rsvpStatus != 'no') {
           DateTime? startTime = await getEventStartTime(eventId);
@@ -108,17 +102,13 @@ class EventPageState extends State<EventPage> with RouteAware {
             if (startTimeB == null) return -1;
             return startTimeA.compareTo(startTimeB);
           });
-          print(
-              "Added event: $eventId, RSVP status: $rsvpStatus, Start time: $startTime");
         } else {
           await _removeEventFromUserDoc(
               widget.username, eventId, eventDoc['EventName'], false);
-          print("Removed event (RSVP no): $eventId");
         }
       } else {
         await _removeEventFromUserDoc(
             widget.username, eventId, "Unknown Event", true);
-        print("Removed event (does not exist): $eventId");
       }
     } catch (e) {
       log("Error processing event $eventId: $e");
@@ -156,7 +146,6 @@ class EventPageState extends State<EventPage> with RouteAware {
       }
 
       eventIds = List.from(userDoc.get('Events'));
-      print("Fetched user events: $eventIds");
       return eventIds;
     } catch (e) {
       log("Error fetching user events: $e");
@@ -177,7 +166,6 @@ class EventPageState extends State<EventPage> with RouteAware {
       }
 
       double? rating = userDoc.get('Rating');
-      print("Fetched user rating: $rating");
       return rating;
     } catch (e) {
       log("Error fetching user rating: $e");
@@ -269,7 +257,6 @@ class EventPageState extends State<EventPage> with RouteAware {
       }
     }
 
-    print("Fetched event start time for $eventID: $startTime");
     return startTime;
   }
 
@@ -321,7 +308,6 @@ class EventPageState extends State<EventPage> with RouteAware {
         }
 
         await batch.commit();
-        print("Removed event: $eventID from user $username's document.");
       } else {
         log("Event $eventID not found in user $username's events list");
       }
@@ -451,8 +437,6 @@ class EventPageState extends State<EventPage> with RouteAware {
                         ],
                       );
                     } else {
-                      print(
-                          "Rendering event cards for ${existingEventIds.length} events.");
                       return Column(
                         children: [
                           Padding(
@@ -466,8 +450,6 @@ class EventPageState extends State<EventPage> with RouteAware {
                               itemCount: existingEventIds.length,
                               itemBuilder: (context, index) {
                                 String eventId = existingEventIds[index];
-                                print(
-                                    "Rendering event card for event: $eventId");
                                 return EventCard(
                                   eventID: eventId,
                                   userRating: userRating,
