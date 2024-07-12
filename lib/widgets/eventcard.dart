@@ -47,17 +47,14 @@ class EventCardState extends State<EventCard> {
           eventDate = "${_monthToString(date.month)} ${date.day}";
         });
       }
-      print("Loaded event data for event: ${widget.eventID}");
     } else {
       log("Event not found");
-      // Remove the event reference from the user's document
       await _removeEventFromUserDoc(widget.username, widget.eventID);
       if (mounted) {
         setState(() {
-          eventExists = false; // Mark the event as non-existent
+          eventExists = false;
         });
       }
-      print("Event does not exist: ${widget.eventID}");
     }
   }
 
@@ -102,10 +99,8 @@ class EventCardState extends State<EventCard> {
 
   @override
   Widget build(BuildContext context) {
-    print("Building EventCard for event: ${widget.eventID}");
-
     if (!eventExists) {
-      return Container(); // Return an empty container if the event doesn't exist
+      return Container();
     }
 
     Size screenSize = MediaQuery.of(context).size;
@@ -127,9 +122,9 @@ class EventCardState extends State<EventCard> {
         },
         child: Container(
           width: screenSize.width * 0.85,
-          height: 100, // Increased height for better aesthetics
+          height: 100,
           decoration: BoxDecoration(
-            color: AppColors.light, // Dark background color
+            color: AppColors.light,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
               color: getInterpolatedColor(widget.userRating),
@@ -151,7 +146,7 @@ class EventCardState extends State<EventCard> {
                 EventImageDisplay(
                     eventID: widget.eventID,
                     rating: widget.userRating,
-                    clickable: false), // New widget
+                    clickable: false),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -160,7 +155,7 @@ class EventCardState extends State<EventCard> {
                       width: screenSize.width * 0.4,
                       child: Text(
                         eventName,
-                        style: AppColors.titleStyle, // Light text color
+                        style: AppColors.titleStyle,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
