@@ -26,12 +26,13 @@ class EventPageState extends State<EventPage> with RouteAware {
   List<String> existingEventIds = [];
   Map<String, DateTime?> eventStartTimes = {};
   bool isLoading = false;
+  double userRating = 0;
 
   @override
   void initState() {
     super.initState();
-    userRatingFuture = Future.value(null); // Initialize with a default value
-    userEventsFuture = Future.value([]); // Initialize with a default value
+    userRatingFuture = Future.value(null);
+    userEventsFuture = Future.value([]);
     loadData();
     requestPermission(context);
     enableLocationTracking(widget.username, context);
@@ -42,15 +43,28 @@ class EventPageState extends State<EventPage> with RouteAware {
       isLoading = true;
     });
 
-    final userRating = await getUserRating(widget.username);
-    final eventIds = await getUserEvents(widget.username);
-    await checkEventsExistenceAndRSVP(eventIds);
+    try {
+      final results = await Future.wait([
+        getUserRating(widget.username),
+        getUserEvents(widget.username),
+      ]);
 
-    setState(() {
-      userRatingFuture = Future.value(userRating);
-      userEventsFuture = Future.value(existingEventIds);
-      isLoading = false;
-    });
+      userRating = results[0] as double;
+      final eventIds = results[1] as List<String>;
+
+      await checkEventsExistenceAndRSVP(eventIds);
+
+      setState(() {
+        userRatingFuture = Future.value(userRating);
+        userEventsFuture = Future.value(existingEventIds);
+        isLoading = false;
+      });
+    } catch (e) {
+      log("Error in loadData: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -91,7 +105,7 @@ class EventPageState extends State<EventPage> with RouteAware {
     }
   }
 
-  Future<double?> getUserRating(String username) async {
+  Future<double> getUserRating(String username) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     try {
@@ -100,14 +114,14 @@ class EventPageState extends State<EventPage> with RouteAware {
 
       if (!userDoc.exists) {
         log("No user found with username $username");
-        return null;
+        return 0.5;
       }
 
-      double? rating = userDoc.get('Rating');
+      double rating = userDoc.get('Rating');
       return rating;
     } catch (e) {
       log("Error fetching user rating: $e");
-      return null;
+      return 0.5;
     }
   }
 
@@ -155,36 +169,43 @@ class EventPageState extends State<EventPage> with RouteAware {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     List<String> tempEventIds = [];
     Map<String, DateTime?> tempEventStartTimes = {};
-    for (String eventId in eventIds) {
-      DocumentSnapshot eventDoc =
-          await firestore.collection('Events').doc(eventId).get();
-      if (eventDoc.exists) {
-        String rsvpStatus = await isComing(eventId, widget.username);
-        if (rsvpStatus != 'no') {
-          tempEventIds.add(eventId);
-          DateTime? startTime = await getEventStartTime(eventId);
-          tempEventStartTimes[eventId] = startTime;
+
+    try {
+      List<Future<void>> futures = eventIds.map((eventId) async {
+        DocumentSnapshot eventDoc =
+            await firestore.collection('Events').doc(eventId).get();
+        if (eventDoc.exists) {
+          String rsvpStatus = await isComing(eventId, widget.username);
+          if (rsvpStatus != 'no') {
+            tempEventIds.add(eventId);
+            DateTime? startTime = await getEventStartTime(eventId);
+            tempEventStartTimes[eventId] = startTime;
+          } else {
+            await _removeEventFromUserDoc(
+                widget.username, eventId, eventDoc['EventName'], false);
+          }
         } else {
           await _removeEventFromUserDoc(
-              widget.username, eventId, eventDoc['EventName'], false);
+              widget.username, eventId, "Unknown Event", true);
         }
-      } else {
-        await _removeEventFromUserDoc(
-            widget.username, eventId, "Unknown Event", true);
-      }
+      }).toList();
+
+      await Future.wait(futures);
+
+      tempEventIds.sort((a, b) {
+        DateTime? startTimeA = tempEventStartTimes[a];
+        DateTime? startTimeB = tempEventStartTimes[b];
+        if (startTimeA == null && startTimeB == null) return 0;
+        if (startTimeA == null) return 1;
+        if (startTimeB == null) return -1;
+        return startTimeA.compareTo(startTimeB);
+      });
+
+      existingEventIds = tempEventIds;
+      eventStartTimes = tempEventStartTimes;
+    } catch (e) {
+      log("Error in checkEventsExistenceAndRSVP: $e");
     }
-
-    tempEventIds.sort((a, b) {
-      DateTime? startTimeA = tempEventStartTimes[a];
-      DateTime? startTimeB = tempEventStartTimes[b];
-      if (startTimeA == null && startTimeB == null) return 0;
-      if (startTimeA == null) return 1;
-      if (startTimeB == null) return -1;
-      return startTimeA.compareTo(startTimeB);
-    });
-
-    existingEventIds = tempEventIds;
-    eventStartTimes = tempEventStartTimes;
   }
 
   Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
@@ -230,7 +251,6 @@ class EventPageState extends State<EventPage> with RouteAware {
         }
       }
     }
-
     return startTime;
   }
 
@@ -292,6 +312,7 @@ class EventPageState extends State<EventPage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -410,117 +431,39 @@ class EventPageState extends State<EventPage> with RouteAware {
                         ],
                       );
                     } else {
-                      List<String> eventIds = snapshot.data!;
-                      return FutureBuilder<void>(
-                        future: checkEventsExistenceAndRSVP(eventIds),
-                        builder: (context, checkSnapshot) {
-                          if (checkSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return Column(
-                              children: [
-                                FutureBuilder<double?>(
-                                  future: userRatingFuture,
-                                  builder: (context, ratingSnapshot) {
-                                    double userRating =
-                                        ratingSnapshot.data ?? 0;
-                                    return Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 20),
-                                      child: UserRatingIndicator(
-                                          userRating: userRating),
-                                    );
-                                  },
-                                ),
-                                const CupertinoActivityIndicator(radius: 15),
-                              ],
-                            );
-                          } else {
-                            if (existingEventIds.isEmpty) {
-                              return Column(
-                                children: [
-                                  FutureBuilder<double?>(
-                                    future: userRatingFuture,
-                                    builder: (context, ratingSnapshot) {
-                                      double userRating =
-                                          ratingSnapshot.data ?? 0;
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 20),
-                                        child: UserRatingIndicator(
-                                            userRating: userRating),
-                                      );
-                                    },
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(40),
-                                    child: Text(
-                                      'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
-                                      style: AppColors.bodyStyle,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            } else {
-                              return Column(
-                                children: [
-                                  FutureBuilder<double?>(
-                                    future: userRatingFuture,
-                                    builder: (context, ratingSnapshot) {
-                                      double userRating =
-                                          ratingSnapshot.data ?? 0;
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 20),
-                                        child: UserRatingIndicator(
-                                            userRating: userRating),
-                                      );
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: SingleChildScrollView(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children:
-                                            existingEventIds.map((eventId) {
-                                          return FutureBuilder<double?>(
-                                            future: userRatingFuture,
-                                            builder: (context, ratingSnapshot) {
-                                              double userRating =
-                                                  ratingSnapshot.data ?? 0;
-                                              return EventCard(
-                                                eventID: eventId,
-                                                userRating: userRating,
-                                                username: widget.username,
-                                              );
-                                            },
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-                          }
-                        },
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: UserRatingIndicator(userRating: userRating),
+                          ),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: screenSize.width * 0.075),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: existingEventIds.map((eventId) {
+                                  return EventCard(
+                                    eventID: eventId,
+                                    userRating: userRating,
+                                    username: widget.username,
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     }
                   },
                 ),
         ),
       ),
-      floatingActionButton: FutureBuilder<double?>(
-        future: userRatingFuture,
-        builder: (context, snapshot) {
-          double userRating = snapshot.data ?? 0;
-          return CreateEventButton(
-            userRating: userRating,
-            username: widget.username,
-          );
-        },
+      floatingActionButton: CreateEventButton(
+        userRating: userRating,
+        username: widget.username,
       ),
     );
   }
