@@ -22,7 +22,7 @@ class WideTextBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         child: TextFormField(
           controller: controller,
           onChanged: onChanged,

@@ -51,7 +51,9 @@ class _BottomNavState extends State<BottomNav> {
 
   void _onItemTapped(int index) {
     if (index != widget.selectedIndex) {
-      final direction = index > widget.selectedIndex ? AxisDirection.right : AxisDirection.left;
+      final direction = index > widget.selectedIndex
+          ? AxisDirection.right
+          : AxisDirection.left;
 
       Navigator.pushReplacement(
         context,
@@ -93,7 +95,12 @@ class _BottomNavState extends State<BottomNav> {
             const end = Offset.zero;
             const curve = Curves.easeInOut;
 
-            var tween = Tween(begin: direction == AxisDirection.right ? begin : Offset(-1.0, 0.0), end: end).chain(CurveTween(curve: curve));
+            var tween = Tween(
+                    begin: direction == AxisDirection.right
+                        ? begin
+                        : Offset(-1.0, 0.0),
+                    end: end)
+                .chain(CurveTween(curve: curve));
 
             return SlideTransition(
               position: animation.drive(tween),
@@ -125,54 +132,73 @@ class _BottomNavState extends State<BottomNav> {
             icon: Icons.document_scanner,
             index: 0,
             selected: widget.selectedIndex == 0,
+            spacing: 8.0, // Adjust this value as needed
           ),
           _buildNavItem(
             icon: Icons.bar_chart,
             index: 1,
             selected: widget.selectedIndex == 1,
+            spacing: 8.0, // Adjust this value as needed
           ),
           _buildNavItem(
             icon: Icons.chat,
             index: 2,
             selected: widget.selectedIndex == 2,
+            spacing: 8.0, // Adjust this value as needed
           ),
           if (isHost)
             _buildNavItem(
               icon: Icons.edit,
               index: 3,
               selected: widget.selectedIndex == 3,
+              spacing: 8.0, // Adjust this value as needed
             ),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(
-      {required IconData icon, required int index, required bool selected}) {
+  Widget _buildNavItem({
+    required IconData icon,
+    required int index,
+    required bool selected,
+    double spacing = 16.0, // Default spacing value
+  }) {
     return GestureDetector(
       onTap: () => _onItemTapped(index),
-      child: Stack(
-        alignment: Alignment.center,
-        clipBehavior: Clip.none,
-        children: [
-          if (selected)
-            Positioned(
-              top: -12, // Adjust as necessary
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: getInterpolatedColor(widget.rating),
-                  shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            vertical: 8.0, horizontal: 16.0), // Increase the clickable area
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(height: spacing), // Adjustable spacing
+            Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                if (selected)
+                  Positioned(
+                    top: -12, // Adjust as necessary
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: getInterpolatedColor(widget.rating),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                Icon(
+                  icon,
+                  size: 24,
+                  color: selected ? Colors.grey[900] : Colors.grey[500],
                 ),
-              ),
+              ],
             ),
-          Icon(
-            icon,
-            size: 24,
-            color: selected ? Colors.grey[900] : Colors.grey[500],
-          ),
-        ],
+            Spacer(), // Pushes the icon to the top half
+          ],
+        ),
       ),
     );
   }

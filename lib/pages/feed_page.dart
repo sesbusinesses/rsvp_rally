@@ -7,15 +7,11 @@ class FeedPage extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'My Feed',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
         ),
         Expanded(
           child: Center(
             child: Text(
-              'Feed Content Here',
+              'Feed Content Coming Soon!',
               style: TextStyle(fontSize: 18),
             ),
           ),

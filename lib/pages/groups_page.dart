@@ -6,7 +6,7 @@ class GroupsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'Groups Page',
+        'Groups Page Coming Soon!',
         style: AppColors.bodyStyle,
       ),
     );

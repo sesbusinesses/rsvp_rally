@@ -18,7 +18,7 @@ class AddFriendsButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         child: IconButton(
           icon: Icon(Icons.person_add),
           onPressed: onPressed,
