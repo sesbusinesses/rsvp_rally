@@ -341,6 +341,20 @@ class CreateEventPageState extends State<CreateEventPage> {
         title: Text('Create New Event', style: AppColors.topStyle),
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
+        actions: <Widget>[
+          Padding(
+              padding: const EdgeInsets.only(right: 0, bottom: 16),
+              child: IconButton(
+                iconSize: 50,
+                icon: Icon(
+                  Icons.check_circle,
+                  color: getInterpolatedColor(widget.rating),
+                ),
+                onPressed: () {
+                  createEvent();
+                },
+              )),
+        ],
       ),
       body: GestureDetector(
         onTap: () {
@@ -350,7 +364,7 @@ class CreateEventPageState extends State<CreateEventPage> {
           children: [
             SingleChildScrollView(
               padding: const EdgeInsets.only(
-                  bottom: 70), // Add bottom padding to avoid overlap
+                  bottom: 20), // Add bottom padding to avoid overlap
               child: Center(
                 child: Padding(
                   padding:
@@ -443,26 +457,26 @@ class CreateEventPageState extends State<CreateEventPage> {
                           });
                         },
                       ),
-                      const SizedBox(
-                          height:
-                              80), // Add some space at the bottom for better visibility
+                      // const SizedBox(
+                      //     height:
+                      //         80), // Add some space at the bottom for better visibility
                     ],
                   ),
                 ),
               ),
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                height: 100,
-                child: WideButton(
-                  rating: widget.rating,
-                  buttonText: 'Create Event',
-                  onPressed: createEvent,
-                ),
-              ),
-            ),
+            // Align(
+            //   alignment: Alignment.bottomCenter,
+            //   child: Container(
+            //     padding: const EdgeInsets.all(20),
+            //     height: 100,
+            //     child: WideButton(
+            //       rating: widget.rating,
+            //       buttonText: 'Create Event',
+            //       onPressed: createEvent,
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
