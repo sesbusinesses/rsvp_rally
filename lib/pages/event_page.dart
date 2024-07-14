@@ -4,7 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/route_observer.dart';
+import 'package:rsvp_rally/pages/feed_page.dart';
 import 'package:rsvp_rally/widgets/create_event_button.dart';
+import 'package:rsvp_rally/widgets/custom_switcher.dart';
 import 'package:rsvp_rally/widgets/eventcard.dart';
 import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
 import 'package:rsvp_rally/widgets/view_friends_button.dart';
@@ -20,12 +22,15 @@ class EventPage extends StatefulWidget {
   EventPageState createState() => EventPageState();
 }
 
-class EventPageState extends State<EventPage> with RouteAware {
+class EventPageState extends State<EventPage> with SingleTickerProviderStateMixin, RouteAware {
+  int _selectedIndex = 0;
   late Future<double?> userRatingFuture;
   late Future<List<String>> userEventsFuture;
   List<String> existingEventIds = [];
   Map<String, DateTime?> eventStartTimes = {};
   bool isLoading = false;
+  late AnimationController _animationController;
+  late Animation<Offset> _slideAnimation;
   double userRating = 0;
 
   @override
@@ -36,6 +41,14 @@ class EventPageState extends State<EventPage> with RouteAware {
     loadData();
     requestPermission(context);
     enableLocationTracking(widget.username, context);
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: Offset.zero,
+    ).animate(_animationController);
   }
 
   void loadData() async {
@@ -310,14 +323,39 @@ class EventPageState extends State<EventPage> with RouteAware {
     }
   }
 
+  void _onTabChanged(int index) {
+    if (index != _selectedIndex) {
+      _slideAnimation = Tween<Offset>(
+        begin: index > _selectedIndex ? Offset(1.0, 0.0) : Offset(-1.0, 0.0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ));
+      setState(() {
+        _selectedIndex = index;
+      });
+      _animationController.forward(from: 0.0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'RSVP Rally',
-          style: AppColors.topStyle,
+        title: FutureBuilder<double?>(
+          future: userRatingFuture,
+          builder: (context, snapshot) {
+            double userRating = snapshot.data ?? 0;
+            return CustomTabSwitcher(
+              tabs: ['Events', 'My Feed'],
+              selectedIndex: _selectedIndex,
+              onTabChanged: _onTabChanged,
+              userRating: userRating,
+              padding: const EdgeInsets.only(top: 8.0), // Adjust padding as needed
+            );
+          },
         ),
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
@@ -364,107 +402,206 @@ class EventPageState extends State<EventPage> with RouteAware {
                     const CupertinoActivityIndicator(radius: 15),
                   ],
                 )
-              : FutureBuilder<List<String>>(
-                  future: userEventsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Column(
-                        children: [
-                          FutureBuilder<double?>(
-                            future: userRatingFuture,
-                            builder: (context, ratingSnapshot) {
-                              double userRating = ratingSnapshot.data ?? 0;
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 20),
-                                child:
-                                    UserRatingIndicator(userRating: userRating),
+              : SlideTransition(
+                  position: _slideAnimation,
+                  child: _selectedIndex == 0
+                      ? FutureBuilder<List<String>>(
+                          future: userEventsFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Column(
+                                children: [
+                                  FutureBuilder<double?>(
+                                    future: userRatingFuture,
+                                    builder: (context, ratingSnapshot) {
+                                      double userRating =
+                                          ratingSnapshot.data ?? 0;
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 20),
+                                        child: UserRatingIndicator(
+                                            userRating: userRating),
+                                      );
+                                    },
+                                  ),
+                                  const CupertinoActivityIndicator(radius: 15),
+                                ],
                               );
-                            },
-                          ),
-                          const CupertinoActivityIndicator(radius: 15),
-                        ],
-                      );
-                    } else if (snapshot.hasError) {
-                      return Column(
-                        children: [
-                          FutureBuilder<double?>(
-                            future: userRatingFuture,
-                            builder: (context, ratingSnapshot) {
-                              double userRating = ratingSnapshot.data ?? 0;
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 20),
-                                child:
-                                    UserRatingIndicator(userRating: userRating),
+                            } else if (snapshot.hasError) {
+                              return Column(
+                                children: [
+                                  FutureBuilder<double?>(
+                                    future: userRatingFuture,
+                                    builder: (context, ratingSnapshot) {
+                                      double userRating =
+                                          ratingSnapshot.data ?? 0;
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 20),
+                                        child: UserRatingIndicator(
+                                            userRating: userRating),
+                                      );
+                                    },
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(40),
+                                    child: Text(
+                                      'Error fetching events. Please try again later.',
+                                      style: AppColors.bodyStyle,
+                                    ),
+                                  ),
+                                ],
                               );
-                            },
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(40),
-                            child: Text(
-                              'Error fetching events. Please try again later.',
-                              style: AppColors.bodyStyle,
-                            ),
-                          ),
-                        ],
-                      );
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Column(
-                        children: [
-                          FutureBuilder<double?>(
-                            future: userRatingFuture,
-                            builder: (context, ratingSnapshot) {
-                              double userRating = ratingSnapshot.data ?? 0;
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 20),
-                                child:
-                                    UserRatingIndicator(userRating: userRating),
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return Column(
+                                children: [
+                                  FutureBuilder<double?>(
+                                    future: userRatingFuture,
+                                    builder: (context, ratingSnapshot) {
+                                      double userRating =
+                                          ratingSnapshot.data ?? 0;
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 20),
+                                        child: UserRatingIndicator(
+                                            userRating: userRating),
+                                      );
+                                    },
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(40),
+                                    child: Text(
+                                      'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
+                                      style: AppColors.bodyStyle,
+                                    ),
+                                  ),
+                                ],
                               );
-                            },
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(40),
-                            child: Text(
-                              'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
-                              style: AppColors.bodyStyle,
-                            ),
-                          ),
-                        ],
-                      );
-                    } else {
-                      return Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 20),
-                            child: UserRatingIndicator(userRating: userRating),
-                          ),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: screenSize.width * 0.075),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: existingEventIds.map((eventId) {
-                                  return EventCard(
-                                    eventID: eventId,
-                                    userRating: userRating,
-                                    username: widget.username,
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-                  },
+                            } else {
+                              List<String> eventIds = snapshot.data!;
+                              return FutureBuilder<void>(
+                                future: checkEventsExistenceAndRSVP(eventIds),
+                                builder: (context, checkSnapshot) {
+                                  if (checkSnapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Column(
+                                      children: [
+                                        FutureBuilder<double?>(
+                                          future: userRatingFuture,
+                                          builder: (context, ratingSnapshot) {
+                                            double userRating =
+                                                ratingSnapshot.data ?? 0;
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 20),
+                                              child: UserRatingIndicator(
+                                                  userRating: userRating),
+                                            );
+                                          },
+                                        ),
+                                        const CupertinoActivityIndicator(
+                                            radius: 15),
+                                      ],
+                                    );
+                                  } else {
+                                    if (existingEventIds.isEmpty) {
+                                      return Column(
+                                        children: [
+                                          FutureBuilder<double?>(
+                                            future: userRatingFuture,
+                                            builder: (context, ratingSnapshot) {
+                                              double userRating =
+                                                  ratingSnapshot.data ?? 0;
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 20),
+                                                child: UserRatingIndicator(
+                                                    userRating: userRating),
+                                              );
+                                            },
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(40),
+                                            child: Text(
+                                              'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
+                                              style: AppColors.bodyStyle,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    } else {
+                                      return Column(
+                                        children: [
+                                          FutureBuilder<double?>(
+                                            future: userRatingFuture,
+                                            builder: (context, ratingSnapshot) {
+                                              double userRating =
+                                                  ratingSnapshot.data ?? 0;
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 20),
+                                                child: UserRatingIndicator(
+                                                    userRating: userRating),
+                                              );
+                                            },
+                                          ),
+                                          Expanded(
+                                            child: SingleChildScrollView(
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: existingEventIds
+                                                    .map((eventId) {
+                                                  return FutureBuilder<
+                                                      double?>(
+                                                    future: userRatingFuture,
+                                                    builder: (context,
+                                                        ratingSnapshot) {
+                                                      double userRating =
+                                                          ratingSnapshot
+                                                                  .data ??
+                                                              0;
+                                                      return EventCard(
+                                                        eventID: eventId,
+                                                        userRating: userRating,
+                                                        username:
+                                                            widget.username,
+                                                      );
+                                                    },
+                                                  );
+                                                }).toList(),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                  }
+                                },
+                              );
+                            }
+                          },
+                        )
+                      : FeedPage(),
                 ),
         ),
       ),
-      floatingActionButton: CreateEventButton(
-        userRating: userRating,
-        username: widget.username,
-      ),
+      floatingActionButton: _selectedIndex == 0
+          ? FutureBuilder<double?>(
+              future: userRatingFuture,
+              builder: (context, snapshot) {
+                double userRating = snapshot.data ?? 0;
+                return CreateEventButton(
+                  userRating: userRating,
+                  username: widget.username,
+                );
+              },
+            )
+          : null,
     );
   }
 }
