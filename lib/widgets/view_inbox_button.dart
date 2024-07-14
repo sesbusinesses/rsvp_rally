@@ -22,40 +22,50 @@ class ViewInboxButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double leftPadding = 10;
+    double topPadding = 10;
     return FutureBuilder<DocumentSnapshot>(
       future:
           FirebaseFirestore.instance.collection('Users').doc(username).get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Icon(
-            Icons.mark_email_read_rounded,
-            color: getInterpolatedColor(userRating),
-            size: 50,
-          );
+          return Padding(
+              padding: EdgeInsets.only(left: leftPadding, top: topPadding),
+              child: Icon(
+                Icons.mark_email_read_rounded,
+                color: getInterpolatedColor(userRating),
+                size: 50,
+              ));
         } else if (snapshot.hasError) {
-          return Icon(
-            Icons.error,
-            color: getInterpolatedColor(userRating),
-            size: 50,
-          );
+          return Padding(
+              padding: EdgeInsets.only(left: leftPadding, top: topPadding),
+              child: Icon(
+                Icons.error,
+                color: getInterpolatedColor(userRating),
+                size: 50,
+              ));
         } else if (!snapshot.hasData || !snapshot.data!.exists) {
-          return Icon(
-            Icons.mark_email_read_rounded,
-            color: getInterpolatedColor(userRating),
-            size: 50,
-          );
+          return Padding(
+              padding: EdgeInsets.only(left: leftPadding, top: topPadding),
+              child: Icon(
+                Icons.mark_email_read_rounded,
+                color: getInterpolatedColor(userRating),
+                size: 50,
+              ));
         } else {
           DocumentSnapshot hostDoc = snapshot.data!;
           bool newMessages = hostDoc['NewMessages'] ?? false;
-          return IconButton(
-            iconSize: 50,
-            icon: Icon(
-              newMessages
-                  ? Icons.mark_email_unread_rounded
-                  : Icons.mark_email_read_rounded,
-              color: getInterpolatedColor(userRating),
-            ),
-            onPressed: () {
+          return GestureDetector(
+            child: Padding(
+                padding: EdgeInsets.only(left: leftPadding, top: topPadding),
+                child: Icon(
+                  newMessages
+                      ? Icons.mark_email_unread_rounded
+                      : Icons.mark_email_read_rounded,
+                  color: getInterpolatedColor(userRating),
+                  size: 50,
+                )),
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
