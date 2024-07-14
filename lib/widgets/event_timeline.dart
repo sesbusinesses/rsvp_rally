@@ -15,11 +15,12 @@ class EventTimeline extends StatelessWidget {
   final String eventID;
   final String username;
 
-  const EventTimeline(
-      {super.key,
-      required this.eventID,
-      required this.rating,
-      required this.username});
+  const EventTimeline({
+    super.key,
+    required this.eventID,
+    required this.rating,
+    required this.username,
+  });
 
   Future<bool> hasRSVPdYes(String phaseName) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -51,50 +52,51 @@ class EventTimeline extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData && snapshot.data!.isNotEmpty) {
             var timelineData = snapshot.data!;
-            return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final int phaseIndex = index ~/ 2;
-                  final bool isStartNode = index % 2 == 0;
-                  if (phaseIndex < timelineData.length) {
-                    final data = timelineData[phaseIndex];
-                    return FutureBuilder<bool>(
-                      future: hasRSVPdYes(data['phaseName']),
-                      builder: (context, rsvpSnapshot) {
-                        if (rsvpSnapshot.connectionState ==
-                            ConnectionState.done) {
-                          bool rsvpYes = rsvpSnapshot.data ?? false;
-                          return buildTimelineTile(data, phaseIndex,
-                              timelineData.length, isStartNode, false, rsvpYes);
-                        } else {
-                          return const Center(
-                              child: CupertinoActivityIndicator(radius: 15));
-                        }
-                      },
-                    );
-                  } else {
-                    final lastData = timelineData.last;
-                    return FutureBuilder<bool>(
-                      future: hasRSVPdYes(lastData['phaseName']),
-                      builder: (context, rsvpSnapshot) {
-                        if (rsvpSnapshot.connectionState ==
-                            ConnectionState.done) {
-                          bool rsvpYes = rsvpSnapshot.data ?? false;
-                          return buildTimelineTile(lastData, phaseIndex,
-                              timelineData.length, false, true, rsvpYes);
-                        } else {
-                          return const Center(
-                              child: CupertinoActivityIndicator(radius: 15));
-                        }
-                      },
-                    );
-                  }
-                },
-                childCount: timelineData.length * 2 + 1,
-              ),
+            return ListView.builder(
+              physics:
+                  const NeverScrollableScrollPhysics(), // Disable inner scrolling
+              shrinkWrap: true,
+              itemCount: timelineData.length * 2 + 1,
+              itemBuilder: (context, index) {
+                final int phaseIndex = index ~/ 2;
+                final bool isStartNode = index % 2 == 0;
+                if (phaseIndex < timelineData.length) {
+                  final data = timelineData[phaseIndex];
+                  return FutureBuilder<bool>(
+                    future: hasRSVPdYes(data['phaseName']),
+                    builder: (context, rsvpSnapshot) {
+                      if (rsvpSnapshot.connectionState ==
+                          ConnectionState.done) {
+                        bool rsvpYes = rsvpSnapshot.data ?? false;
+                        return buildTimelineTile(data, phaseIndex,
+                            timelineData.length, isStartNode, false, rsvpYes);
+                      } else {
+                        return const Center(
+                            child: CupertinoActivityIndicator(radius: 15));
+                      }
+                    },
+                  );
+                } else {
+                  final lastData = timelineData.last;
+                  return FutureBuilder<bool>(
+                    future: hasRSVPdYes(lastData['phaseName']),
+                    builder: (context, rsvpSnapshot) {
+                      if (rsvpSnapshot.connectionState ==
+                          ConnectionState.done) {
+                        bool rsvpYes = rsvpSnapshot.data ?? false;
+                        return buildTimelineTile(lastData, phaseIndex,
+                            timelineData.length, false, true, rsvpYes);
+                      } else {
+                        return const Center(
+                            child: CupertinoActivityIndicator(radius: 15));
+                      }
+                    },
+                  );
+                }
+              },
             );
           } else {
-            return SliverFillRemaining(
+            return Center(
               child: Text(
                 "No data available for this event.",
                 style: AppColors.bodyStyle,
@@ -102,11 +104,10 @@ class EventTimeline extends StatelessWidget {
             );
           }
         } else {
-          return const SliverFillRemaining(
-            child: Center(
-                child: CupertinoActivityIndicator(
+          return const Center(
+            child: CupertinoActivityIndicator(
               radius: 15,
-            )),
+            ),
           );
         }
       },
@@ -186,95 +187,99 @@ class EventTimeline extends StatelessWidget {
     }
 
     return SizedBox(
-        height: 60,
-        child: TimelineTile(
-          alignment: TimelineAlign.manual,
-          lineXY: 0.15,
-          isFirst: (index == 0) & isStartNode,
-          isLast: isLastNode,
-          indicatorStyle: indicatorStyle,
-          beforeLineStyle: LineStyle(
-            color: getInterpolatedColor(rating),
-            thickness: 4,
-          ),
-          endChild: Container(
-            constraints: const BoxConstraints(maxHeight: 500),
-            padding: const EdgeInsets.only(left: 10),
-            color: Colors.transparent,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                if (!isStartNode && !isLastNode)
-                  CustomPaint(
-                    size: const Size(20, 100),
-                    painter: BracketPainter(getInterpolatedColor(rating)),
-                  ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (isStartNode && !isLastNode)
-                        Text(
-                          startTime.day == endTime.day
-                              ? timeFormatter.format(startTime)
-                              : '${dateFormatter.format(startTime)} ${timeFormatter.format(startTime)}',
-                          style: AppColors.darkDateStyle,
-                        ),
-                      if (!isStartNode && !isLastNode)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 5, right: 30),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${data['phaseName']}',
-                                style: AppColors.bodyStyle,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              if (rsvpYes && data['phaseLocation'] != null)
-                                GestureDetector(
-                                  onTap: () async {
-                                    final String url =
-                                        'https://www.google.com/maps/search/?api=1&query=${data['phaseLocation']}';
-                                    final Uri uri = Uri.parse(url);
-                                    if (!await launchUrl(uri,
-                                        mode: LaunchMode.externalApplication)) {
-                                      throw 'Could not launch $uri';
-                                    }
-                                  },
-                                  child: RichText(
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                    text: TextSpan(
-                                      text: '${data['phaseLocation']}',
-                                      style: AppColors.linkStyle,
-                                    ),
-                                  ),
-                                )
-                              else
-                                Text(
-                                  'RSVP \'Yes\' to view the location',
-                                  style: AppColors.bodyStyle,
-                                ),
-                            ],
-                          ),
-                        ),
-                      if (isLastNode)
-                        Text(
-                          startTime.day == endTime.day
-                              ? timeFormatter.format(endTime)
-                              : '${dateFormatter.format(endTime)} ${timeFormatter.format(endTime)}',
-                          style: AppColors.darkDateStyle,
-                        ),
-                    ],
-                  ),
+      height: 60,
+      child: TimelineTile(
+        alignment: TimelineAlign.manual,
+        lineXY: 0.1,
+        isFirst: (index == 0) & isStartNode,
+        isLast: isLastNode,
+        indicatorStyle: indicatorStyle,
+        beforeLineStyle: LineStyle(
+          color: getInterpolatedColor(rating),
+          thickness: 4,
+        ),
+        endChild: Container(
+          constraints: const BoxConstraints(maxHeight: 500),
+          padding: const EdgeInsets.only(left: 10),
+          color: Colors.transparent,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              if (!isStartNode && !isLastNode)
+                CustomPaint(
+                  size: const Size(20, 100),
+                  painter: BracketPainter(getInterpolatedColor(rating)),
                 ),
-              ],
-            ),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (isStartNode && !isLastNode)
+                      Text(
+                        startTime.day == endTime.day
+                            ? timeFormatter.format(startTime)
+                            : '${dateFormatter.format(startTime)} ${timeFormatter.format(startTime)}',
+                        style: AppColors.darkDateStyle,
+                      ),
+                    if (!isStartNode && !isLastNode)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 5, right: 30),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${data['phaseName']}',
+                              style: AppColors.bodyStyle,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                            if (rsvpYes && data['phaseLocation'] != null)
+                              GestureDetector(
+                                onTap: () async {
+                                  final String url =
+                                      'https://www.google.com/maps/search/?api=1&query=${data['phaseLocation']}';
+                                  final Uri uri = Uri.parse(url);
+                                  if (!await launchUrl(uri,
+                                      mode: LaunchMode.externalApplication)) {
+                                    throw 'Could not launch $uri';
+                                  }
+                                },
+                                child: RichText(
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  text: TextSpan(
+                                    text: '${data['phaseLocation']}',
+                                    style: AppColors.linkStyle,
+                                  ),
+                                ),
+                              )
+                            else
+                              RichText(
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  text: TextSpan(
+                                    text: 'RSVP \'Yes\' for the location',
+                                    style: AppColors.bodyStyle,
+                                  )),
+                          ],
+                        ),
+                      ),
+                    if (isLastNode)
+                      Text(
+                        startTime.day == endTime.day
+                            ? timeFormatter.format(endTime)
+                            : '${dateFormatter.format(endTime)} ${timeFormatter.format(endTime)}',
+                        style: AppColors.darkDateStyle,
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

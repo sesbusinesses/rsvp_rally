@@ -54,35 +54,28 @@ class DetailsPageState extends State<DetailsPage> {
             style: AppColors.topStyle), // Dynamically set the title
         surfaceTintColor: Colors.transparent,
       ),
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      EventTopDisplay(
-                          eventID: widget.eventID,
-                          userRating: widget.userRating)
-                    ]),
-              ),
-              EventTimeline(
-                eventID: widget.eventID,
-                rating: widget.userRating,
-                username: widget.username,
-              ),
-              SliverToBoxAdapter(
-                child: DetailsCard(
-                    eventID: widget.eventID, rating: widget.userRating),
-              ),
-              SliverToBoxAdapter(
-                child: AttendeesCard(
-                    eventID: widget.eventID, rating: widget.userRating),
-              ),
-            ],
-          ),
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            EventTopDisplay(
+              eventID: widget.eventID,
+              userRating: widget.userRating,
+            ),
+            EventTimeline(
+              eventID: widget.eventID,
+              rating: widget.userRating,
+              username: widget.username,
+            ),
+            DetailsCard(
+              eventID: widget.eventID,
+              rating: widget.userRating,
+            ),
+            AttendeesCard(
+              eventID: widget.eventID,
+              rating: widget.userRating,
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: BottomNav(
         rating: widget.userRating,

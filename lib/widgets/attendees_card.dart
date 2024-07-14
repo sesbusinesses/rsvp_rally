@@ -1,6 +1,9 @@
+import 'dart:developer';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
 
 class AttendeesCard extends StatelessWidget {
@@ -8,6 +11,90 @@ class AttendeesCard extends StatelessWidget {
   final String eventID;
 
   const AttendeesCard({super.key, required this.eventID, required this.rating});
+
+  Future<List<Map<String, dynamic>>> fetchEventAttendees(String eventID) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentSnapshot eventDoc =
+        await firestore.collection('Events').doc(eventID).get();
+    List<Map<String, dynamic>> attendeesDetails = [];
+
+    if (eventDoc.exists) {
+      var eventData = eventDoc.data() as Map<String, dynamic>;
+      List<dynamic> attendeesUsernames = eventData['Attendees'] ?? [];
+      List<dynamic> declinedUsernames = eventData['Declined'] ?? [];
+      String hostUsername = eventData['HostName'];
+
+      // Combine attendees and declined lists, and ensure host is included if not already present
+      Set<String> allUsernames = Set.from(attendeesUsernames.cast<String>())
+        ..addAll(declinedUsernames.cast<String>())
+        ..add(hostUsername);
+
+      // Fetch user documents in parallel
+      List<Future<DocumentSnapshot>> userDocsFutures = allUsernames
+          .map((username) => firestore.collection('Users').doc(username).get())
+          .toList();
+
+      List<DocumentSnapshot> userDocs = await Future.wait(userDocsFutures);
+
+      for (DocumentSnapshot userDoc in userDocs) {
+        if (userDoc.exists) {
+          Map<String, dynamic> userData =
+              userDoc.data() as Map<String, dynamic>;
+          String username = userDoc.id;
+          String comingStatus = await isComing(
+              eventID, username); // Fetch and include coming status
+          attendeesDetails.add({
+            'username': username,
+            'firstName': userData['FirstName'],
+            'lastName': userData['LastName'],
+            'rating': userData['Rating'],
+            'isComing': comingStatus // Include coming status
+          });
+        }
+      }
+    }
+    return attendeesDetails;
+  }
+
+  Future<String> isComing(String eventID, String username) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    try {
+      DocumentSnapshot eventDoc =
+          await firestore.collection('Events').doc(eventID).get();
+      if (eventDoc.exists) {
+        Map<String, dynamic> eventData =
+            eventDoc.data() as Map<String, dynamic>;
+        Map<String, dynamic> polls = eventData['Polls'] ?? {};
+
+        bool hasRespondedYes = false;
+        bool hasRespondedNo = true; // Assume 'no' until a 'yes' is found
+
+        for (var pollName in polls.keys) {
+          if (pollName.startsWith('RSVP for')) {
+            var responses = polls[pollName];
+            if (responses['Yes'] != null &&
+                responses['Yes'].contains(username)) {
+              hasRespondedYes = true;
+            }
+            if (responses['No'] != null && responses['No'].contains(username)) {
+              hasRespondedNo = hasRespondedNo && true;
+            } else {
+              hasRespondedNo = false;
+            }
+          }
+        }
+
+        if (hasRespondedYes) return 'yes';
+        if (hasRespondedNo) return 'no';
+        return 'maybe';
+      } else {
+        return 'maybe'; // Default response if the event does not exist
+      }
+    } catch (e) {
+      log("Error fetching event or processing data: $e");
+      return 'maybe'; // Default response in case of error
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +134,7 @@ class AttendeesCard extends StatelessWidget {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(children: [
                       Text('Attendees', style: AppColors.titleStyle),
@@ -58,29 +146,36 @@ class AttendeesCard extends StatelessWidget {
                               fontSize: 20,
                               color: getInterpolatedColor(rating)))
                     ]),
-                    ...attendees.map((attendee) {
-                      IconData iconData =
-                          Icons.question_mark; // Default to maybe
-                      switch (attendee['isComing']) {
-                        case 'yes':
-                          iconData = Icons.check;
-                          break;
-                        case 'no':
-                          iconData = Icons.close;
-                          break;
-                        case 'maybe':
-                        default:
-                          iconData = Icons.question_mark;
-                          break;
-                      }
-                      return Column(children: [
-                        UserCard(
-                          username: attendee['username'],
-                          icon: Icon(iconData,
-                              color: getInterpolatedColor(attendee['rating'])),
-                        ),
-                      ]);
-                    }),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: attendees.length,
+                        itemBuilder: (context, index) {
+                          Map<String, dynamic> attendee = attendees[index];
+                          IconData iconData =
+                              Icons.question_mark; // Default to maybe
+                          switch (attendee['isComing']) {
+                            case 'yes':
+                              iconData = Icons.check;
+                              break;
+                            case 'no':
+                              iconData = Icons.close;
+                              break;
+                            case 'maybe':
+                            default:
+                              iconData = Icons.question_mark;
+                              break;
+                          }
+                          return UserCard(
+                            username: attendee['username'],
+                            icon: Icon(iconData,
+                                color:
+                                    getInterpolatedColor(attendee['rating'])),
+                          );
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -93,7 +188,7 @@ class AttendeesCard extends StatelessWidget {
             );
           }
         }
-        return Container();
+        return const Center(child: CupertinoActivityIndicator(radius: 15));
       },
     );
   }

@@ -94,7 +94,7 @@ class EditEventPageState extends State<EditEventPage> {
             (eventData['Notifications'] as List<dynamic>?)?.map((notification) {
                   return {
                     'text': TextEditingController(
-                        text: notification['NotificationText'] ?? ''),
+                        text: notification['NotificationMessage'] ?? ''),
                     'time': TextEditingController(
                         text: notification['NotificationTime'] != null
                             ? dateFormat.format(
@@ -257,7 +257,7 @@ class EditEventPageState extends State<EditEventPage> {
           parseDateTimeFromController(phaseControllers[i]['endTime']!);
 
       // If endTime is null and it's not the last phase, set it to the startTime of the next phase
-      if (endTime == null && i < phaseControllers.length - 1) {
+      if (i < phaseControllers.length - 1) {
         endTime =
             parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
       }
@@ -284,7 +284,7 @@ class EditEventPageState extends State<EditEventPage> {
           notificationControllers.map((controller) {
         DateTime? notificationTime;
         try {
-          notificationTime = DateTime.parse(controller['time']!.text);
+          notificationTime = parseDateTimeFromController(controller['time']!);
         } catch (e) {
           notificationTime = null;
         }
@@ -293,7 +293,7 @@ class EditEventPageState extends State<EditEventPage> {
           'NotificationTime': notificationTime != null
               ? Timestamp.fromDate(notificationTime)
               : null,
-          'NotificationMessage': controller['message']!.text,
+          'NotificationMessage': controller['text']!.text,
         };
       }).toList();
 
@@ -387,7 +387,7 @@ class EditEventPageState extends State<EditEventPage> {
               backgroundColor: AppColors.accentLight),
         );
 
-        Navigator.pop(context);
+        // Navigator.pop(context);
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -478,14 +478,13 @@ class EditEventPageState extends State<EditEventPage> {
 
         await batch.commit();
 
-        Navigator.pop(context);
-        Navigator.pop(context);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => EventPage(username: widget.username),
-          ),
-        );
+        // Navigator.pop(context);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => EventPage(username: widget.username),
+        //   ),
+        // );
 
         print('Event deleted successfully.');
       } else {
@@ -511,7 +510,7 @@ class EditEventPageState extends State<EditEventPage> {
           : Stack(
               children: [
                 SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 120),
+                  // padding: const EdgeInsets.only(bottom: 120),
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -586,6 +585,7 @@ class EditEventPageState extends State<EditEventPage> {
                                 WideTextBox(
                                   hintText: 'Event Details',
                                   controller: eventDetailsController,
+                                  canGrow: true,
                                 ),
                               ],
                             ),
@@ -622,7 +622,7 @@ class EditEventPageState extends State<EditEventPage> {
                               await deleteEvent(widget.eventID);
                             },
                           ),
-                          const SizedBox(height: 120),
+                          // const SizedBox(height: 120),
                         ],
                       ),
                     ),
