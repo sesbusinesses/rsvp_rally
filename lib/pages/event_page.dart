@@ -22,7 +22,8 @@ class EventPage extends StatefulWidget {
   EventPageState createState() => EventPageState();
 }
 
-class EventPageState extends State<EventPage> with SingleTickerProviderStateMixin, RouteAware {
+class EventPageState extends State<EventPage>
+    with SingleTickerProviderStateMixin, RouteAware {
   int _selectedIndex = 0;
   late Future<double?> userRatingFuture;
   late Future<List<String>> userEventsFuture;
@@ -74,9 +75,11 @@ class EventPageState extends State<EventPage> with SingleTickerProviderStateMixi
       });
     } catch (e) {
       log("Error in loadData: $e");
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -326,7 +329,9 @@ class EventPageState extends State<EventPage> with SingleTickerProviderStateMixi
   void _onTabChanged(int index) {
     if (index != _selectedIndex) {
       _slideAnimation = Tween<Offset>(
-        begin: index > _selectedIndex ? Offset(1.0, 0.0) : Offset(-1.0, 0.0),
+        begin: index > _selectedIndex
+            ? const Offset(1.0, 0.0)
+            : const Offset(-1.0, 0.0),
         end: Offset.zero,
       ).animate(CurvedAnimation(
         parent: _animationController,
@@ -349,11 +354,12 @@ class EventPageState extends State<EventPage> with SingleTickerProviderStateMixi
           builder: (context, snapshot) {
             double userRating = snapshot.data ?? 0;
             return CustomTabSwitcher(
-              tabs: ['Events', 'My Feed'],
+              tabs: const ['Events', 'My Feed'],
               selectedIndex: _selectedIndex,
               onTabChanged: _onTabChanged,
               userRating: userRating,
-              padding: const EdgeInsets.only(top: 8.0), // Adjust padding as needed
+              padding:
+                  const EdgeInsets.only(top: 8.0), // Adjust padding as needed
             );
           },
         ),
@@ -556,14 +562,12 @@ class EventPageState extends State<EventPage> with SingleTickerProviderStateMixi
                                                     CrossAxisAlignment.center,
                                                 children: existingEventIds
                                                     .map((eventId) {
-                                                  return FutureBuilder<
-                                                      double?>(
+                                                  return FutureBuilder<double?>(
                                                     future: userRatingFuture,
                                                     builder: (context,
                                                         ratingSnapshot) {
                                                       double userRating =
-                                                          ratingSnapshot
-                                                                  .data ??
+                                                          ratingSnapshot.data ??
                                                               0;
                                                       return EventCard(
                                                         eventID: eventId,
