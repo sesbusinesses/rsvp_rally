@@ -5,12 +5,14 @@ class WideTextBox extends StatelessWidget {
   final String hintText;
   final TextEditingController controller;
   final ValueChanged<String>? onChanged;
+  final bool canGrow;
 
   const WideTextBox({
     super.key,
     required this.hintText,
     required this.controller,
     this.onChanged,
+    this.canGrow = false,
   });
 
   @override
@@ -32,8 +34,9 @@ class WideTextBox extends StatelessWidget {
             border: InputBorder.none,
           ),
           keyboardType: TextInputType.multiline,
-          maxLines:
-              null, // This allows the input to grow as long as the user types
+          maxLines: canGrow
+              ? null
+              : 1, // This allows the input to grow as long as the user types
           minLines: 1, // Minimum line count for the text field
         ),
       ),

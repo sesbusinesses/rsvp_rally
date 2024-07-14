@@ -189,7 +189,7 @@ class EventTimeline extends StatelessWidget {
         height: 60,
         child: TimelineTile(
           alignment: TimelineAlign.manual,
-          lineXY: 0.15,
+          lineXY: 0.1,
           isFirst: (index == 0) & isStartNode,
           isLast: isLastNode,
           indicatorStyle: indicatorStyle,
@@ -255,10 +255,13 @@ class EventTimeline extends StatelessWidget {
                                   ),
                                 )
                               else
-                                Text(
-                                  'RSVP \'Yes\' to view the location',
-                                  style: AppColors.bodyStyle,
-                                ),
+                                RichText(
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                    text: TextSpan(
+                                      text: 'RSVP \'Yes\' for the location',
+                                      style: AppColors.bodyStyle,
+                                    )),
                             ],
                           ),
                         ),

@@ -257,7 +257,7 @@ class EditEventPageState extends State<EditEventPage> {
           parseDateTimeFromController(phaseControllers[i]['endTime']!);
 
       // If endTime is null and it's not the last phase, set it to the startTime of the next phase
-      if (endTime == null && i < phaseControllers.length - 1) {
+      if (i < phaseControllers.length - 1) {
         endTime =
             parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
       }
@@ -586,6 +586,7 @@ class EditEventPageState extends State<EditEventPage> {
                                 WideTextBox(
                                   hintText: 'Event Details',
                                   controller: eventDetailsController,
+                                  canGrow: true,
                                 ),
                               ],
                             ),

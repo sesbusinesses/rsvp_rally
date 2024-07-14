@@ -140,7 +140,7 @@ class EventCardState extends State<EventCard> {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -153,7 +153,7 @@ class EventCardState extends State<EventCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     SizedBox(
-                      width: screenSize.width * 0.4,
+                      width: screenSize.width * 0.4 + 10,
                       child: Text(
                         eventName,
                         style: AppColors.titleStyle, // Light text color
