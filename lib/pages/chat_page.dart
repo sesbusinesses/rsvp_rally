@@ -5,10 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:rsvp_rally/widgets/bottomnav.dart';
+import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/models/database_pusher.dart';
-import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/message_bubble.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'dart:developer' as developer;
@@ -151,12 +150,6 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNav(
-        rating: widget.rating,
-        eventID: widget.eventID,
-        username: widget.username,
-        selectedIndex: 2,
       ),
     );
   }

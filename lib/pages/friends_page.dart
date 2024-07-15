@@ -35,10 +35,12 @@ class FriendsPageState extends State<FriendsPage>
   void initState() {
     super.initState();
     fetchFriends().then((friends) {
-      setState(() {
-        friendsData = friends;
-        filteredFriends = friendsData;
-      });
+      if (mounted) {
+        setState(() {
+          friendsData = friends;
+          filteredFriends = friendsData;
+        });
+      }
     });
     _animationController = AnimationController(
       vsync: this,
@@ -61,15 +63,17 @@ class FriendsPageState extends State<FriendsPage>
         List<String> friendsUsernames = List.from(userData['Friends'] ?? []);
         List<Map<String, dynamic>> friends = [];
 
-        for (String friendUsername in friendsUsernames) {
-          DocumentSnapshot friendDoc =
-              await firestore.collection('Users').doc(friendUsername).get();
+        // Batch fetch all friends' documents
+        var friendsDocs = await firestore
+            .collection('Users')
+            .where(FieldPath.documentId, whereIn: friendsUsernames)
+            .get();
 
+        for (var friendDoc in friendsDocs.docs) {
           if (friendDoc.exists) {
-            Map<String, dynamic> friendData =
-                friendDoc.data() as Map<String, dynamic>;
+            Map<String, dynamic> friendData = friendDoc.data();
             friends.add({
-              'username': friendUsername,
+              'username': friendDoc.id,
               'firstName': friendData['FirstName'] ?? "",
               'lastName': friendData['LastName'] ?? "",
               'rating': double.tryParse(friendData['Rating'].toString()) ?? 0.0,
@@ -137,7 +141,9 @@ class FriendsPageState extends State<FriendsPage>
   void _onTabChanged(int index) {
     if (index != _selectedIndex) {
       _slideAnimation = Tween<Offset>(
-        begin: index > _selectedIndex ? Offset(1.0, 0.0) : Offset(-1.0, 0.0),
+        begin: index > _selectedIndex
+            ? const Offset(1.0, 0.0)
+            : const Offset(-1.0, 0.0),
         end: Offset.zero,
       ).animate(CurvedAnimation(
         parent: _animationController,
@@ -151,110 +157,117 @@ class FriendsPageState extends State<FriendsPage>
   }
 
   @override
-Widget build(BuildContext context) {
-  Size screenSize = MediaQuery.of(context).size;
-  return Scaffold(
-    resizeToAvoidBottomInset: false,
-    appBar: AppBar(
-      title: CustomTabSwitcher(
-        tabs: ['My Info', 'Groups'],
-        selectedIndex: _selectedIndex,
-        onTabChanged: _onTabChanged,
-        userRating: widget.rating,
-        padding: const EdgeInsets.only(top: 8.0), // Adjust padding as needed
-      ),
-      backgroundColor: Colors.transparent,
-      surfaceTintColor: Colors.transparent,
-      actions: <Widget>[
-        ViewSettingsButton(
-          username: widget.username,
+  Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        title: CustomTabSwitcher(
+          tabs: const ['My Info', 'Groups'],
+          selectedIndex: _selectedIndex,
+          onTabChanged: _onTabChanged,
           userRating: widget.rating,
+          padding: const EdgeInsets.only(top: 8.0), // Adjust padding as needed
         ),
-      ],
-    ),
-    body: SlideTransition(
-      position: _slideAnimation,
-      child: _selectedIndex == 0
-          ? Stack(
-              children: [
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      ProfileEditor(
-                        username: widget.username,
-                      ),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            width: screenSize.width * 0.85,
-                            decoration: BoxDecoration(
-                              color: Colors.transparent, // Light background color
-                              border: Border.all(color: Colors.transparent),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: WideTextBox(
-                                        hintText: 'Browse Friends...',
-                                        controller: searchController,
-                                        onChanged: (value) =>
-                                            filterFriends(searchController.text),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        actions: <Widget>[
+          ViewSettingsButton(
+            username: widget.username,
+            userRating: widget.rating,
+          ),
+        ],
+      ),
+      body: SlideTransition(
+        position: _slideAnimation,
+        child: _selectedIndex == 0
+            ? Stack(
+                children: [
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        ProfileEditor(
+                          username: widget.username,
+                        ),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              width: screenSize.width * 0.85,
+                              decoration: BoxDecoration(
+                                color: Colors
+                                    .transparent, // Light background color
+                                border: Border.all(color: Colors.transparent),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: WideTextBox(
+                                          hintText: 'Browse Friends...',
+                                          controller: searchController,
+                                          onChanged: (value) => filterFriends(
+                                              searchController.text),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                          width:
+                                              8), // Gap between text box and button
+                                      AddFriendsButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  AddFriendsPage(
+                                                      username:
+                                                          widget.username),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  if (filteredFriends.isNotEmpty)
+                                    ...filteredFriends.map((friendData) =>
+                                        UserCard(
+                                            username: friendData['username'])),
+                                  if (filteredFriends.isEmpty &&
+                                      friendsData.isEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.all(40),
+                                      child: Text(
+                                        'You don\'t have any friends yet. Click the button below to find some!',
+                                        style: AppColors.bodyStyle,
                                       ),
                                     ),
-                                    SizedBox(width: 8), // Gap between text box and button
-                                    AddFriendsButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => AddFriendsPage(
-                                                username: widget.username),
-                                          ),
-                                        );
-                                      },
+                                  if (filteredFriends.isEmpty &&
+                                      friendsData.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.all(40),
+                                      child: Text(
+                                        'You don\'t have any friends for this search. Click the button below to find some!',
+                                        style: AppColors.bodyStyle,
+                                      ),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                if (filteredFriends.isNotEmpty)
-                                  ...filteredFriends.map((friendData) =>
-                                      UserCard(username: friendData['username'])),
-                                if (filteredFriends.isEmpty && friendsData.isEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.all(40),
-                                    child: Text(
-                                      'You don\'t have any friends yet. Click the button below to find some!',
-                                      style: AppColors.bodyStyle,
-                                    ),
-                                  ),
-                                if (filteredFriends.isEmpty && friendsData.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.all(40),
-                                    child: Text(
-                                      'You don\'t have any friends for this search. Click the button below to find some!',
-                                      style: AppColors.bodyStyle,
-                                    ),
-                                  ),
-                                const SizedBox(height: 80)
-                              ],
+                                  const SizedBox(height: 80)
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            )
-          : GroupsPage(), // New GroupsPage
-    ),
-  );
-}
-
+                ],
+              )
+            : GroupsPage(), // New GroupsPage
+      ),
+    );
+  }
 }

@@ -5,7 +5,6 @@ import 'package:rsvp_rally/widgets/event_top_display.dart';
 import 'package:rsvp_rally/widgets/event_timeline.dart';
 import 'package:rsvp_rally/widgets/details_card.dart';
 import 'package:rsvp_rally/widgets/attendees_card.dart';
-import 'package:rsvp_rally/widgets/bottomnav.dart';
 
 class DetailsPage extends StatefulWidget {
   final String username;
@@ -54,41 +53,28 @@ class DetailsPageState extends State<DetailsPage> {
             style: AppColors.topStyle), // Dynamically set the title
         surfaceTintColor: Colors.transparent,
       ),
-      body: Stack(
-        children: [
-          CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      EventTopDisplay(
-                          eventID: widget.eventID,
-                          userRating: widget.userRating)
-                    ]),
-              ),
-              EventTimeline(
-                eventID: widget.eventID,
-                rating: widget.userRating,
-                username: widget.username,
-              ),
-              SliverToBoxAdapter(
-                child: DetailsCard(
-                    eventID: widget.eventID, rating: widget.userRating),
-              ),
-              SliverToBoxAdapter(
-                child: AttendeesCard(
-                    eventID: widget.eventID, rating: widget.userRating),
-              ),
-            ],
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNav(
-        rating: widget.userRating,
-        eventID: widget.eventID,
-        username: widget.username,
-        selectedIndex: 0, // Index for DetailsPage
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            EventTopDisplay(
+              eventID: widget.eventID,
+              userRating: widget.userRating,
+            ),
+            EventTimeline(
+              eventID: widget.eventID,
+              rating: widget.userRating,
+              username: widget.username,
+            ),
+            DetailsCard(
+              eventID: widget.eventID,
+              rating: widget.userRating,
+            ),
+            AttendeesCard(
+              eventID: widget.eventID,
+              rating: widget.userRating,
+            ),
+          ],
+        ),
       ),
     );
   }
