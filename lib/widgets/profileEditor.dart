@@ -60,12 +60,12 @@ class _ProfileEditorState extends State<ProfileEditor> {
         List<int> imageBytes = await file.readAsBytes();
 
         // Resize the image if it is too large
-        if (imageBytes.length > 10000) {
+        if (imageBytes.length > 100000) {
           // Example threshold: 1MB
           img.Image? originalImage = img.decodeImage(imageBytes);
           if (originalImage != null) {
             // Calculate the reduction factor to keep the size under 1MB
-            double reductionFactor = math.sqrt(10000 / imageBytes.length);
+            double reductionFactor = math.sqrt(100000 / imageBytes.length);
             img.Image resizedImage = img.copyResize(originalImage,
                 width: (originalImage.width * reductionFactor).toInt());
             imageBytes = img.encodeJpg(resizedImage);

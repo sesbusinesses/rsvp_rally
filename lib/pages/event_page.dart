@@ -586,7 +586,7 @@ class EventPageState extends State<EventPage> with SingleTickerProviderStateMixi
                             }
                           },
                         )
-                      : FeedPage(),
+                      : FeedPage(username: widget.username,),
                 ),
         ),
       ),
