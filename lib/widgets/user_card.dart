@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 
-class UserCard extends StatefulWidget {
+class UserCard extends StatelessWidget {
   final String username;
   final bool smallVersion;
   final Icon? icon;
@@ -25,148 +25,39 @@ class UserCard extends StatefulWidget {
   });
 
   @override
-  _UserCardState createState() => _UserCardState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => UserCardModel(username, viewerUsername),
+      child: _UserCardContent(
+        smallVersion: smallVersion,
+        removePadding: removePadding,
+        showUsername: showUsername,
+        icon: icon,
+      ),
+    );
+  }
 }
 
-class _UserCardState extends State<UserCard> {
-  late Future<Map<String, dynamic>> _userDataFuture;
-  late Future<List<String>> _friendsFuture;
-  bool isFriend = false;
-  bool isRequestSent = false;
+class _UserCardContent extends StatelessWidget {
+  final bool smallVersion;
+  final bool removePadding;
+  final bool showUsername;
+  final Icon? icon;
 
-  @override
-  void initState() {
-    super.initState();
-    _userDataFuture = fetchUserData(widget.username);
-    _friendsFuture = widget.viewerUsername != ""
-        ? fetchFriendsAndRequests(widget.viewerUsername)
-        : Future.value(
-            []); // Initialize with an empty list if viewerUsername is empty
-  }
-
-  Future<Map<String, dynamic>> fetchUserData(String username) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    DocumentSnapshot userDoc =
-        await firestore.collection('Users').doc(username).get();
-
-    if (userDoc.exists) {
-      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-      return {
-        'firstName': userData['FirstName'] ?? "",
-        'lastName': userData['LastName'] ?? "",
-        'profilePicBase64': userData['ProfilePic'],
-        'rating': double.tryParse(userData['Rating'].toString()) ?? 0.0,
-      };
-    } else {
-      throw Exception("User not found");
-    }
-  }
-
-  Future<List<String>> fetchFriendsAndRequests(String viewerUsername) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    try {
-      DocumentSnapshot userDoc =
-          await firestore.collection('Users').doc(viewerUsername).get();
-      DocumentSnapshot viewedUserDoc =
-          await firestore.collection('Users').doc(widget.username).get();
-
-      if (userDoc.exists && viewedUserDoc.exists) {
-        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
-        Map<String, dynamic> viewedUserData =
-            viewedUserDoc.data() as Map<String, dynamic>;
-
-        List<String> friendsUsernames = List.from(userData['Friends'] ?? []);
-        List<String> requestsUsernames =
-            List.from(viewedUserData['Requests'] ?? []);
-
-        isRequestSent = requestsUsernames.contains(widget.viewerUsername);
-
-        return friendsUsernames;
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print("Error fetching friends or requests: $e");
-      }
-    }
-    return [];
-  }
-
-  String getEmoji(double rating) {
-    if (rating <= 0.25) return '😡'; // Mad
-    if (rating <= 0.5) return '😕'; // Confused
-    if (rating <= 0.75) return '😐'; // Straight face
-    return '😊'; // Joyful
-  }
-
-  Future<void> addFriend(String friendUsername) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    Timestamp timestamp = Timestamp.now();
-
-    DocumentSnapshot friendDoc =
-        await firestore.collection('Users').doc(friendUsername).get();
-    if (friendDoc.exists) {
-      List<dynamic> friendRequestsList = friendDoc['Requests'] ?? [];
-      if (!friendRequestsList.contains(widget.viewerUsername)) {
-        friendRequestsList.add(widget.viewerUsername);
-        await firestore.collection('Users').doc(friendUsername).update({
-          'Requests': friendRequestsList,
-          'Messages': FieldValue.arrayUnion([
-            {
-              'text': 'Someone sent you a friend request!',
-              'type': 'friend request received',
-              'username': widget.viewerUsername,
-              'timestamp': timestamp,
-              'active': true,
-            }
-          ]),
-          'NewMessages': true,
-        });
-        DocumentReference userDocRef =
-            firestore.collection('Users').doc(widget.viewerUsername);
-        await userDocRef.update({
-          'Messages': FieldValue.arrayUnion([
-            {
-              'text': 'You sent a friend request to $friendUsername.',
-              'type': 'friend request sent',
-              'username': friendUsername,
-              'timestamp': timestamp,
-            }
-          ]),
-          'NewMessages': true,
-        });
-
-        setState(() {
-          isFriend = true;
-          isRequestSent = true;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('$friendUsername added to your friend requests list',
-              style: AppColors.bodyStyle),
-          backgroundColor: AppColors.accentLight,
-        ));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('You already sent a friend request to $friendUsername',
-              style: AppColors.bodyStyle),
-          backgroundColor: AppColors.accentLight,
-        ));
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content:
-            Text('$friendUsername doesn\'t exist', style: AppColors.bodyStyle),
-        backgroundColor: AppColors.accentLight,
-      ));
-    }
-  }
+  const _UserCardContent({
+    required this.smallVersion,
+    required this.removePadding,
+    required this.showUsername,
+    this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
+    final model = Provider.of<UserCardModel>(context);
 
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _userDataFuture,
+    return FutureBuilder<void>(
+      future: model.userDataFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container();
@@ -174,15 +65,15 @@ class _UserCardState extends State<UserCard> {
           return const Center(
             child: Text('Error loading user data'),
           );
-        } else if (snapshot.hasData) {
-          var userData = snapshot.data!;
+        } else {
+          var userData = model.userData;
           String firstName = userData['firstName'];
           String lastName = userData['lastName'];
           String? profilePicBase64 = userData['profilePicBase64'];
           double rating = userData['rating'];
 
-          return FutureBuilder<List<String>>(
-            future: _friendsFuture,
+          return FutureBuilder<void>(
+            future: model.friendsFuture,
             builder: (context, friendSnapshot) {
               if (friendSnapshot.connectionState == ConnectionState.waiting) {
                 return Container();
@@ -190,23 +81,22 @@ class _UserCardState extends State<UserCard> {
                 return const Center(
                   child: Text('Error loading friends list'),
                 );
-              } else if (friendSnapshot.hasData) {
-                List<String> friends = friendSnapshot.data!;
-                if (!isFriend) {
-                  isFriend = friends.contains(widget.username) ||
-                      widget.viewerUsername == widget.username;
-                }
+              } else {
+                bool isFriend = model.isFriend;
+                bool isRequestSent = model.isRequestSent;
 
-                print('isFriend: $isFriend, isRequestSent: $isRequestSent');
+                if (kDebugMode) {
+                  print('isFriend: $isFriend, isRequestSent: $isRequestSent');
+                }
 
                 return Container(
                   width: screenSize.width * 0.85,
                   height:
-                      widget.viewerUsername == "" || isFriend || isRequestSent
-                          ? (widget.smallVersion ? 50 : 80)
+                      model.viewerUsername == "" || isFriend || isRequestSent
+                          ? (smallVersion ? 50 : 80)
                           : 130,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                  margin: widget.removePadding
+                  margin: removePadding
                       ? const EdgeInsets.symmetric(vertical: 0)
                       : const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
@@ -244,20 +134,19 @@ class _UserCardState extends State<UserCard> {
                                   ],
                                 ),
                                 child: CircleAvatar(
-                                  radius: widget.smallVersion ? 15 : 30,
+                                  radius: smallVersion ? 15 : 30,
                                   backgroundImage: profilePicBase64 != null
                                       ? MemoryImage(
                                           base64Decode(profilePicBase64))
                                       : null,
                                   child: profilePicBase64 == null
                                       ? Icon(Icons.add,
-                                          size: widget.smallVersion ? 15 : 30,
+                                          size: smallVersion ? 15 : 30,
                                           color: AppColors.accentDark)
                                       : null,
                                 ),
                               ),
-                              if (profilePicBase64 != null &&
-                                  !widget.smallVersion)
+                              if (!smallVersion)
                                 Positioned(
                                   bottom: -3,
                                   right: -6,
@@ -265,7 +154,7 @@ class _UserCardState extends State<UserCard> {
                                     radius: 18,
                                     backgroundColor: Colors.transparent,
                                     child: Text(
-                                      getEmoji(rating),
+                                      model.getEmoji(rating),
                                       style: const TextStyle(fontSize: 20),
                                     ),
                                   ),
@@ -283,17 +172,17 @@ class _UserCardState extends State<UserCard> {
                                   style: AppColors.bodyStyle,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                if (widget.showUsername && !widget.smallVersion)
-                                  Text(widget.username,
+                                if (showUsername && !smallVersion)
+                                  Text(model.username,
                                       style: AppColors.usernameStyle),
                               ],
                             ),
                           ),
-                          if (widget.icon != null) widget.icon!,
-                          if (widget.icon != null) const SizedBox(width: 15),
+                          if (icon != null) icon!,
+                          if (icon != null) const SizedBox(width: 15),
                         ],
                       ),
-                      if (widget.viewerUsername != "" &&
+                      if (model.viewerUsername != "" &&
                           !isFriend &&
                           !isRequestSent)
                         Container(
@@ -301,7 +190,7 @@ class _UserCardState extends State<UserCard> {
                           child: WideButton(
                             buttonText: "Add Friend",
                             onPressed: () {
-                              addFriend(widget.username);
+                              model.addFriend(context, model.username);
                             },
                             rating: rating,
                             smallVersion: true,
@@ -311,12 +200,140 @@ class _UserCardState extends State<UserCard> {
                   ),
                 );
               }
-              return Container();
             },
           );
         }
-        return Container();
       },
     );
+  }
+}
+
+class UserCardModel extends ChangeNotifier {
+  final String username;
+  final String viewerUsername;
+  late Future<void> userDataFuture;
+  late Future<void> friendsFuture;
+  Map<String, dynamic> userData = {};
+  bool isFriend = false;
+  bool isRequestSent = false;
+
+  UserCardModel(this.username, this.viewerUsername) {
+    userDataFuture = fetchUserData();
+    friendsFuture = fetchFriendsAndRequests();
+  }
+
+  Future<void> fetchUserData() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    DocumentSnapshot userDoc =
+        await firestore.collection('Users').doc(username).get();
+
+    if (userDoc.exists) {
+      Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+      this.userData = {
+        'firstName': userData['FirstName'] ?? "",
+        'lastName': userData['LastName'] ?? "",
+        'profilePicBase64': userData['ProfilePic'],
+        'rating': double.tryParse(userData['Rating'].toString()) ?? 0.0,
+      };
+    } else {
+      throw Exception("User not found");
+    }
+  }
+
+  Future<void> fetchFriendsAndRequests() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    try {
+      DocumentSnapshot userDoc =
+          await firestore.collection('Users').doc(viewerUsername).get();
+      DocumentSnapshot viewedUserDoc =
+          await firestore.collection('Users').doc(username).get();
+
+      if (userDoc.exists && viewedUserDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        Map<String, dynamic> viewedUserData =
+            viewedUserDoc.data() as Map<String, dynamic>;
+
+        List<String> friendsUsernames = List.from(userData['Friends'] ?? []);
+        List<String> requestsUsernames =
+            List.from(viewedUserData['Requests'] ?? []);
+
+        isRequestSent = requestsUsernames.contains(viewerUsername);
+        isFriend =
+            friendsUsernames.contains(username) || viewerUsername == username;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error fetching friends or requests: $e");
+      }
+    }
+  }
+
+  String getEmoji(double rating) {
+    if (rating <= 0.25) return '😡'; // Mad
+    if (rating <= 0.5) return '😕'; // Confused
+    if (rating <= 0.75) return '😐'; // Straight face
+    return '😊'; // Joyful
+  }
+
+  Future<void> addFriend(BuildContext context, String friendUsername) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    Timestamp timestamp = Timestamp.now();
+
+    DocumentSnapshot friendDoc =
+        await firestore.collection('Users').doc(friendUsername).get();
+    if (friendDoc.exists) {
+      List<dynamic> friendRequestsList = friendDoc['Requests'] ?? [];
+      if (!friendRequestsList.contains(viewerUsername)) {
+        friendRequestsList.add(viewerUsername);
+        await firestore.collection('Users').doc(friendUsername).update({
+          'Requests': friendRequestsList,
+          'Messages': FieldValue.arrayUnion([
+            {
+              'text': 'Someone sent you a friend request!',
+              'type': 'friend request received',
+              'username': viewerUsername,
+              'timestamp': timestamp,
+              'active': true,
+            }
+          ]),
+          'NewMessages': true,
+        });
+        DocumentReference userDocRef =
+            firestore.collection('Users').doc(viewerUsername);
+        await userDocRef.update({
+          'Messages': FieldValue.arrayUnion([
+            {
+              'text': 'You sent a friend request to $friendUsername.',
+              'type': 'friend request sent',
+              'username': friendUsername,
+              'timestamp': timestamp,
+            }
+          ]),
+          'NewMessages': true,
+        });
+
+        isFriend = true;
+        isRequestSent = true;
+        notifyListeners();
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('$friendUsername added to your friend requests list',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('You already sent a friend request to $friendUsername',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ));
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content:
+            Text('$friendUsername doesn\'t exist', style: AppColors.bodyStyle),
+        backgroundColor: AppColors.accentLight,
+      ));
+    }
   }
 }
