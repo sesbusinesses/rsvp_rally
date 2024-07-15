@@ -392,168 +392,77 @@ class EventPageState extends State<EventPage>
       body: Center(
         child: Padding(
           padding: const EdgeInsets.only(top: 40),
-          child: isLoading
-              ? Column(
-                  children: [
-                    FutureBuilder<double?>(
-                      future: userRatingFuture,
-                      builder: (context, ratingSnapshot) {
-                        double userRating = ratingSnapshot.data ?? 0;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: UserRatingIndicator(userRating: userRating),
-                        );
-                      },
-                    ),
-                    const CupertinoActivityIndicator(radius: 15),
-                  ],
-                )
-              : SlideTransition(
-                  position: _slideAnimation,
-                  child: _selectedIndex == 0
-                      ? FutureBuilder<List<String>>(
-                          future: userEventsFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Column(
-                                children: [
-                                  FutureBuilder<double?>(
-                                    future: userRatingFuture,
-                                    builder: (context, ratingSnapshot) {
-                                      double userRating =
-                                          ratingSnapshot.data ?? 0;
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 20),
-                                        child: UserRatingIndicator(
-                                            userRating: userRating),
-                                      );
-                                    },
-                                  ),
-                                  const CupertinoActivityIndicator(radius: 15),
-                                ],
-                              );
-                            } else if (snapshot.hasError) {
-                              return Column(
-                                children: [
-                                  FutureBuilder<double?>(
-                                    future: userRatingFuture,
-                                    builder: (context, ratingSnapshot) {
-                                      double userRating =
-                                          ratingSnapshot.data ?? 0;
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 20),
-                                        child: UserRatingIndicator(
-                                            userRating: userRating),
-                                      );
-                                    },
-                                  ),
-                                  Padding(
+          child: Column(
+            children: [
+              FutureBuilder<double?>(
+                future: userRatingFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CupertinoActivityIndicator(radius: 15);
+                  } else if (snapshot.hasError) {
+                    return Text(
+                      'Error fetching user rating. Please try again later.',
+                      style: AppColors.bodyStyle,
+                    );
+                  } else {
+                    double userRating = snapshot.data ?? 0;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: UserRatingIndicator(userRating: userRating),
+                    );
+                  }
+                },
+              ),
+              isLoading
+                  ? const CupertinoActivityIndicator(radius: 15)
+                  : SlideTransition(
+                      position: _slideAnimation,
+                      child: _selectedIndex == 0
+                          ? FutureBuilder<List<String>>(
+                              future: userEventsFuture,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const CupertinoActivityIndicator(
+                                      radius: 15);
+                                } else if (snapshot.hasError) {
+                                  return Padding(
                                     padding: const EdgeInsets.all(40),
                                     child: Text(
                                       'Error fetching events. Please try again later.',
                                       style: AppColors.bodyStyle,
                                     ),
-                                  ),
-                                ],
-                              );
-                            } else if (!snapshot.hasData ||
-                                snapshot.data!.isEmpty) {
-                              return Column(
-                                children: [
-                                  FutureBuilder<double?>(
-                                    future: userRatingFuture,
-                                    builder: (context, ratingSnapshot) {
-                                      double userRating =
-                                          ratingSnapshot.data ?? 0;
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 20),
-                                        child: UserRatingIndicator(
-                                            userRating: userRating),
-                                      );
-                                    },
-                                  ),
-                                  Padding(
+                                  );
+                                } else if (!snapshot.hasData ||
+                                    snapshot.data!.isEmpty) {
+                                  return Padding(
                                     padding: const EdgeInsets.all(40),
                                     child: Text(
                                       'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
                                       style: AppColors.bodyStyle,
                                     ),
-                                  ),
-                                ],
-                              );
-                            } else {
-                              List<String> eventIds = snapshot.data!;
-                              return FutureBuilder<void>(
-                                future: checkEventsExistenceAndRSVP(eventIds),
-                                builder: (context, checkSnapshot) {
-                                  if (checkSnapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return Column(
-                                      children: [
-                                        FutureBuilder<double?>(
-                                          future: userRatingFuture,
-                                          builder: (context, ratingSnapshot) {
-                                            double userRating =
-                                                ratingSnapshot.data ?? 0;
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 20),
-                                              child: UserRatingIndicator(
-                                                  userRating: userRating),
-                                            );
-                                          },
-                                        ),
-                                        const CupertinoActivityIndicator(
-                                            radius: 15),
-                                      ],
-                                    );
-                                  } else {
-                                    if (existingEventIds.isEmpty) {
-                                      return Column(
-                                        children: [
-                                          FutureBuilder<double?>(
-                                            future: userRatingFuture,
-                                            builder: (context, ratingSnapshot) {
-                                              double userRating =
-                                                  ratingSnapshot.data ?? 0;
-                                              return Padding(
-                                                padding: const EdgeInsets.only(
-                                                    bottom: 20),
-                                                child: UserRatingIndicator(
-                                                    userRating: userRating),
-                                              );
-                                            },
-                                          ),
-                                          Padding(
+                                  );
+                                } else {
+                                  List<String> eventIds = snapshot.data!;
+                                  return FutureBuilder<void>(
+                                    future:
+                                        checkEventsExistenceAndRSVP(eventIds),
+                                    builder: (context, checkSnapshot) {
+                                      if (checkSnapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const CupertinoActivityIndicator(
+                                            radius: 15);
+                                      } else {
+                                        if (existingEventIds.isEmpty) {
+                                          return Padding(
                                             padding: const EdgeInsets.all(40),
                                             child: Text(
                                               'You don\'t have any events yet. Click the button below to create one! Or add some friends and get invited to their events!',
                                               style: AppColors.bodyStyle,
                                             ),
-                                          ),
-                                        ],
-                                      );
-                                    } else {
-                                      return Column(
-                                        children: [
-                                          FutureBuilder<double?>(
-                                            future: userRatingFuture,
-                                            builder: (context, ratingSnapshot) {
-                                              double userRating =
-                                                  ratingSnapshot.data ?? 0;
-                                              return Padding(
-                                                padding: const EdgeInsets.only(
-                                                    bottom: 20),
-                                                child: UserRatingIndicator(
-                                                    userRating: userRating),
-                                              );
-                                            },
-                                          ),
-                                          Expanded(
+                                          );
+                                        } else {
+                                          return Expanded(
                                             child: SingleChildScrollView(
                                               child: Column(
                                                 mainAxisAlignment:
@@ -562,36 +471,26 @@ class EventPageState extends State<EventPage>
                                                     CrossAxisAlignment.center,
                                                 children: existingEventIds
                                                     .map((eventId) {
-                                                  return FutureBuilder<double?>(
-                                                    future: userRatingFuture,
-                                                    builder: (context,
-                                                        ratingSnapshot) {
-                                                      double userRating =
-                                                          ratingSnapshot.data ??
-                                                              0;
-                                                      return EventCard(
-                                                        eventID: eventId,
-                                                        userRating: userRating,
-                                                        username:
-                                                            widget.username,
-                                                      );
-                                                    },
+                                                  return EventCard(
+                                                    eventID: eventId,
+                                                    userRating: userRating,
+                                                    username: widget.username,
                                                   );
                                                 }).toList(),
                                               ),
                                             ),
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                  }
-                                },
-                              );
-                            }
-                          },
-                        )
-                      : FeedPage(),
-                ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  );
+                                }
+                              },
+                            )
+                          : FeedPage(),
+                    ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: _selectedIndex == 0
