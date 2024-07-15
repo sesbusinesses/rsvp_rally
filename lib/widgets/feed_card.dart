@@ -42,7 +42,7 @@ class _FeedCardState extends State<FeedCard> {
   @override
   void initState() {
     super.initState();
-    isLiked = widget.likes.contains(widget.user);
+    isLiked = widget.likes.contains(widget.username);
     fetchUserData();
   }
 
