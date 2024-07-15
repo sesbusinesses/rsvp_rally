@@ -50,7 +50,9 @@ class _FeedCardState extends State<FeedCard> {
     fullName = await getFullName(widget.user);
     userRating = (await getUserRating(widget.user))!;
     profilePicBase64 = await pullProfilePicture(widget.user);
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void toggleLike() async {
