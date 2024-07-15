@@ -14,6 +14,7 @@ class FeedCard extends StatefulWidget {
   final String postId;
   final bool isUserPost;
   final VoidCallback? onDelete;
+  final String username;
 
   const FeedCard({
     required this.imageUrl,
@@ -23,9 +24,10 @@ class FeedCard extends StatefulWidget {
     required this.chat,
     required this.postId,
     required this.isUserPost,
+    required this.username,
     this.onDelete,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _FeedCardState createState() => _FeedCardState();
@@ -62,7 +64,10 @@ class _FeedCardState extends State<FeedCard> {
     });
 
     try {
-      await FirebaseFirestore.instance.collection('Feeds').doc(widget.postId).update({
+      await FirebaseFirestore.instance
+          .collection('Feeds')
+          .doc(widget.postId)
+          .update({
         'likes': widget.likes,
       });
     } catch (e) {
@@ -101,7 +106,7 @@ class _FeedCardState extends State<FeedCard> {
       MaterialPageRoute(
         builder: (context) => ChatDetailPage(
           postId: widget.postId,
-          user: widget.user,
+          user: widget.username,
           imageUrl: widget.imageUrl,
           description: widget.description,
           chat: widget.chat,
@@ -203,7 +208,7 @@ class _FeedCardState extends State<FeedCard> {
                       if (widget.chat.isNotEmpty)
                         Text(
                           widget.chat.length.toString(),
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.dark,
                           ),
                         ),
@@ -241,8 +246,8 @@ class ChatDetailPage extends StatefulWidget {
     required this.imageUrl,
     required this.description,
     required this.chat,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _ChatDetailPageState createState() => _ChatDetailPageState();
@@ -277,7 +282,10 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
         chatMessages.add(newMessage);
       });
 
-      await FirebaseFirestore.instance.collection('Feeds').doc(widget.postId).update({
+      await FirebaseFirestore.instance
+          .collection('Feeds')
+          .doc(widget.postId)
+          .update({
         'chat': FieldValue.arrayUnion([newMessage]),
       });
 
@@ -350,7 +358,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.send, color: AppColors.dark),
+            icon: const Icon(Icons.send, color: AppColors.dark),
             onPressed: _sendMessage,
           ),
         ],

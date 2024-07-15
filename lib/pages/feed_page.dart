@@ -9,10 +9,10 @@ class FeedPage extends StatefulWidget {
   final double userRating;
 
   const FeedPage({
-    Key? key,
+    super.key,
     required this.username,
     required this.userRating,
-  }) : super(key: key);
+  });
 
   @override
   _FeedPageState createState() => _FeedPageState();
@@ -23,7 +23,10 @@ class _FeedPageState extends State<FeedPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('Feeds').orderBy('timestamp', descending: true).snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('Feeds')
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -44,8 +47,12 @@ class _FeedPageState extends State<FeedPage> {
                 postId: feed.id,
                 isUserPost: feed['user'] == widget.username,
                 onDelete: () async {
-                  await FirebaseFirestore.instance.collection('Feeds').doc(feed.id).delete();
+                  await FirebaseFirestore.instance
+                      .collection('Feeds')
+                      .doc(feed.id)
+                      .delete();
                 },
+                username: widget.username,
               );
             },
           );
