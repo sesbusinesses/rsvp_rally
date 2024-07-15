@@ -1,13 +1,9 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
-import 'package:rsvp_rally/widgets/bottomnav.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 import 'package:rsvp_rally/widgets/phases_section.dart';
@@ -630,12 +626,6 @@ class EditEventPageState extends State<EditEventPage> {
                 ),
               ],
             ),
-      bottomNavigationBar: BottomNav(
-        rating: widget.rating,
-        eventID: widget.eventID,
-        username: widget.username,
-        selectedIndex: 3,
-      ),
     );
   }
 }

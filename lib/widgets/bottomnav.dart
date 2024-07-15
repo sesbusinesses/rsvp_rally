@@ -1,18 +1,18 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/pages/details_page.dart';
 import 'package:rsvp_rally/pages/poll_page.dart';
 import 'package:rsvp_rally/pages/chat_page.dart';
 import 'package:rsvp_rally/pages/edit_event_page.dart';
-import 'package:rsvp_rally/models/colors.dart'; // Ensure this import exists
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/models/colors.dart';
 
 class BottomNav extends StatefulWidget {
   final String eventID;
   final String username;
   final int selectedIndex;
   final double rating;
+  final PageController pageController;
+  final Function(int) onPageChanged;
 
   const BottomNav({
     super.key,
@@ -20,6 +20,8 @@ class BottomNav extends StatefulWidget {
     required this.username,
     required this.selectedIndex,
     required this.rating,
+    required this.pageController,
+    required this.onPageChanged,
   });
 
   @override
@@ -51,64 +53,8 @@ class _BottomNavState extends State<BottomNav> {
 
   void _onItemTapped(int index) {
     if (index != widget.selectedIndex) {
-      final direction = index > widget.selectedIndex
-          ? AxisDirection.right
-          : AxisDirection.left;
-
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) {
-            switch (index) {
-              case 0:
-                return DetailsPage(
-                  username: widget.username,
-                  eventID: widget.eventID,
-                  userRating: widget.rating,
-                );
-              case 1:
-                return PollPage(
-                  rating: widget.rating,
-                  eventID: widget.eventID,
-                  username: widget.username,
-                );
-              case 2:
-                return ChatPage(
-                  rating: widget.rating,
-                  eventID: widget.eventID,
-                  username: widget.username,
-                );
-              case 3:
-                if (isHost) {
-                  return EditEventPage(
-                    rating: widget.rating,
-                    eventID: widget.eventID,
-                    username: widget.username,
-                  );
-                }
-                break;
-            }
-            return Container(); // Fallback in case of incorrect index
-          },
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.easeInOut;
-
-            var tween = Tween(
-                    begin: direction == AxisDirection.right
-                        ? begin
-                        : Offset(-1.0, 0.0),
-                    end: end)
-                .chain(CurveTween(curve: curve));
-
-            return SlideTransition(
-              position: animation.drive(tween),
-              child: child,
-            );
-          },
-        ),
-      );
+      widget.pageController.jumpToPage(index);
+      widget.onPageChanged(index);
     }
   }
 
@@ -196,7 +142,7 @@ class _BottomNavState extends State<BottomNav> {
                 ),
               ],
             ),
-            Spacer(), // Pushes the icon to the top half
+            const Spacer(), // Pushes the icon to the top half
           ],
         ),
       ),

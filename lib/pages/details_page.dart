@@ -5,7 +5,6 @@ import 'package:rsvp_rally/widgets/event_top_display.dart';
 import 'package:rsvp_rally/widgets/event_timeline.dart';
 import 'package:rsvp_rally/widgets/details_card.dart';
 import 'package:rsvp_rally/widgets/attendees_card.dart';
-import 'package:rsvp_rally/widgets/bottomnav.dart';
 
 class DetailsPage extends StatefulWidget {
   final String username;
@@ -76,12 +75,6 @@ class DetailsPageState extends State<DetailsPage> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNav(
-        rating: widget.userRating,
-        eventID: widget.eventID,
-        username: widget.username,
-        selectedIndex: 0, // Index for DetailsPage
       ),
     );
   }

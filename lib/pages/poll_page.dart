@@ -4,18 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/create_poll_button.dart';
 import 'package:rsvp_rally/widgets/poll_card.dart';
-import 'package:rsvp_rally/widgets/bottomnav.dart';
 
 class PollPage extends StatefulWidget {
   final double rating;
   final String eventID;
   final String username;
 
-  const PollPage(
-      {super.key,
-      required this.rating,
-      required this.eventID,
-      required this.username});
+  const PollPage({
+    super.key,
+    required this.rating,
+    required this.eventID,
+    required this.username,
+  });
 
   @override
   _PollPageState createState() => _PollPageState();
@@ -133,12 +133,6 @@ class _PollPageState extends State<PollPage> {
               ),
             )
           : null,
-      bottomNavigationBar: BottomNav(
-        rating: widget.rating,
-        eventID: widget.eventID,
-        username: widget.username,
-        selectedIndex: 1, // Index for PollPage
-      ),
     );
   }
 }
