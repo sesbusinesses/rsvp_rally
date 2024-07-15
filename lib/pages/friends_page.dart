@@ -63,15 +63,17 @@ class FriendsPageState extends State<FriendsPage>
         List<String> friendsUsernames = List.from(userData['Friends'] ?? []);
         List<Map<String, dynamic>> friends = [];
 
-        for (String friendUsername in friendsUsernames) {
-          DocumentSnapshot friendDoc =
-              await firestore.collection('Users').doc(friendUsername).get();
+        // Batch fetch all friends' documents
+        var friendsDocs = await firestore
+            .collection('Users')
+            .where(FieldPath.documentId, whereIn: friendsUsernames)
+            .get();
 
+        for (var friendDoc in friendsDocs.docs) {
           if (friendDoc.exists) {
-            Map<String, dynamic> friendData =
-                friendDoc.data() as Map<String, dynamic>;
+            Map<String, dynamic> friendData = friendDoc.data();
             friends.add({
-              'username': friendUsername,
+              'username': friendDoc.id,
               'firstName': friendData['FirstName'] ?? "",
               'lastName': friendData['LastName'] ?? "",
               'rating': double.tryParse(friendData['Rating'].toString()) ?? 0.0,
