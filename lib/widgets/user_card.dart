@@ -37,9 +37,10 @@ class _UserCardState extends State<UserCard> {
   void initState() {
     super.initState();
     _userDataFuture = fetchUserData(widget.username);
-    if (widget.viewerUsername != "") {
-      _friendsFuture = fetchFriends(widget.viewerUsername);
-    }
+    _friendsFuture = widget.viewerUsername != ""
+        ? fetchFriends(widget.viewerUsername)
+        : Future.value(
+            []); // Initialize with an empty list if viewerUsername is empty
   }
 
   Future<Map<String, dynamic>> fetchUserData(String username) async {
