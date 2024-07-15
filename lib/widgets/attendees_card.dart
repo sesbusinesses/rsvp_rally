@@ -117,7 +117,7 @@ class AttendeesCard extends StatelessWidget {
               padding: EdgeInsets.only(
                   left: screenSize.width * 0.075,
                   right: screenSize.width * 0.075,
-                  bottom: 100),
+                  bottom: 10),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),

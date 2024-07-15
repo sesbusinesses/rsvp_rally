@@ -32,13 +32,14 @@ class _UserCardState extends State<UserCard> {
   late Future<Map<String, dynamic>> _userDataFuture;
   late Future<List<String>> _friendsFuture;
   bool isFriend = false;
+  bool isRequestSent = false;
 
   @override
   void initState() {
     super.initState();
     _userDataFuture = fetchUserData(widget.username);
     _friendsFuture = widget.viewerUsername != ""
-        ? fetchFriends(widget.viewerUsername)
+        ? fetchFriendsAndRequests(widget.viewerUsername)
         : Future.value(
             []); // Initialize with an empty list if viewerUsername is empty
   }
@@ -61,20 +62,30 @@ class _UserCardState extends State<UserCard> {
     }
   }
 
-  Future<List<String>> fetchFriends(String viewerUsername) async {
+  Future<List<String>> fetchFriendsAndRequests(String viewerUsername) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     try {
       DocumentSnapshot userDoc =
           await firestore.collection('Users').doc(viewerUsername).get();
+      DocumentSnapshot viewedUserDoc =
+          await firestore.collection('Users').doc(widget.username).get();
 
-      if (userDoc.exists) {
+      if (userDoc.exists && viewedUserDoc.exists) {
         Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        Map<String, dynamic> viewedUserData =
+            viewedUserDoc.data() as Map<String, dynamic>;
+
         List<String> friendsUsernames = List.from(userData['Friends'] ?? []);
+        List<String> requestsUsernames =
+            List.from(viewedUserData['Requests'] ?? []);
+
+        isRequestSent = requestsUsernames.contains(widget.viewerUsername);
+
         return friendsUsernames;
       }
     } catch (e) {
       if (kDebugMode) {
-        print("Error fetching friends: $e");
+        print("Error fetching friends or requests: $e");
       }
     }
     return [];
@@ -123,14 +134,17 @@ class _UserCardState extends State<UserCard> {
           ]),
           'NewMessages': true,
         });
+
+        setState(() {
+          isFriend = true;
+          isRequestSent = true;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('$friendUsername added to your friend requests list',
               style: AppColors.bodyStyle),
           backgroundColor: AppColors.accentLight,
         ));
-        setState(() {
-          isFriend = true;
-        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('You already sent a friend request to $friendUsername',
@@ -178,14 +192,19 @@ class _UserCardState extends State<UserCard> {
                 );
               } else if (friendSnapshot.hasData) {
                 List<String> friends = friendSnapshot.data!;
-                isFriend = friends.contains(widget.username) ||
-                    widget.viewerUsername == widget.username;
+                if (!isFriend) {
+                  isFriend = friends.contains(widget.username) ||
+                      widget.viewerUsername == widget.username;
+                }
+
+                print('isFriend: $isFriend, isRequestSent: $isRequestSent');
 
                 return Container(
                   width: screenSize.width * 0.85,
-                  height: widget.viewerUsername == "" || isFriend
-                      ? (widget.smallVersion ? 50 : 80)
-                      : 130,
+                  height:
+                      widget.viewerUsername == "" || isFriend || isRequestSent
+                          ? (widget.smallVersion ? 50 : 80)
+                          : 130,
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   margin: widget.removePadding
                       ? const EdgeInsets.symmetric(vertical: 0)
@@ -274,16 +293,15 @@ class _UserCardState extends State<UserCard> {
                           if (widget.icon != null) const SizedBox(width: 15),
                         ],
                       ),
-                      if (widget.viewerUsername != "" && !isFriend)
+                      if (widget.viewerUsername != "" &&
+                          !isFriend &&
+                          !isRequestSent)
                         Container(
                           padding: const EdgeInsets.only(top: 10),
                           child: WideButton(
                             buttonText: "Add Friend",
                             onPressed: () {
                               addFriend(widget.username);
-                              setState(() {
-                                isFriend = true;
-                              });
                             },
                             rating: rating,
                             smallVersion: true,
