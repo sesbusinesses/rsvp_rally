@@ -174,3 +174,17 @@ Future<void> sendMessage(
     print('Error sending message: $e');
   }
 }
+
+Future<void> pushFeedPost(String username, String imageUrl, String description, double rating) async {
+  CollectionReference feeds = FirebaseFirestore.instance.collection('Feeds');
+
+  await feeds.add({
+    'user': username,
+    'imageUrl': imageUrl,
+    'description': description,
+    'rating': rating,
+    'timestamp': FieldValue.serverTimestamp(),
+    'likes': [],
+    'chat': [],
+  });
+}

@@ -385,7 +385,7 @@ class EventPageState extends State<EventPage> with SingleTickerProviderStateMixi
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(top: 40),
+          padding: const EdgeInsets.only(top: 20),
           child: isLoading
               ? Column(
                   children: [
@@ -586,7 +586,7 @@ class EventPageState extends State<EventPage> with SingleTickerProviderStateMixi
                             }
                           },
                         )
-                      : FeedPage(username: widget.username,),
+                      : FeedPage(username: widget.username, userRating: userRating,),
                 ),
         ),
       ),
