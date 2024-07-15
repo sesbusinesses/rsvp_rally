@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/details_page.dart';
+import 'package:rsvp_rally/pages/event_page_view.dart';
 import 'package:rsvp_rally/widgets/event_image_display.dart';
 
 class EventCard extends StatefulWidget {
@@ -113,9 +114,9 @@ class EventCardState extends State<EventCard> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => DetailsPage(
+              builder: (context) => EventPageView(
                 username: widget.username,
-                userRating: widget.userRating,
+                rating: widget.userRating,
                 eventID: widget.eventID,
               ),
             ),
