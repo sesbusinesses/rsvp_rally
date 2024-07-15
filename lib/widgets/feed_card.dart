@@ -61,7 +61,7 @@ class _FeedCardState extends State<FeedCard> {
       if (isLiked) {
         widget.likes.add(widget.username);
       } else {
-        widget.likes.remove(widget.username);
+        widget.likes.removeWhere((like) => like == widget.username);
       }
     });
 
