@@ -5,12 +5,14 @@ class WideButton extends StatelessWidget {
   final String buttonText;
   final VoidCallback onPressed;
   final double? rating;
+  final bool smallVersion;
 
   const WideButton({
     super.key,
     required this.buttonText,
     required this.onPressed,
     this.rating,
+    this.smallVersion = false,
   });
 
   @override
@@ -20,7 +22,8 @@ class WideButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onPressed,
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding:
+              smallVersion ? const EdgeInsets.all(5) : const EdgeInsets.all(20),
           decoration: BoxDecoration(
               color:
                   rating != null ? getInterpolatedColor(rating!) : Colors.black,

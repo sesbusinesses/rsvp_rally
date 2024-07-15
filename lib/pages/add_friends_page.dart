@@ -135,44 +135,40 @@ class AddFriendsPageState extends State<AddFriendsPage> {
             ]),
             'NewMessages': true,
           });
+          // Send a message to the requester
+          DocumentReference userDocRef =
+              firestore.collection('Users').doc(widget.username);
+          await userDocRef.update({
+            'Messages': FieldValue.arrayUnion([
+              {
+                'text': 'You sent a friend request to $friendUsername.',
+                'type': 'friend request sent',
+                'username': friendUsername,
+                'timestamp': timestamp,
+              }
+            ]),
+            'NewMessages': true,
+          });
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('$friendUsername added to your friend requests list',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight,
+          ));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                'You already sent a friend request to $friendUsername',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight,
+          ));
         }
       } else {
-        await firestore.collection('Users').doc(friendUsername).set({
-          'Requests': [widget.username],
-          'Messages': [
-            {
-              'text': 'Someone sent you a friend request!',
-              'type': 'friend request received',
-              'username': widget.username,
-              'timestamp': timestamp,
-              'active': true,
-            }
-          ],
-          'NewMessages': true,
-        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('$friendUsername doesn\'t exist',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ));
       }
-
-      // Send a message to the requester
-      DocumentReference userDocRef =
-          firestore.collection('Users').doc(widget.username);
-      await userDocRef.update({
-        'Messages': FieldValue.arrayUnion([
-          {
-            'text': 'You sent a friend request to $friendUsername.',
-            'type': 'friend request sent',
-            'username': friendUsername,
-            'timestamp': timestamp,
-          }
-        ]),
-        'NewMessages': true,
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('$friendUsername added to your friend requests list',
-            style: AppColors.bodyStyle),
-        backgroundColor: AppColors.accentLight,
-      ));
-
       setState(() {
         searchResults.remove(friendUsername);
       });

@@ -72,6 +72,7 @@ class DetailsPageState extends State<DetailsPage> {
             AttendeesCard(
               eventID: widget.eventID,
               rating: widget.userRating,
+              username: widget.username,
             ),
           ],
         ),
