@@ -188,7 +188,7 @@ class AttendeesCard extends StatelessWidget {
             );
           }
         }
-        return const Center(child: CupertinoActivityIndicator(radius: 15));
+        return Container();
       },
     );
   }

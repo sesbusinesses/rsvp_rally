@@ -71,8 +71,7 @@ class EventTimeline extends StatelessWidget {
                         return buildTimelineTile(data, phaseIndex,
                             timelineData.length, isStartNode, false, rsvpYes);
                       } else {
-                        return const Center(
-                            child: CupertinoActivityIndicator(radius: 15));
+                        return Container();
                       }
                     },
                   );
@@ -87,8 +86,7 @@ class EventTimeline extends StatelessWidget {
                         return buildTimelineTile(lastData, phaseIndex,
                             timelineData.length, false, true, rsvpYes);
                       } else {
-                        return const Center(
-                            child: CupertinoActivityIndicator(radius: 15));
+                        return Container();
                       }
                     },
                   );
@@ -104,11 +102,7 @@ class EventTimeline extends StatelessWidget {
             );
           }
         } else {
-          return const Center(
-            child: CupertinoActivityIndicator(
-              radius: 15,
-            ),
-          );
+          return Container();
         }
       },
     );

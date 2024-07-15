@@ -52,7 +52,7 @@ class EventTimeDisplay extends StatelessWidget {
       future: fetchTimeline(eventID),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CupertinoActivityIndicator(radius: 15);
+          return Container();
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {

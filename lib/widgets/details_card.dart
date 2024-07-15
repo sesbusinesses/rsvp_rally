@@ -68,10 +68,7 @@ class DetailsCard extends StatelessWidget {
             );
           }
         }
-        return const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: CupertinoActivityIndicator(radius: 15),
-        );
+        return Container();
       },
     );
   }
