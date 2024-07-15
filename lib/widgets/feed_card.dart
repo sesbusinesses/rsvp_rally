@@ -82,19 +82,22 @@ class _FeedCardState extends State<FeedCard> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          surfaceTintColor: getInterpolatedColor(userRating),
           title: const Text('Confirm Deletion'),
           content: const Text('Are you sure you want to delete this post?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text('Cancel',
+                  style: TextStyle(color: getInterpolatedColor(userRating))),
             ),
             TextButton(
               onPressed: () {
                 widget.onDelete?.call();
                 Navigator.of(context).pop();
               },
-              child: const Text('Delete'),
+              child: Text('Delete',
+                  style: TextStyle(color: getInterpolatedColor(userRating))),
             ),
           ],
         );
@@ -222,7 +225,8 @@ class _FeedCardState extends State<FeedCard> {
                   ),
                   if (widget.isUserPost)
                     IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      icon: Icon(Icons.delete_outline,
+                          color: getInterpolatedColor(userRating)),
                       onPressed: () => _showDeleteConfirmationDialog(context),
                     ),
                 ],

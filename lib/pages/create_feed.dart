@@ -5,14 +5,17 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:image/image.dart' as img;
+import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'dart:math' as math;
+
+import 'package:rsvp_rally/widgets/widetextbox.dart';
 
 class CreateFeedPage extends StatefulWidget {
   final String username;
   final double rating;
 
-  const CreateFeedPage({Key? key, required this.username, required this.rating})
-      : super(key: key);
+  const CreateFeedPage(
+      {super.key, required this.username, required this.rating});
 
   @override
   _CreateFeedPageState createState() => _CreateFeedPageState();
@@ -50,7 +53,9 @@ class _CreateFeedPageState extends State<CreateFeedPage> {
     if (_base64Image == null || _descriptionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please provide an image and description.'),
+          content: Text('Please provide an image and description.',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
         ),
       );
       return;
@@ -109,7 +114,9 @@ class _CreateFeedPageState extends State<CreateFeedPage> {
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: borderColor),
+                      border: Border.all(
+                          color: getInterpolatedColor(widget.rating),
+                          width: AppColors.borderWidth),
                     ),
                     child: _base64Image != null
                         ? ClipRRect(
@@ -130,42 +137,53 @@ class _CreateFeedPageState extends State<CreateFeedPage> {
                           ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextField(
+                const SizedBox(height: 10),
+                WideTextBox(
+                  hintText: 'Caption',
                   controller: _descriptionController,
-                  maxLines: 2,
-                  decoration: InputDecoration(
-                    hintText: 'Enter description',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide(color: borderColor),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide(color: borderColor),
-                    ),
-                  ),
+                  canGrow: true,
                 ),
-                const SizedBox(height: 16),
-                Center(
-                  child: _isLoading
-                      ? CircularProgressIndicator()
-                      : ElevatedButton(
-                          onPressed: _postFeed,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: getInterpolatedColor(widget.rating),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 50, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child: Text(
-                            'Post',
-                            style: AppColors.buttonStyle,
-                          ),
-                        ),
+                // TextField(
+                //   controller: _descriptionController,
+                //   maxLines: 2,
+                //   decoration: InputDecoration(
+                //     hintText: 'Enter description',
+                //     border: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(15),
+                //       borderSide: BorderSide(color: borderColor),
+                //     ),
+                //     focusedBorder: OutlineInputBorder(
+                //       borderRadius: BorderRadius.circular(15),
+                //       borderSide: BorderSide(color: borderColor),
+                //     ),
+                //   ),
+                // ),
+                const SizedBox(height: 10),
+                WideButton(
+                  buttonText: 'Post',
+                  onPressed: _postFeed,
+                  rating: widget.rating,
                 ),
+                // Center(
+                //   child: _isLoading
+                //       ? const CircularProgressIndicator()
+                //       : ElevatedButton(
+                //           onPressed: _postFeed,
+                //           style: ElevatedButton.styleFrom(
+                //             backgroundColor:
+                //                 getInterpolatedColor(widget.rating),
+                //             padding: const EdgeInsets.symmetric(
+                //                 horizontal: 50, vertical: 15),
+                //             shape: RoundedRectangleBorder(
+                //               borderRadius: BorderRadius.circular(30),
+                //             ),
+                //           ),
+                //           child: Text(
+                //             'Post',
+                //             style: AppColors.buttonStyle,
+                //           ),
+                //         ),
+                // ),
               ],
             ),
           ),
