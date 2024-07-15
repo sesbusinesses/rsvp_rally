@@ -9,8 +9,13 @@ import 'package:rsvp_rally/widgets/user_card.dart';
 class AttendeesCard extends StatelessWidget {
   final double rating;
   final String eventID;
+  final String username;
 
-  const AttendeesCard({super.key, required this.eventID, required this.rating});
+  const AttendeesCard(
+      {super.key,
+      required this.eventID,
+      required this.rating,
+      required this.username});
 
   Future<List<Map<String, dynamic>>> fetchEventAttendees(String eventID) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -172,6 +177,7 @@ class AttendeesCard extends StatelessWidget {
                             icon: Icon(iconData,
                                 color:
                                     getInterpolatedColor(attendee['rating'])),
+                            viewerUsername: username,
                           );
                         },
                       ),
