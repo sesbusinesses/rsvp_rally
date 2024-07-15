@@ -280,6 +280,9 @@ class _UserCardState extends State<UserCard> {
                             buttonText: "Add Friend",
                             onPressed: () {
                               addFriend(widget.username);
+                              setState(() {
+                                isFriend = true;
+                              });
                             },
                             rating: rating,
                             smallVersion: true,
