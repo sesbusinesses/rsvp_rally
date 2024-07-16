@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/models/notification_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rsvp_rally/pages/login_page.dart';

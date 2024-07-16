@@ -175,7 +175,8 @@ Future<void> sendMessage(
   }
 }
 
-Future<void> pushFeedPost(String username, String imageUrl, String description, double rating) async {
+Future<void> pushFeedPost(
+    String username, String imageUrl, String description, double rating) async {
   CollectionReference feeds = FirebaseFirestore.instance.collection('Feeds');
 
   await feeds.add({
@@ -187,4 +188,75 @@ Future<void> pushFeedPost(String username, String imageUrl, String description, 
     'likes': [],
     'chat': [],
   });
+}
+
+// Function to add to the rating of a user
+Future<void> addRating(String username, double amount) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DocumentReference userRef = firestore.collection('Users').doc(username);
+
+  try {
+    DocumentSnapshot userDoc = await userRef.get();
+    if (userDoc.exists) {
+      var userData = userDoc.data() as Map<String, dynamic>;
+      double currentRating = userData['Rating'] ?? 0;
+      double newRating = (currentRating + amount)
+          .clamp(0, 0.999); // Ensure rating does not exceed 0.999
+      await userRef.update({'Rating': newRating});
+
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(username)
+          .update({
+        'Messages': FieldValue.arrayUnion([
+          {
+            'text': 'Your rating has risen from $currentRating to $newRating.',
+            'type': 'Rating Rise',
+          }
+        ]),
+        'NewMessages': true,
+      });
+      // print('Rating for $username increased to $newRating');
+    } else {
+      print('User $username does not exist');
+    }
+  } catch (e) {
+    print('Error updating rating: $e');
+  }
+}
+
+// Function to subtract from the rating of a user
+Future<void> subtractRating(String username, double amount) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DocumentReference userRef = firestore.collection('Users').doc(username);
+
+  try {
+    DocumentSnapshot userDoc = await userRef.get();
+    if (userDoc.exists) {
+      var userData = userDoc.data() as Map<String, dynamic>;
+      double currentRating = userData['Rating'] ?? 0;
+      double newRating = (currentRating - amount)
+          .clamp(0.001, 1.0); // Ensure rating does not go below 0.001
+      await userRef.update({'Rating': newRating});
+
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(username)
+          .update({
+        'Messages': FieldValue.arrayUnion([
+          {
+            'text':
+                'Your rating has dropped from $currentRating to $newRating.',
+            'type': 'Rating Drop',
+          }
+        ]),
+        'NewMessages': true,
+      });
+      // print('Rating for $username decreased to $newRating');
+    } else {
+      print('User $username does not exist');
+    }
+  } catch (e) {
+    print('Error updating rating: $e');
+  }
 }
