@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/models/database_pusher.dart';
 
 class ProfileEditor extends StatefulWidget {
   final String username;
@@ -220,6 +221,8 @@ class _ProfilePictureState extends State<ProfilePicture> {
           print('Resized image size: ${imageBytes.length} bytes');
         }
       }
+
+      pushProfilePicture(widget.username, base64Encode(imageBytes));
 
       setState(() {
         _profilePicBase64 = base64Encode(imageBytes);
