@@ -198,33 +198,32 @@ class _ProfilePictureState extends State<ProfilePicture> {
   }
 
   Future<void> _changeProfilePicture() async {
-    try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        File file = File(image.path);
-        List<int> imageBytes = await file.readAsBytes();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      File file = File(image.path);
+      List<int> imageBytes = await file.readAsBytes();
+      print('Image size: ${imageBytes.length} bytes');
 
-        // Resize the image if it is too large
-        if (imageBytes.length > 100000) {
-          // Example threshold: 1MB
-          img.Image? originalImage = img.decodeImage(imageBytes);
-          if (originalImage != null) {
-            // Calculate the reduction factor to keep the size under 1MB
-            double reductionFactor = math.sqrt(100000 / imageBytes.length);
-            img.Image resizedImage = img.copyResize(originalImage,
-                width: (originalImage.width * reductionFactor).toInt());
-            imageBytes = img.encodeJpg(resizedImage);
-          }
+      if (imageBytes.length > 100000) {
+        img.Image? originalImage = img.decodeImage(imageBytes);
+        if (originalImage != null) {
+          double reductionFactor = math.sqrt(100000 / imageBytes.length);
+          int newWidth = (originalImage.width * reductionFactor).toInt();
+          int newHeight = (originalImage.height * reductionFactor).toInt();
+
+          img.Image resizedImage =
+              img.copyResize(originalImage, width: newWidth, height: newHeight);
+
+          // Adjust the quality parameter to reduce file size
+          int jpegQuality = 75; // You can adjust this value between 0 and 100
+          imageBytes = img.encodeJpg(resizedImage, quality: jpegQuality);
+          print('Resized image size: ${imageBytes.length} bytes');
         }
-
-        String base64Image = base64Encode(imageBytes);
-        await pushProfilePicture(widget.username, base64Image);
-        setState(() {
-          _profilePicBase64 = base64Image;
-        });
       }
-    } catch (e) {
-      print('Error changing profile picture: $e');
+
+      setState(() {
+        _profilePicBase64 = base64Encode(imageBytes);
+      });
     }
   }
 

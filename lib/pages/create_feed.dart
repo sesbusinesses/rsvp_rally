@@ -32,14 +32,22 @@ class _CreateFeedPageState extends State<CreateFeedPage> {
     if (image != null) {
       File file = File(image.path);
       List<int> imageBytes = await file.readAsBytes();
+      print('Image size: ${imageBytes.length} bytes');
 
-      if (imageBytes.length > 10000) {
+      if (imageBytes.length > 100000) {
         img.Image? originalImage = img.decodeImage(imageBytes);
         if (originalImage != null) {
-          double reductionFactor = math.sqrt(10000 / imageBytes.length);
-          img.Image resizedImage = img.copyResize(originalImage,
-              width: (originalImage.width * reductionFactor).toInt());
-          imageBytes = img.encodeJpg(resizedImage);
+          double reductionFactor = math.sqrt(100000 / imageBytes.length);
+          int newWidth = (originalImage.width * reductionFactor).toInt();
+          int newHeight = (originalImage.height * reductionFactor).toInt();
+
+          img.Image resizedImage =
+              img.copyResize(originalImage, width: newWidth, height: newHeight);
+
+          // Adjust the quality parameter to reduce file size
+          int jpegQuality = 75; // You can adjust this value between 0 and 100
+          imageBytes = img.encodeJpg(resizedImage, quality: jpegQuality);
+          print('Resized image size: ${imageBytes.length} bytes');
         }
       }
 
