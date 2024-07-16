@@ -219,10 +219,16 @@ class UserCardModel extends ChangeNotifier {
 
   UserCardModel(this.username, this.viewerUsername) {
     userDataFuture = fetchUserData();
-    friendsFuture = fetchFriendsAndRequests();
+    friendsFuture = viewerUsername.isNotEmpty
+        ? fetchFriendsAndRequests()
+        : Future.value(); // Default future if viewerUsername is empty
   }
 
   Future<void> fetchUserData() async {
+    if (username.isEmpty) {
+      throw Exception("Username is empty");
+    }
+
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     DocumentSnapshot userDoc =
         await firestore.collection('Users').doc(username).get();
@@ -241,6 +247,10 @@ class UserCardModel extends ChangeNotifier {
   }
 
   Future<void> fetchFriendsAndRequests() async {
+    if (viewerUsername.isEmpty) {
+      throw Exception("Viewer username is empty");
+    }
+
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     try {
       DocumentSnapshot userDoc =
@@ -276,6 +286,14 @@ class UserCardModel extends ChangeNotifier {
   }
 
   Future<void> addFriend(BuildContext context, String friendUsername) async {
+    if (friendUsername.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Friend username is empty', style: AppColors.bodyStyle),
+        backgroundColor: AppColors.accentLight,
+      ));
+      return;
+    }
+
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     Timestamp timestamp = Timestamp.now();
 
