@@ -34,19 +34,41 @@ class _CreateFeedPageState extends State<CreateFeedPage> {
       List<int> imageBytes = await file.readAsBytes();
       print('Image size: ${imageBytes.length} bytes');
 
-      if (imageBytes.length > 100000) {
+      if (imageBytes.length > 1000000) {
         img.Image? originalImage = img.decodeImage(imageBytes);
         if (originalImage != null) {
-          double reductionFactor = math.sqrt(100000 / imageBytes.length);
-          int newWidth = (originalImage.width * reductionFactor).toInt();
-          int newHeight = (originalImage.height * reductionFactor).toInt();
+          if (imageBytes.sublist(0, 6).every(
+              (byte) => [0x47, 0x49, 0x46, 0x38, 0x39, 0x61].contains(byte))) {
+            // Handle GIF
+            img.GifDecoder gifDecoder = img.GifDecoder();
+            img.Animation originalGif = gifDecoder.decodeAnimation(imageBytes)!;
+            img.Animation resizedGif = img.Animation();
 
-          img.Image resizedImage =
-              img.copyResize(originalImage, width: newWidth, height: newHeight);
+            double reductionFactor = math.sqrt(1000000 / imageBytes.length);
+            for (var frame in originalGif.frames) {
+              int newWidth = (frame.width * reductionFactor).toInt();
+              int newHeight = (frame.height * reductionFactor).toInt();
+              img.Image resizedFrame =
+                  img.copyResize(frame, width: newWidth, height: newHeight);
+              resizedGif.addFrame(resizedFrame);
+            }
+            var encodedGif = img.encodeGifAnimation(resizedGif);
+            if (encodedGif != null) {
+              imageBytes = encodedGif;
+            }
+          } else {
+            // Handle static images
+            double reductionFactor = math.sqrt(1000000 / imageBytes.length);
+            int newWidth = (originalImage.width * reductionFactor).toInt();
+            int newHeight = (originalImage.height * reductionFactor).toInt();
 
-          // Adjust the quality parameter to reduce file size
-          int jpegQuality = 75; // You can adjust this value between 0 and 100
-          imageBytes = img.encodeJpg(resizedImage, quality: jpegQuality);
+            img.Image resizedImage = img.copyResize(originalImage,
+                width: newWidth, height: newHeight);
+
+            // Adjust the quality parameter to reduce file size
+            int jpegQuality = 75; // You can adjust this value between 0 and 100
+            imageBytes = img.encodeJpg(resizedImage, quality: jpegQuality);
+          }
           print('Resized image size: ${imageBytes.length} bytes');
         }
       }
