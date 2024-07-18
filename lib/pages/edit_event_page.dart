@@ -495,137 +495,143 @@ class EditEventPageState extends State<EditEventPage> {
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: Text('Edit Event', style: AppColors.topStyle),
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: isLoading
-          ? const Center(child: CupertinoActivityIndicator(radius: 15))
-          : Stack(
-              children: [
-                SingleChildScrollView(
-                  // padding: const EdgeInsets.only(bottom: 120),
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 10,
-                                horizontal: screenSize.width * 0.05),
-                            width: screenSize.width * 0.95,
-                            decoration: BoxDecoration(
-                              color: AppColors.light,
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(
-                                color: getInterpolatedColor(widget.rating),
-                                width: AppColors.borderWidth,
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          title: Text('Edit Event', style: AppColors.topStyle),
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+        ),
+        body: isLoading
+            ? const Center(child: CupertinoActivityIndicator(radius: 15))
+            : GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                },
+                child: Stack(
+                  children: [
+                    SingleChildScrollView(
+                      // padding: const EdgeInsets.only(bottom: 120),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 10,
+                                    horizontal: screenSize.width * 0.05),
+                                width: screenSize.width * 0.95,
+                                decoration: BoxDecoration(
+                                  color: AppColors.light,
+                                  borderRadius: BorderRadius.circular(15),
+                                  border: Border.all(
+                                    color: getInterpolatedColor(widget.rating),
+                                    width: AppColors.borderWidth,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: AppColors.shadow,
+                                      blurRadius: 10,
+                                      offset: Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text('Event Name',
+                                        style: AppColors.titleStyle),
+                                    WideTextBox(
+                                      hintText: 'Event Name',
+                                      controller: eventNameController,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: AppColors.shadow,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 5),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                Text('Event Name', style: AppColors.titleStyle),
-                                WideTextBox(
-                                  hintText: 'Event Name',
-                                  controller: eventNameController,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          PhasesSection(
-                            rating: widget.rating,
-                            phaseControllers: phaseControllers,
-                            phaseGeopoints: phaseGeopoints,
-                            onAddPhase: addPhase,
-                            onRemovePhase: removePhase,
-                            eventID: widget.eventID,
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                vertical: 10,
-                                horizontal: screenSize.width * 0.05),
-                            width: screenSize.width * 0.95,
-                            decoration: BoxDecoration(
-                              color: AppColors.light,
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(
-                                color: getInterpolatedColor(widget.rating),
-                                width: AppColors.borderWidth,
+                              const SizedBox(height: 10),
+                              PhasesSection(
+                                rating: widget.rating,
+                                phaseControllers: phaseControllers,
+                                phaseGeopoints: phaseGeopoints,
+                                onAddPhase: addPhase,
+                                onRemovePhase: removePhase,
+                                eventID: widget.eventID,
                               ),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: AppColors.shadow,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 5),
+                              const SizedBox(height: 10),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 10,
+                                    horizontal: screenSize.width * 0.05),
+                                width: screenSize.width * 0.95,
+                                decoration: BoxDecoration(
+                                  color: AppColors.light,
+                                  borderRadius: BorderRadius.circular(15),
+                                  border: Border.all(
+                                    color: getInterpolatedColor(widget.rating),
+                                    width: AppColors.borderWidth,
+                                  ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: AppColors.shadow,
+                                      blurRadius: 10,
+                                      offset: Offset(0, 5),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                Text('Additional Details',
-                                    style: AppColors.titleStyle),
-                                WideTextBox(
-                                  hintText: 'Event Details',
-                                  controller: eventDetailsController,
-                                  canGrow: true,
+                                child: Column(
+                                  children: [
+                                    Text('Additional Details',
+                                        style: AppColors.titleStyle),
+                                    WideTextBox(
+                                      hintText: 'Event Details',
+                                      controller: eventDetailsController,
+                                      canGrow: true,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 10),
+                              NotificationsSection(
+                                rating: widget.rating,
+                                notificationControllers:
+                                    notificationControllers,
+                                onAddNotification: addNotification,
+                                onRemoveNotification: removeNotification,
+                              ),
+                              const SizedBox(height: 10),
+                              AttendeeEntrySection(
+                                rating: widget.rating,
+                                username: widget.username,
+                                onAttendeesChanged: (newAttendees) {
+                                  setState(() {
+                                    attendees = newAttendees;
+                                  });
+                                },
+                                existingAttendees: attendees,
+                              ),
+                              const SizedBox(height: 10),
+                              WideButton(
+                                rating: widget.rating,
+                                buttonText: 'Update Event',
+                                onPressed: updateEvent,
+                              ),
+                              const SizedBox(height: 10),
+                              WideButton(
+                                rating: widget.rating,
+                                buttonText: 'Delete Event',
+                                onPressed: () async {
+                                  await deleteEvent(widget.eventID);
+                                },
+                              ),
+                              const SizedBox(height: 170),
+                            ],
                           ),
-                          const SizedBox(height: 10),
-                          NotificationsSection(
-                            rating: widget.rating,
-                            notificationControllers: notificationControllers,
-                            onAddNotification: addNotification,
-                            onRemoveNotification: removeNotification,
-                          ),
-                          const SizedBox(height: 10),
-                          AttendeeEntrySection(
-                            rating: widget.rating,
-                            username: widget.username,
-                            onAttendeesChanged: (newAttendees) {
-                              setState(() {
-                                attendees = newAttendees;
-                              });
-                            },
-                            existingAttendees: attendees,
-                          ),
-                          const SizedBox(height: 10),
-                          WideButton(
-                            rating: widget.rating,
-                            buttonText: 'Update Event',
-                            onPressed: updateEvent,
-                          ),
-                          const SizedBox(height: 10),
-                          WideButton(
-                            rating: widget.rating,
-                            buttonText: 'Delete Event',
-                            onPressed: () async {
-                              await deleteEvent(widget.eventID);
-                            },
-                          ),
-                          // const SizedBox(height: 120),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-    );
+              ));
   }
 }

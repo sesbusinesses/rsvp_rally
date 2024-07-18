@@ -141,7 +141,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
           await userDocRef.update({
             'Messages': FieldValue.arrayUnion([
               {
-                'text': 'You sent a friend request to $friendUsername.',
+                'text': 'Friend request sent to $friendUsername.',
                 'type': 'friend request sent',
                 'username': friendUsername,
                 'timestamp': timestamp,
@@ -150,14 +150,13 @@ class AddFriendsPageState extends State<AddFriendsPage> {
             'NewMessages': true,
           });
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('$friendUsername added to your friend requests list',
+            content: Text('Friend request sent to $friendUsername',
                 style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight,
           ));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                'You already sent a friend request to $friendUsername',
+            content: Text('You already requested $friendUsername',
                 style: AppColors.bodyStyle),
             backgroundColor: AppColors.accentLight,
           ));
@@ -174,7 +173,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('$friendUsername is already in your friends list',
+        content: Text('$friendUsername is already your friend',
             style: AppColors.bodyStyle),
         backgroundColor: AppColors.accentLight,
       ));

@@ -1,16 +1,12 @@
-// ignore_for_file: use_build_context_synchronously
-
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/notification_service.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/pages/signup_page.dart';
 import 'package:rsvp_rally/pages/forgotpassword_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
-
-bool isNavigating = false;
 
 class LogInPage extends StatefulWidget {
   const LogInPage({super.key});
@@ -31,22 +27,6 @@ class _LogInState extends State<LogInPage> {
   @override
   void initState() {
     super.initState();
-    checkIfLogin();
-  }
-
-  void checkIfLogin() async {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) async {
-      if (user != null && mounted && !isNavigating) {
-        final name = user.displayName ?? 'User';
-
-        await NotificationService().ensureTokenUploaded();
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => EventPage(username: name)),
-        );
-      }
-    });
   }
 
   userLogin() async {
@@ -75,7 +55,7 @@ class _LogInState extends State<LogInPage> {
             MaterialPageRoute(builder: (context) => EventPage(username: name)));
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-credential' && mounted) {
+      if (e.code == 'wrong-password' || e.code == 'user-not-found') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
             "Incorrect Email or Password",
@@ -83,7 +63,7 @@ class _LogInState extends State<LogInPage> {
           ),
           backgroundColor: AppColors.accentLight,
         ));
-      } else if (e.code == 'invalid-email' && mounted) {
+      } else if (e.code == 'invalid-email') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
             "Invalid Email Address",
@@ -91,7 +71,7 @@ class _LogInState extends State<LogInPage> {
           ),
           backgroundColor: AppColors.accentLight,
         ));
-      } else if (e.code == 'too-many-requests' && mounted) {
+      } else if (e.code == 'too-many-requests') {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
             "Too many login attempts. Try again later.",
@@ -150,19 +130,18 @@ class _LogInState extends State<LogInPage> {
               ),
               const SizedBox(height: 12.0),
               WideButton(
-                  buttonText: 'Login',
-                  onPressed: () {
-                    if (_formkey.currentState!.validate()) {
-                      setState(() {
-                        email = useremailcontroller.text;
-                        password = userpasswordcontroller.text;
-                      });
-                    }
-                    userLogin();
-                  }),
-              const SizedBox(
-                height: 40,
+                buttonText: 'Login',
+                onPressed: () {
+                  if (_formkey.currentState!.validate()) {
+                    setState(() {
+                      email = useremailcontroller.text;
+                      password = userpasswordcontroller.text;
+                    });
+                  }
+                  userLogin();
+                },
               ),
+              const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -172,16 +151,13 @@ class _LogInState extends State<LogInPage> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      setState(() {
-                        isNavigating = true;
-                      });
                       Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const SignUpPage()));
                     },
                     child: Text("Register now", style: AppColors.linkStyle),
-                  )
+                  ),
                 ],
               ),
             ],

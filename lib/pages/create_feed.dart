@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:image/image.dart' as img;
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'dart:math' as math;
+import 'package:flutter/scheduler.dart';
 
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 
@@ -18,14 +19,15 @@ class CreateFeedPage extends StatefulWidget {
       {super.key, required this.username, required this.rating});
 
   @override
-  _CreateFeedPageState createState() => _CreateFeedPageState();
+  CreateFeedPageState createState() => CreateFeedPageState();
 }
 
-class _CreateFeedPageState extends State<CreateFeedPage> {
+class CreateFeedPageState extends State<CreateFeedPage> {
   final TextEditingController _descriptionController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   String? _base64Image;
   bool _isLoading = false;
+  bool _isPosting = false;
 
   Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -80,19 +82,23 @@ class _CreateFeedPageState extends State<CreateFeedPage> {
   }
 
   Future<void> _postFeed() async {
+    if (_isPosting) return; // Prevent multiple calls
     if (_base64Image == null || _descriptionController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please provide an image and description.',
-              style: AppColors.bodyStyle),
-          backgroundColor: AppColors.accentLight,
-        ),
-      );
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please provide an image and description.',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight,
+          ),
+        );
+      });
       return;
     }
 
     setState(() {
       _isLoading = true;
+      _isPosting = true;
     });
 
     try {
@@ -105,17 +111,27 @@ class _CreateFeedPageState extends State<CreateFeedPage> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to post feed: $e'),
-        ),
-      );
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to post feed: $e'),
+          ),
+        );
+      });
     } finally {
       setState(() {
         _isLoading = false;
+        _isPosting = false;
       });
+    }
+  }
+
+  void _onPostButtonPressed() {
+    if (!_isLoading) {
+      _postFeed();
     }
   }
 
@@ -173,47 +189,12 @@ class _CreateFeedPageState extends State<CreateFeedPage> {
                   controller: _descriptionController,
                   canGrow: true,
                 ),
-                // TextField(
-                //   controller: _descriptionController,
-                //   maxLines: 2,
-                //   decoration: InputDecoration(
-                //     hintText: 'Enter description',
-                //     border: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(15),
-                //       borderSide: BorderSide(color: borderColor),
-                //     ),
-                //     focusedBorder: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(15),
-                //       borderSide: BorderSide(color: borderColor),
-                //     ),
-                //   ),
-                // ),
                 const SizedBox(height: 10),
                 WideButton(
                   buttonText: 'Post',
-                  onPressed: _postFeed,
+                  onPressed: _onPostButtonPressed, // Disable button if loading
                   rating: widget.rating,
                 ),
-                // Center(
-                //   child: _isLoading
-                //       ? const CircularProgressIndicator()
-                //       : ElevatedButton(
-                //           onPressed: _postFeed,
-                //           style: ElevatedButton.styleFrom(
-                //             backgroundColor:
-                //                 getInterpolatedColor(widget.rating),
-                //             padding: const EdgeInsets.symmetric(
-                //                 horizontal: 50, vertical: 15),
-                //             shape: RoundedRectangleBorder(
-                //               borderRadius: BorderRadius.circular(30),
-                //             ),
-                //           ),
-                //           child: Text(
-                //             'Post',
-                //             style: AppColors.buttonStyle,
-                //           ),
-                //         ),
-                // ),
               ],
             ),
           ),

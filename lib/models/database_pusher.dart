@@ -19,7 +19,7 @@ class DataPusher {
     final newUser = {
       'FirstName': firstName,
       'LastName': lastName,
-      'Rating': 0.99,
+      'Rating': 0.3,
       'Events': [],
       'Friends': [],
       'Messages': [
@@ -175,7 +175,8 @@ Future<void> sendMessage(
   }
 }
 
-Future<void> pushFeedPost(String username, String imageUrl, String description, double rating) async {
+Future<void> pushFeedPost(
+    String username, String imageUrl, String description, double rating) async {
   CollectionReference feeds = FirebaseFirestore.instance.collection('Feeds');
 
   await feeds.add({

@@ -335,7 +335,7 @@ class UserCardModel extends ChangeNotifier {
         notifyListeners();
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('$friendUsername added to your friend requests list',
+          content: Text('Friend request sent to $friendUsername',
               style: AppColors.bodyStyle),
           backgroundColor: AppColors.accentLight,
         ));

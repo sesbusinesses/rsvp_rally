@@ -128,7 +128,7 @@ class _PollCardState extends State<PollCard> {
                           }).toList(),
                         );
                       } else {
-                        return const CircularProgressIndicator(strokeWidth: 2);
+                        return Container();
                       }
                     },
                   ),
