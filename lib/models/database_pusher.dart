@@ -202,6 +202,7 @@ Future<void> addRating(String username, double amount) async {
       double currentRating = userData['Rating'] ?? 0;
       double newRating = (currentRating + amount)
           .clamp(0, 0.999); // Ensure rating does not exceed 0.999
+      newRating = double.parse(newRating.toStringAsFixed(3));
       await userRef.update({'Rating': newRating});
 
       await FirebaseFirestore.instance
@@ -237,6 +238,7 @@ Future<void> subtractRating(String username, double amount) async {
       double currentRating = userData['Rating'] ?? 0;
       double newRating = (currentRating - amount)
           .clamp(0.001, 1.0); // Ensure rating does not go below 0.001
+      newRating = double.parse(newRating.toStringAsFixed(3));
       await userRef.update({'Rating': newRating});
 
       await FirebaseFirestore.instance
