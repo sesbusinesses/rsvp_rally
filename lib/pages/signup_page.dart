@@ -34,7 +34,6 @@ class _SignUpState extends State<SignUpPage> {
 
   @override
   void dispose() {
-    isNavigating = false; // Reset the navigation flag
     usernameController.dispose();
     passwordController.dispose();
     emailController.dispose();

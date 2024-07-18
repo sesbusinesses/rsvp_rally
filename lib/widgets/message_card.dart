@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/details_page.dart';
+import 'package:rsvp_rally/pages/event_page_view.dart';
 import 'package:rsvp_rally/pages/poll_page.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
@@ -157,17 +158,11 @@ class MessageCardState extends State<MessageCard> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => messageType == 'event invitation'
-              ? DetailsPage(
-                  username: widget.username,
-                  userRating: widget.rating,
-                  eventID: eventID,
-                )
-              : PollPage(
-                  username: widget.username,
-                  rating: widget.rating,
-                  eventID: eventID,
-                ),
+          builder: (context) => EventPageView(
+            username: widget.username,
+            eventID: eventID,
+            rating: widget.rating,
+          ),
         ),
       );
     } else {

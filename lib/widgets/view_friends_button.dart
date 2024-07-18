@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/friends_page.dart';
+import 'package:rsvp_rally/pages/friends_shop_page_view.dart';
 
 class ViewFriendsButton extends StatelessWidget {
   final String username;
@@ -24,7 +25,7 @@ class ViewFriendsButton extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => FriendsPage(
+            builder: (context) => FriendsShopPageView(
               rating: userRating,
               username: username,
             ),

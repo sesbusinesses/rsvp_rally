@@ -19,7 +19,7 @@ class DataPusher {
     final newUser = {
       'FirstName': firstName,
       'LastName': lastName,
-      'Rating': 0.99,
+      'Rating': 0.3,
       'Events': [],
       'Friends': [],
       'Messages': [

@@ -457,26 +457,14 @@ class CreateEventPageState extends State<CreateEventPage> {
                           });
                         },
                       ),
-                      // const SizedBox(
-                      //     height:
-                      //         80), // Add some space at the bottom for better visibility
+                      const SizedBox(
+                          height:
+                              170), // Add some space at the bottom for better visibility
                     ],
                   ),
                 ),
               ),
             ),
-            // Align(
-            //   alignment: Alignment.bottomCenter,
-            //   child: Container(
-            //     padding: const EdgeInsets.all(20),
-            //     height: 100,
-            //     child: WideButton(
-            //       rating: widget.rating,
-            //       buttonText: 'Create Event',
-            //       onPressed: createEvent,
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ),

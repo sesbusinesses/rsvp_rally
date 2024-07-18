@@ -63,6 +63,7 @@ dependencies:
   bottom_picker: ^2.7.0
   cupertino_date_textbox: ^1.0.3
   omni_datetime_picker: ^1.1.0
+  image_cropper: ^7.1.0
 
   #location
   syncfusion_flutter_maps: ^25.2.7
