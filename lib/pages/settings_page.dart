@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/models/notification_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rsvp_rally/pages/login_page.dart';
@@ -55,11 +54,12 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _checkLocationTrackingStatus() async {
-    bool isTrackingEnabled = await checkLocationPermissionStatus();
-    print(isTrackingEnabled
-        ? 'Location tracking is enabled.'
-        : 'Location tracking is disabled.');
+  Future<void> updateLocation() async {
+    //bool isTrackingEnabled = await checkLocationPermissionStatus();
+    await updateCurrentLocation(widget.username);
+    //print(isTrackingEnabled
+    //    ? 'Location tracking is enabled.'
+    //    : 'Location tracking is disabled.');
   }
 
   @override
@@ -79,8 +79,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   children: [
                     WideButton(
-                      buttonText: 'Check location tracking status',
-                      onPressed: _checkLocationTrackingStatus,
+                      buttonText: 'Update Your Location Status',
+                      onPressed: () async {
+                        await updateLocation();
+                      },
                     ),
                     const SizedBox(height: 10),
                     WideButton(
