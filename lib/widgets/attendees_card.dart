@@ -1,7 +1,5 @@
 import 'dart:developer';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/user_card.dart';
@@ -72,7 +70,7 @@ class AttendeesCard extends StatelessWidget {
         Map<String, dynamic> polls = eventData['Polls'] ?? {};
 
         bool hasRespondedYes = false;
-        bool hasRespondedNo = true; // Assume 'no' until a 'yes' is found
+        bool hasRespondedNo = false; // Updated logic
 
         for (var pollName in polls.keys) {
           if (pollName.startsWith('RSVP for')) {
@@ -82,9 +80,7 @@ class AttendeesCard extends StatelessWidget {
               hasRespondedYes = true;
             }
             if (responses['No'] != null && responses['No'].contains(username)) {
-              hasRespondedNo = hasRespondedNo && true;
-            } else {
-              hasRespondedNo = false;
+              hasRespondedNo = true;
             }
           }
         }
@@ -110,7 +106,10 @@ class AttendeesCard extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData && snapshot.data!.isNotEmpty) {
             List<Map<String, dynamic>> attendees = snapshot.data!;
-            // Sort attendees by rating
+            // Filter and sort attendees by rating
+            List<Map<String, dynamic>> comingAttendees = attendees
+                .where((attendee) => attendee['isComing'] == 'yes')
+                .toList();
             attendees.sort((a, b) => b['rating'].compareTo(a['rating']));
 
             return Padding(
@@ -146,7 +145,7 @@ class AttendeesCard extends StatelessWidget {
                       Expanded(child: Container()),
                       Icon(Icons.people, color: getInterpolatedColor(rating)),
                       const SizedBox(width: 5),
-                      Text(attendees.length.toString(),
+                      Text(comingAttendees.length.toString(),
                           style: TextStyle(
                               fontSize: 20,
                               color: getInterpolatedColor(rating)))

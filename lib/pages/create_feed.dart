@@ -111,6 +111,8 @@ class CreateFeedPageState extends State<CreateFeedPage> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      await _notifyFriends();
+
       if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
@@ -126,6 +128,37 @@ class CreateFeedPageState extends State<CreateFeedPage> {
         _isLoading = false;
         _isPosting = false;
       });
+    }
+  }
+
+  Future<void> _notifyFriends() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    Timestamp timestamp = Timestamp.now();
+
+    try {
+      DocumentSnapshot userDoc =
+          await firestore.collection('Users').doc(widget.username).get();
+      if (!userDoc.exists) return;
+
+      List<String> friends = List.from(userDoc['Friends'] ?? []);
+      String messageText = '${widget.username} has posted';
+
+      WriteBatch batch = firestore.batch();
+
+      for (String friend in friends) {
+        DocumentReference friendDocRef =
+            firestore.collection('Users').doc(friend);
+        batch.update(friendDocRef, {
+          'Messages': FieldValue.arrayUnion([
+            {'text': messageText, 'type': 'feed post', 'timestamp': timestamp}
+          ]),
+          'NewMessages': true,
+        });
+      }
+
+      await batch.commit();
+    } catch (e) {
+      print('Error notifying friends: $e');
     }
   }
 

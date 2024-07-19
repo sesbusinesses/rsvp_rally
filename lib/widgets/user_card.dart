@@ -85,9 +85,9 @@ class _UserCardContent extends StatelessWidget {
                 bool isFriend = model.isFriend;
                 bool isRequestSent = model.isRequestSent;
 
-                if (kDebugMode) {
-                  print('isFriend: $isFriend, isRequestSent: $isRequestSent');
-                }
+                // if (kDebugMode) {
+                //   print('isFriend: $isFriend, isRequestSent: $isRequestSent');
+                // }
 
                 return Container(
                   width: screenSize.width * 0.85,
