@@ -109,7 +109,7 @@ class _MainPageViewState extends State<MainPageView> {
             },
             children: [
               GroupsPage(),
-              EventPage(username: widget.username),
+              EventPage(username: widget.username, userRating: userRating),
               FeedPage(username: widget.username, userRating: userRating),
             ],
           );

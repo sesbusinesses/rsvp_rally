@@ -246,7 +246,7 @@ Future<List<Map<String, dynamic>>> fetchTimeline(String eventID) async {
   } catch (e) {
     log("Error fetching timeline: $e");
   }
-  log("Fetched timeline data: $timelineData");
+  // log("Fetched timeline data: $timelineData");
 
   return timelineData;
 }
