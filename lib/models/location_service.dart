@@ -63,7 +63,11 @@ Future<void> updateCurrentLocation(String username) async {
         'Current position for $username: ${position.latitude}, ${position.longitude}');
 
     // Check if there are any events that have started
-    await checkForStartedEvents(username, position);
+    try {
+      await checkForStartedEvents(username, position);
+    } catch (e) {
+      print('error check for started events : $e');
+    }
   } catch (e) {
     print('Error updating current location for $username: $e');
   }
@@ -101,6 +105,7 @@ Future<void> checkForStartedEvents(
         //print('$username is already at the event $eventId.');
         return;
       } else {
+        print('checking time and distance.');
         // Get event location from the 'Events' collection
         DocumentSnapshot eventDoc = await FirebaseFirestore.instance
             .collection('Events')
@@ -128,6 +133,7 @@ Future<void> checkForStartedEvents(
         if (timeElapsed <= timeLimit) {
           // Check if the user is within 1600 meters of the event location
           if (distanceInMeters <= 1600) {
+            Timestamp timestamp = Timestamp.now();
             //print('with in the distance.');
             // Move the username from OMWUsers to PresentUsers array
             await FirebaseFirestore.instance
@@ -148,6 +154,7 @@ Future<void> checkForStartedEvents(
                 {
                   'text': 'You made it to $eventName on time.',
                   'type': 'Present',
+                  'timestamp': timestamp
                 }
               ]),
               'NewMessages': true,
@@ -159,6 +166,7 @@ Future<void> checkForStartedEvents(
             //print('You made it to the event on time.');
           } else {
             Duration timeLeft = timeLimit - timeElapsed;
+            Timestamp timestamp = Timestamp.now();
             // A new message to let the user know that you are still not at the event location.
             await FirebaseFirestore.instance
                 .collection('Users')
@@ -169,6 +177,7 @@ Future<void> checkForStartedEvents(
                   'text':
                       'You are still not close enough to $eventName location. You have ${timeLeft.inMinutes} minutes to keep your rating!',
                   'type': 'Not there yet',
+                  'timestamp': timestamp
                 }
               ]),
               'NewMessages': true,
@@ -176,6 +185,7 @@ Future<void> checkForStartedEvents(
           }
         } else {
           //print('You are late to the event.');
+          Timestamp timestamp = Timestamp.now();
 
           try {
             await FirebaseFirestore.instance
@@ -187,6 +197,7 @@ Future<void> checkForStartedEvents(
                   'text':
                       'OH NO! You were late to $eventName. Get ready early next time.',
                   'type': 'Late',
+                  'timestamp': timestamp
                 }
               ]),
               'NewMessages': true,
