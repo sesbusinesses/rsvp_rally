@@ -2,13 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
-import 'package:rsvp_rally/models/route_observer.dart';
 import 'package:rsvp_rally/pages/groups_page.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
 import 'package:rsvp_rally/pages/feed_page.dart';
 import 'package:rsvp_rally/widgets/custom_switcher.dart';
 import 'package:rsvp_rally/widgets/view_inbox_button.dart';
 import 'package:rsvp_rally/widgets/view_friends_button.dart';
+import 'package:rsvp_rally/models/route_observer.dart';
 
 class MainPageView extends StatefulWidget {
   final String username;
@@ -28,11 +28,16 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(
-      initialPage: _selectedIndex,
-    );
+    _pageController = PageController(initialPage: _selectedIndex);
     userRatingFuture = getUserRating(widget.username);
     inboxFuture = getInboxData();
+  }
+
+  Future<DocumentSnapshot> getInboxData() {
+    return FirebaseFirestore.instance
+        .collection('Users')
+        .doc(widget.username)
+        .get();
   }
 
   @override
@@ -50,18 +55,7 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
 
   @override
   void didPopNext() {
-    // Reload the data whenever MainPageView is revisited
-    setState(() {
-      userRatingFuture = getUserRating(widget.username);
-      inboxFuture = getInboxData();
-    });
-  }
-
-  Future<DocumentSnapshot> getInboxData() {
-    return FirebaseFirestore.instance
-        .collection('Users')
-        .doc(widget.username)
-        .get();
+    setState(() {}); // Reload the MainPageView to restore the last visited page
   }
 
   void _onTabChanged(int index) {
@@ -88,12 +82,6 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
         title: FutureBuilder<double?>(
           future: userRatingFuture,
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox();
-            }
-            if (snapshot.hasError) {
-              return const Text('Error loading rating');
-            }
             double userRating = snapshot.data ?? 0;
             return CustomTabSwitcher(
               tabs: const ['Groups', 'Events', 'My Feed'],
@@ -153,12 +141,6 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
           FutureBuilder<double?>(
             future: userRatingFuture,
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox();
-              }
-              if (snapshot.hasError) {
-                return const Text('Error');
-              }
               double userRating = snapshot.data ?? 0;
               return ViewFriendsButton(
                 username: widget.username,
