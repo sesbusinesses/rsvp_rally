@@ -190,6 +190,8 @@ Future<void> pushFeedPost(
   });
 }
 
+/*---------------------------Rating system.----------------------------*/
+
 // Function to add to the rating of a user
 Future<void> addRating(String username, double amount) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -262,3 +264,108 @@ Future<void> subtractRating(String username, double amount) async {
     print('Error updating rating: $e');
   }
 }
+
+Future<void> changeRatingFour(String username, String eventId) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DocumentReference userRef = firestore.collection('Users').doc(username);
+  DocumentReference eventRef = firestore.collection('Events').doc(eventId);
+
+  try {
+    DocumentSnapshot userDoc = await userRef.get();
+    DocumentSnapshot eventDoc = await eventRef.get();
+    if (userDoc.exists && eventDoc.exists) {
+      var userData = userDoc.data() as Map<String, dynamic>;
+      var eventData = eventDoc.data() as Map<String, dynamic>;
+      List<dynamic> attendees = eventData['Attendees'] ?? [];
+      int numberOfAttendees =
+          attendees.length + 1; // include the host by adding 1
+
+      // Get the HostName from the event data
+      String hostName = eventData['HostName'];
+
+      double currentRating = userData['Rating'] ?? 0;
+      double newRating = (currentRating + 0.015 * numberOfAttendees)
+          .clamp(0, 0.999); // Ensure rating does not exceed 0.999
+
+      // bonus 5 rating if you are a host
+      if (hostName == username) {
+        newRating = newRating + 0.005;
+      }
+
+      newRating = double.parse(newRating.toStringAsFixed(3));
+      await userRef.update({'Rating': newRating});
+
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(username)
+          .update({
+        'Messages': FieldValue.arrayUnion([
+          {
+            'text': 'Your rating has risen from $currentRating to $newRating.',
+            'type': 'Rating Rise',
+          }
+        ]),
+        'NewMessages': true,
+      });
+      // print('Rating for $username increased to $newRating');
+    } else {
+      print('User $username does not exist');
+    }
+  } catch (e) {
+    print('Error updating rating: $e');
+  }
+}
+
+Future<void> changeRatingFive(String username, String eventId) async {
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DocumentReference userRef = firestore.collection('Users').doc(username);
+  DocumentReference eventRef = firestore.collection('Events').doc(eventId);
+
+  try {
+    DocumentSnapshot userDoc = await userRef.get();
+    DocumentSnapshot eventDoc = await eventRef.get();
+    if (userDoc.exists && eventDoc.exists) {
+      var userData = userDoc.data() as Map<String, dynamic>;
+      var eventData = eventDoc.data() as Map<String, dynamic>;
+      List<dynamic> attendees = eventData['Attendees'] ?? [];
+      int numberOfAttendees =
+          attendees.length + 1; // include the host by adding 1
+
+      // Get the HostName from the event data
+      String hostName = eventData['HostName'];
+
+      double currentRating = userData['Rating'] ?? 0;
+      double newRating = (currentRating - 0.015 * numberOfAttendees)
+          .clamp(0, 0.999); // Ensure rating does not exceed 0.999
+
+      // lose 10 rating if you are a host
+      if (hostName == username) {
+        newRating = newRating - 0.010;
+      }
+
+      newRating = double.parse(newRating.toStringAsFixed(3));
+      await userRef.update({'Rating': newRating});
+
+      await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(username)
+          .update({
+        'Messages': FieldValue.arrayUnion([
+          {
+            'text':
+                'Your rating has dropped from $currentRating to $newRating.',
+            'type': 'Rating Drop',
+          }
+        ]),
+        'NewMessages': true,
+      });
+      // print('Rating for $username increased to $newRating');
+    } else {
+      print('User $username does not exist');
+    }
+  } catch (e) {
+    print('Error updating rating: $e');
+  }
+}
+
+/*--------------------------------------------------------------------------*/
