@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image/image.dart' as img;
 import 'dart:io';
 import 'dart:convert';
@@ -59,12 +60,57 @@ class _EventImageDisplayState extends State<EventImageDisplay> {
         List<int> imageBytes = await file.readAsBytes();
         print('Image size: ${imageBytes.length} bytes');
 
-        // Resize the image if it is too large
+        // Check if the image is a GIF
+        bool isGif = imageBytes
+            .sublist(0, 3)
+            .every((byte) => [0x47, 0x49, 0x46].contains(byte));
+
+        if (!isGif) {
+          // Crop the image if it's not a GIF
+          CroppedFile? croppedFile = await ImageCropper().cropImage(
+            sourcePath: file.path,
+            aspectRatio: const CropAspectRatio(
+                ratioX: 1, ratioY: 1), // Square aspect ratio
+            uiSettings: [
+              AndroidUiSettings(
+                toolbarTitle: 'Crop Image',
+                toolbarColor: Colors.deepOrange,
+                toolbarWidgetColor: Colors.white,
+                aspectRatioPresets: [
+                  CropAspectRatioPreset.square,
+                ],
+                cropStyle: CropStyle.rectangle,
+                lockAspectRatio: true,
+              ),
+              IOSUiSettings(
+                title: 'Crop your image',
+                aspectRatioPresets: [
+                  CropAspectRatioPreset.square,
+                ],
+                minimumAspectRatio: 1,
+                cropStyle: CropStyle.rectangle,
+                aspectRatioLockEnabled: true,
+                resetButtonHidden: true,
+                aspectRatioPickerButtonHidden: true,
+                showCancelConfirmationDialog: true,
+              ),
+              WebUiSettings(
+                context: context,
+              ),
+            ],
+          );
+
+          if (croppedFile != null) {
+            file = File(croppedFile.path);
+            imageBytes = await file.readAsBytes();
+            print('Cropped image size: ${imageBytes.length} bytes');
+          }
+        }
+
         if (imageBytes.length > 1000000) {
           img.Image? originalImage = img.decodeImage(imageBytes);
           if (originalImage != null) {
-            if (imageBytes.sublist(0, 6).every((byte) =>
-                [0x47, 0x49, 0x46, 0x38, 0x39, 0x61].contains(byte))) {
+            if (isGif) {
               // Handle GIF
               img.GifDecoder gifDecoder = img.GifDecoder();
               img.Animation originalGif =
