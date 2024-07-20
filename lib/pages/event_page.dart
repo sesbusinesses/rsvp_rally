@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/models/route_observer.dart';
 import 'package:rsvp_rally/widgets/create_event_button.dart';
 import 'package:rsvp_rally/widgets/eventcard.dart';
 import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
@@ -21,7 +20,7 @@ class EventPage extends StatefulWidget {
 }
 
 class EventPageState extends State<EventPage>
-    with SingleTickerProviderStateMixin, RouteAware {
+    with SingleTickerProviderStateMixin {
   late Future<List<String>> userEventsFuture;
   List<String> existingEventIds = [];
   Map<String, DateTime?> eventStartTimes = {};
@@ -67,23 +66,6 @@ class EventPageState extends State<EventPage>
         });
       }
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
-  }
-
-  @override
-  void dispose() {
-    routeObserver.unsubscribe(this);
-    super.dispose();
-  }
-
-  @override
-  void didPopNext() {
-    loadData();
   }
 
   Future<List<String>> getUserEvents(String username) async {
