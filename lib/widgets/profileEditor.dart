@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 import 'dart:math' as math;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/widgets/profilePic.dart';
 
 class ProfileEditor extends StatefulWidget {
   final String username;
@@ -110,253 +111,101 @@ class _ProfileEditorState extends State<ProfileEditor> {
     Size screenSize = MediaQuery.of(context).size;
     return FutureBuilder<Map<String, dynamic>>(
       future: _profileData,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+      builder: (context, profileSnapshot) {
+        if (profileSnapshot.connectionState == ConnectionState.waiting) {
           return Container();
-        } else if (snapshot.hasError) {
+        } else if (profileSnapshot.hasError) {
           return const Center(
             child: Text('Error loading profile data'),
           );
-        } else if (snapshot.hasData) {
-          var profileData = snapshot.data!;
+        } else if (profileSnapshot.hasData) {
+          var profileData = profileSnapshot.data!;
           String? profilePicBase64 = profileData['profilePicBase64'];
           String firstName = profileData['firstName'];
           String lastName = profileData['lastName'];
           double rating = profileData['rating'];
 
-          return Container(
-            width: screenSize.width * 0.85,
-            height: 200, // Adjusted height for better aesthetics
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.light, // Dark background color
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: getInterpolatedColor(rating),
-                width: AppColors.borderWidth,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: AppColors.shadow,
-                  blurRadius: 10,
-                  offset: Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ProfilePicture(
-                  username: widget.username,
-                  profilePicBase64: profilePicBase64,
-                  rating: rating,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  '$firstName $lastName',
-                  style: AppColors.titleStyle,
-                ),
-                Text(
-                  widget.username,
-                  style: AppColors.usernameStyle,
-                ),
-              ],
-            ),
+          return FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('Shop')
+                .doc('freakText')
+                .get(),
+            builder: (context, freakSnapshot) {
+              if (freakSnapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (freakSnapshot.hasError) {
+                return Center(child: Text('Error loading freak status'));
+              } else {
+                bool isFreak = false;
+                if (freakSnapshot.hasData && freakSnapshot.data != null) {
+                  Map<String, dynamic> freakData =
+                      freakSnapshot.data!.data() as Map<String, dynamic>;
+                  isFreak = freakData[widget.username] == true;
+                }
+
+                return Container(
+                  width: screenSize.width * 0.85,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.light, // Dark background color
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                      color: getInterpolatedColor(rating),
+                      width: AppColors.borderWidth,
+                    ),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: AppColors.shadow,
+                        blurRadius: 10,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ProfilePicture(
+                            username: widget.username,
+                            profilePicBase64: profilePicBase64,
+                            rating: rating,
+                          ),
+                          Text(
+                            '$firstName $lastName',
+                            style: AppColors.titleStyle,
+                          ),
+                          Text(
+                            widget.username,
+                            style: AppColors.usernameStyle,
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
+                      if (isFreak)
+                        Positioned(
+                          top: 15,
+                          right: 15,
+                          child: Text(
+                            "𝓯𝓻𝓮𝓪𝓴𝔂",
+                            style: TextStyle(
+                              fontFamily: 'Times New Roman',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: getInterpolatedColor(rating),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              }
+            },
           );
         }
         return Container();
       },
-    );
-  }
-}
-
-class ProfilePicture extends StatefulWidget {
-  final String username;
-  final String? profilePicBase64;
-  final double rating;
-
-  const ProfilePicture({
-    super.key,
-    required this.username,
-    this.profilePicBase64,
-    required this.rating,
-  });
-
-  @override
-  _ProfilePictureState createState() => _ProfilePictureState();
-}
-
-class _ProfilePictureState extends State<ProfilePicture> {
-  final ImagePicker _picker = ImagePicker();
-  String? _profilePicBase64;
-
-  @override
-  void initState() {
-    super.initState();
-    _profilePicBase64 = widget.profilePicBase64;
-  }
-
-  Future<void> _changeProfilePicture() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      File file = File(image.path);
-      List<int> imageBytes = await file.readAsBytes();
-
-      bool isGif = imageBytes
-          .sublist(0, 3)
-          .every((byte) => [0x47, 0x49, 0x46].contains(byte));
-
-      CroppedFile? croppedFile;
-
-      if (!isGif) {
-        // Crop the image if it is not a GIF
-        croppedFile = await ImageCropper().cropImage(
-          sourcePath: file.path,
-          uiSettings: [
-            AndroidUiSettings(
-              toolbarTitle: 'Cropper',
-              toolbarColor: Colors.deepOrange,
-              toolbarWidgetColor: Colors.white,
-              aspectRatioPresets: [
-                CropAspectRatioPreset.square,
-              ],
-              cropStyle: CropStyle.circle,
-            ),
-            IOSUiSettings(
-              title: 'Crop your profile picture',
-              aspectRatioPresets: [
-                CropAspectRatioPreset.square,
-              ],
-              cropStyle: CropStyle.circle,
-              resetButtonHidden: true,
-              aspectRatioPickerButtonHidden: true,
-              showCancelConfirmationDialog: true,
-            ),
-            WebUiSettings(
-              context: context,
-            ),
-          ],
-        );
-      } else {
-        croppedFile = CroppedFile(file.path);
-      }
-
-      if (croppedFile != null) {
-        File croppedImageFile = File(croppedFile.path);
-        imageBytes = await croppedImageFile.readAsBytes();
-        print('Image size: ${imageBytes.length} bytes');
-
-        if (imageBytes.length > 1000000) {
-          img.Image? originalImage = img.decodeImage(imageBytes);
-          if (originalImage != null) {
-            if (isGif) {
-              // Handle GIF
-              img.GifDecoder gifDecoder = img.GifDecoder();
-              img.Animation originalGif =
-                  gifDecoder.decodeAnimation(imageBytes)!;
-              img.Animation resizedGif = img.Animation();
-
-              double reductionFactor = math.sqrt(1000000 / imageBytes.length);
-              for (var frame in originalGif.frames) {
-                int newWidth = (frame.width * reductionFactor).toInt();
-                int newHeight = (frame.height * reductionFactor).toInt();
-                img.Image resizedFrame =
-                    img.copyResize(frame, width: newWidth, height: newHeight);
-                resizedGif.addFrame(resizedFrame);
-              }
-              var encodedGif = img.encodeGifAnimation(resizedGif);
-              if (encodedGif != null) {
-                imageBytes = encodedGif;
-              }
-            } else {
-              // Handle static images
-              double reductionFactor = math.sqrt(1000000 / imageBytes.length);
-              int newWidth = (originalImage.width * reductionFactor).toInt();
-              int newHeight = (originalImage.height * reductionFactor).toInt();
-
-              img.Image resizedImage = img.copyResize(originalImage,
-                  width: newWidth, height: newHeight);
-
-              // Adjust the quality parameter to reduce file size
-              int jpegQuality =
-                  75; // You can adjust this value between 0 and 100
-              imageBytes = img.encodeJpg(resizedImage, quality: jpegQuality);
-            }
-            print('Resized image size: ${imageBytes.length} bytes');
-          }
-        }
-
-        pushProfilePicture(widget.username, base64Encode(imageBytes));
-
-        setState(() {
-          _profilePicBase64 = base64Encode(imageBytes);
-        });
-      }
-    }
-  }
-
-  Future<void> pushProfilePicture(String username, String base64Image) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    DocumentReference userRef = firestore.collection('Users').doc(username);
-
-    try {
-      await userRef.update({'ProfilePic': base64Image});
-      print('Profile picture updated successfully');
-    } catch (e) {
-      print('Error updating profile picture: $e');
-    }
-  }
-
-  String getEmoji(double rating) {
-    if (rating <= 0.25) return '😡'; // Mad
-    if (rating <= 0.5) return '😕'; // Confused
-    if (rating <= 0.75) return '😐'; // Straight face
-    return '😊'; // Joyful
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: _changeProfilePicture,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: CircleAvatar(
-              radius: 50,
-              backgroundImage: _profilePicBase64 != null
-                  ? MemoryImage(base64Decode(_profilePicBase64!))
-                  : null,
-              child: _profilePicBase64 == null
-                  ? const Icon(Icons.add, size: 50, color: Colors.grey)
-                  : null,
-            ),
-          ),
-        ),
-        if (_profilePicBase64 != null)
-          Positioned(
-            bottom: 5, // Adjusted for smaller CircleAvatar
-            right: -5, // Adjusted for smaller CircleAvatar
-            child: CircleAvatar(
-              radius: 20, // Smaller radius
-              backgroundColor: Colors.transparent,
-              child: Text(
-                getEmoji(widget.rating),
-                style: const TextStyle(fontSize: 30), // Larger font size
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
