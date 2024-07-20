@@ -45,6 +45,12 @@ class EventPageState extends State<EventPage>
     ).animate(_animationController);
   }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   void loadData() async {
     setState(() {
       isLoading = true;
@@ -54,10 +60,12 @@ class EventPageState extends State<EventPage>
       final eventIds = await getUserEvents(widget.username);
       await checkEventsExistenceAndRSVP(eventIds);
 
-      setState(() {
-        userEventsFuture = Future.value(existingEventIds);
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          userEventsFuture = Future.value(existingEventIds);
+          isLoading = false;
+        });
+      }
     } catch (e) {
       log("Error in loadData: $e");
       if (mounted) {

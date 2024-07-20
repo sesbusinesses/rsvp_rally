@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:image/image.dart' as img;
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'dart:math' as math;
 import 'package:flutter/scheduler.dart';
-
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 
 class CreateFeedPage extends StatefulWidget {
@@ -36,48 +36,94 @@ class CreateFeedPageState extends State<CreateFeedPage> {
       List<int> imageBytes = await file.readAsBytes();
       print('Image size: ${imageBytes.length} bytes');
 
-      if (imageBytes.length > 1000000) {
-        img.Image? originalImage = img.decodeImage(imageBytes);
-        if (originalImage != null) {
-          if (imageBytes.sublist(0, 6).every(
-              (byte) => [0x47, 0x49, 0x46, 0x38, 0x39, 0x61].contains(byte))) {
-            // Handle GIF
-            img.GifDecoder gifDecoder = img.GifDecoder();
-            img.Animation originalGif = gifDecoder.decodeAnimation(imageBytes)!;
-            img.Animation resizedGif = img.Animation();
+      bool isGif = imageBytes
+          .sublist(0, 3)
+          .every((byte) => [0x47, 0x49, 0x46].contains(byte));
 
-            double reductionFactor = math.sqrt(1000000 / imageBytes.length);
-            for (var frame in originalGif.frames) {
-              int newWidth = (frame.width * reductionFactor).toInt();
-              int newHeight = (frame.height * reductionFactor).toInt();
-              img.Image resizedFrame =
-                  img.copyResize(frame, width: newWidth, height: newHeight);
-              resizedGif.addFrame(resizedFrame);
-            }
-            var encodedGif = img.encodeGifAnimation(resizedGif);
-            if (encodedGif != null) {
-              imageBytes = encodedGif;
-            }
-          } else {
-            // Handle static images
-            double reductionFactor = math.sqrt(1000000 / imageBytes.length);
-            int newWidth = (originalImage.width * reductionFactor).toInt();
-            int newHeight = (originalImage.height * reductionFactor).toInt();
+      CroppedFile? croppedFile;
 
-            img.Image resizedImage = img.copyResize(originalImage,
-                width: newWidth, height: newHeight);
-
-            // Adjust the quality parameter to reduce file size
-            int jpegQuality = 75; // You can adjust this value between 0 and 100
-            imageBytes = img.encodeJpg(resizedImage, quality: jpegQuality);
-          }
-          print('Resized image size: ${imageBytes.length} bytes');
-        }
+      if (!isGif) {
+        // Crop the image if it is not a GIF
+        croppedFile = await ImageCropper().cropImage(
+          sourcePath: file.path,
+          aspectRatio: const CropAspectRatio(ratioX: 16, ratioY: 9),
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarTitle: 'Cropper',
+              toolbarColor: Colors.deepOrange,
+              toolbarWidgetColor: Colors.white,
+              aspectRatioPresets: [
+                CropAspectRatioPreset.ratio16x9,
+              ],
+              cropStyle: CropStyle.rectangle,
+            ),
+            IOSUiSettings(
+              title: 'Crop your image',
+              aspectRatioPresets: [
+                CropAspectRatioPreset.ratio16x9,
+              ],
+              cropStyle: CropStyle.rectangle,
+              resetButtonHidden: true,
+              aspectRatioPickerButtonHidden: true,
+              showCancelConfirmationDialog: true,
+            ),
+            WebUiSettings(
+              context: context,
+            ),
+          ],
+        );
+      } else {
+        croppedFile = CroppedFile(file.path);
       }
 
-      setState(() {
-        _base64Image = base64Encode(imageBytes);
-      });
+      if (croppedFile != null) {
+        File croppedImageFile = File(croppedFile.path);
+        imageBytes = await croppedImageFile.readAsBytes();
+
+        if (imageBytes.length > 1000000) {
+          img.Image? originalImage = img.decodeImage(imageBytes);
+          if (originalImage != null) {
+            if (isGif) {
+              // Handle GIF
+              img.GifDecoder gifDecoder = img.GifDecoder();
+              img.Animation originalGif =
+                  gifDecoder.decodeAnimation(imageBytes)!;
+              img.Animation resizedGif = img.Animation();
+
+              double reductionFactor = math.sqrt(1000000 / imageBytes.length);
+              for (var frame in originalGif.frames) {
+                int newWidth = (frame.width * reductionFactor).toInt();
+                int newHeight = (frame.height * reductionFactor).toInt();
+                img.Image resizedFrame =
+                    img.copyResize(frame, width: newWidth, height: newHeight);
+                resizedGif.addFrame(resizedFrame);
+              }
+              var encodedGif = img.encodeGifAnimation(resizedGif);
+              if (encodedGif != null) {
+                imageBytes = encodedGif;
+              }
+            } else {
+              // Handle static images
+              double reductionFactor = math.sqrt(1000000 / imageBytes.length);
+              int newWidth = (originalImage.width * reductionFactor).toInt();
+              int newHeight = (originalImage.height * reductionFactor).toInt();
+
+              img.Image resizedImage = img.copyResize(originalImage,
+                  width: newWidth, height: newHeight);
+
+              // Adjust the quality parameter to reduce file size
+              int jpegQuality =
+                  75; // You can adjust this value between 0 and 100
+              imageBytes = img.encodeJpg(resizedImage, quality: jpegQuality);
+            }
+            print('Resized image size: ${imageBytes.length} bytes');
+          }
+        }
+
+        setState(() {
+          _base64Image = base64Encode(imageBytes);
+        });
+      }
     }
   }
 

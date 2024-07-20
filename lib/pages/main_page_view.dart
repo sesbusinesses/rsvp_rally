@@ -44,6 +44,7 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
   @override
   void dispose() {
     routeObserver.unsubscribe(this);
+    _pageController.dispose();
     super.dispose();
   }
 

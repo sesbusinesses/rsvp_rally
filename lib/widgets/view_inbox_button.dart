@@ -28,7 +28,6 @@ class ViewInboxButton extends StatelessWidget {
   Widget build(BuildContext context) {
     double leftPadding = 10;
     double topPadding = 10;
-
     return GestureDetector(
       child: Padding(
         padding: EdgeInsets.only(left: leftPadding, top: topPadding),

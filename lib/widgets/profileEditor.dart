@@ -201,46 +201,56 @@ class _ProfilePictureState extends State<ProfilePicture> {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       File file = File(image.path);
+      List<int> imageBytes = await file.readAsBytes();
 
-      // Crop the image
-      CroppedFile? croppedFile = await ImageCropper().cropImage(
-        sourcePath: file.path,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Cropper',
-            toolbarColor: Colors.deepOrange,
-            toolbarWidgetColor: Colors.white,
-            aspectRatioPresets: [
-              CropAspectRatioPreset.square,
-            ],
-            cropStyle: CropStyle.circle,
-          ),
-          IOSUiSettings(
-            title: 'Crop your profile picture',
-            aspectRatioPresets: [
-              CropAspectRatioPreset.square,
-            ],
-            cropStyle: CropStyle.circle,
-            resetButtonHidden: true,
-            aspectRatioPickerButtonHidden: true,
-            showCancelConfirmationDialog: true,
-          ),
-          WebUiSettings(
-            context: context,
-          ),
-        ],
-      );
+      bool isGif = imageBytes
+          .sublist(0, 3)
+          .every((byte) => [0x47, 0x49, 0x46].contains(byte));
+
+      CroppedFile? croppedFile;
+
+      if (!isGif) {
+        // Crop the image if it is not a GIF
+        croppedFile = await ImageCropper().cropImage(
+          sourcePath: file.path,
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarTitle: 'Cropper',
+              toolbarColor: Colors.deepOrange,
+              toolbarWidgetColor: Colors.white,
+              aspectRatioPresets: [
+                CropAspectRatioPreset.square,
+              ],
+              cropStyle: CropStyle.circle,
+            ),
+            IOSUiSettings(
+              title: 'Crop your profile picture',
+              aspectRatioPresets: [
+                CropAspectRatioPreset.square,
+              ],
+              cropStyle: CropStyle.circle,
+              resetButtonHidden: true,
+              aspectRatioPickerButtonHidden: true,
+              showCancelConfirmationDialog: true,
+            ),
+            WebUiSettings(
+              context: context,
+            ),
+          ],
+        );
+      } else {
+        croppedFile = CroppedFile(file.path);
+      }
 
       if (croppedFile != null) {
         File croppedImageFile = File(croppedFile.path);
-        List<int> imageBytes = await croppedImageFile.readAsBytes();
+        imageBytes = await croppedImageFile.readAsBytes();
         print('Image size: ${imageBytes.length} bytes');
 
         if (imageBytes.length > 1000000) {
           img.Image? originalImage = img.decodeImage(imageBytes);
           if (originalImage != null) {
-            if (imageBytes.sublist(0, 6).every((byte) =>
-                [0x47, 0x49, 0x46, 0x38, 0x39, 0x61].contains(byte))) {
+            if (isGif) {
               // Handle GIF
               img.GifDecoder gifDecoder = img.GifDecoder();
               img.Animation originalGif =
