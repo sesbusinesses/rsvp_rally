@@ -160,8 +160,8 @@ Future<void> checkForStartedEvents(
               'NewMessages': true,
             });
 
-            //plus rating by 0.15
-            await addRating(username, 0.15);
+            //rating change
+            await changeRatingFour(username, eventId);
 
             //print('You made it to the event on time.');
           } else {
@@ -217,7 +217,7 @@ Future<void> checkForStartedEvents(
           });
 
           //minus rating by 0.20
-          await subtractRating(username, 0.20);
+          await changeRatingFive(username, eventId);
         }
       }
     }

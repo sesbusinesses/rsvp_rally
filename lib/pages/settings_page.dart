@@ -79,7 +79,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   children: [
                     WideButton(
-                      buttonText: 'Update Your Location Status',
+                      buttonText: 'I am already here.',
                       onPressed: () async {
                         await updateLocation();
                       },
