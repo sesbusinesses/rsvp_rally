@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/notification_service.dart';
 import 'package:rsvp_rally/pages/event_page.dart';
+import 'package:rsvp_rally/pages/main_page_view.dart';
 import 'package:rsvp_rally/pages/signup_page.dart';
 import 'package:rsvp_rally/pages/forgotpassword_page.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
@@ -51,8 +52,10 @@ class _LogInState extends State<LogInPage> {
       await NotificationService().uploadFcmToken();
 
       if (mounted) {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => EventPage(username: name)));
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => MainPageView(username: name)));
       }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'wrong-password' || e.code == 'user-not-found') {

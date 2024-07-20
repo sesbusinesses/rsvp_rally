@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/models/route_observer.dart';
 import 'package:rsvp_rally/widgets/create_event_button.dart';
 import 'package:rsvp_rally/widgets/eventcard.dart';
 import 'package:rsvp_rally/widgets/user_rating_indicator.dart';
@@ -11,28 +10,27 @@ import 'package:rsvp_rally/models/location_service.dart';
 
 class EventPage extends StatefulWidget {
   final String username;
+  final double userRating;
 
-  const EventPage({required this.username, super.key});
+  const EventPage(
+      {required this.username, required this.userRating, super.key});
 
   @override
   EventPageState createState() => EventPageState();
 }
 
 class EventPageState extends State<EventPage>
-    with SingleTickerProviderStateMixin, RouteAware {
-  late Future<double?> userRatingFuture;
+    with SingleTickerProviderStateMixin {
   late Future<List<String>> userEventsFuture;
   List<String> existingEventIds = [];
   Map<String, DateTime?> eventStartTimes = {};
   bool isLoading = false;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
-  double userRating = 0;
 
   @override
   void initState() {
     super.initState();
-    userRatingFuture = Future.value(null);
     userEventsFuture = Future.value([]);
     loadData();
     requestPermission(context);
@@ -47,27 +45,27 @@ class EventPageState extends State<EventPage>
     ).animate(_animationController);
   }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   void loadData() async {
     setState(() {
       isLoading = true;
     });
 
     try {
-      final results = await Future.wait([
-        getUserRating(widget.username),
-        getUserEvents(widget.username),
-      ]);
-
-      userRating = results[0] as double;
-      final eventIds = results[1] as List<String>;
-
+      final eventIds = await getUserEvents(widget.username);
       await checkEventsExistenceAndRSVP(eventIds);
 
-      setState(() {
-        userRatingFuture = Future.value(userRating);
-        userEventsFuture = Future.value(existingEventIds);
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          userEventsFuture = Future.value(existingEventIds);
+          isLoading = false;
+        });
+      }
     } catch (e) {
       log("Error in loadData: $e");
       if (mounted) {
@@ -76,23 +74,6 @@ class EventPageState extends State<EventPage>
         });
       }
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
-  }
-
-  @override
-  void dispose() {
-    routeObserver.unsubscribe(this);
-    super.dispose();
-  }
-
-  @override
-  void didPopNext() {
-    loadData();
   }
 
   Future<List<String>> getUserEvents(String username) async {
@@ -116,26 +97,6 @@ class EventPageState extends State<EventPage>
     }
   }
 
-  Future<double> getUserRating(String username) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-    try {
-      DocumentSnapshot userDoc =
-          await firestore.collection('Users').doc(username).get();
-
-      if (!userDoc.exists) {
-        log("No user found with username $username");
-        return 0.5;
-      }
-
-      double rating = userDoc.get('Rating');
-      return rating;
-    } catch (e) {
-      log("Error fetching user rating: $e");
-      return 0.5;
-    }
-  }
-
   Future<String> isComing(String eventID, String username) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     try {
@@ -147,7 +108,7 @@ class EventPageState extends State<EventPage>
         Map<String, dynamic> polls = eventData['Polls'] ?? {};
 
         bool hasRespondedYes = false;
-        bool hasRespondedNo = true;
+        bool hasRespondedNo = false; // Updated logic
 
         for (var pollName in polls.keys) {
           if (pollName.startsWith('RSVP for')) {
@@ -157,9 +118,7 @@ class EventPageState extends State<EventPage>
               hasRespondedYes = true;
             }
             if (responses['No'] != null && responses['No'].contains(username)) {
-              hasRespondedNo = hasRespondedNo && true;
-            } else {
-              hasRespondedNo = false;
+              hasRespondedNo = true;
             }
           }
         }
@@ -168,11 +127,11 @@ class EventPageState extends State<EventPage>
         if (hasRespondedNo) return 'no';
         return 'maybe';
       } else {
-        return 'maybe';
+        return 'maybe'; // Default response if the event does not exist
       }
     } catch (e) {
       log("Error fetching event or processing data: $e");
-      return 'maybe';
+      return 'maybe'; // Default response in case of error
     }
   }
 
@@ -323,30 +282,17 @@ class EventPageState extends State<EventPage>
 
   @override
   Widget build(BuildContext context) {
+    double userRating = widget.userRating;
+
     return Scaffold(
       body: Center(
         child: Padding(
           padding: const EdgeInsets.only(top: 40),
           child: Column(
             children: [
-              FutureBuilder<double?>(
-                future: userRatingFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CupertinoActivityIndicator(radius: 15);
-                  } else if (snapshot.hasError) {
-                    return Text(
-                      'Error fetching user rating. Please try again later.',
-                      style: AppColors.bodyStyle,
-                    );
-                  } else {
-                    double userRating = snapshot.data ?? 0;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: UserRatingIndicator(userRating: userRating),
-                    );
-                  }
-                },
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: UserRatingIndicator(userRating: userRating),
               ),
               isLoading
                   ? const CupertinoActivityIndicator(radius: 15)

@@ -474,7 +474,7 @@ class EditEventPageState extends State<EditEventPage> {
 
         await batch.commit();
 
-        // Navigator.pop(context);
+        Navigator.pop(context);
         // Navigator.push(
         //   context,
         //   MaterialPageRoute(

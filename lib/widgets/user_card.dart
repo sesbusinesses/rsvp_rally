@@ -96,9 +96,9 @@ class _UserCardContent extends StatelessWidget {
                 bool isFriend = model.isFriend;
                 bool isRequestSent = model.isRequestSent;
 
-                if (kDebugMode) {
-                  print('isFriend: $isFriend, isRequestSent: $isRequestSent');
-                }
+                // if (kDebugMode) {
+                //   print('isFriend: $isFriend, isRequestSent: $isRequestSent');
+                // }
 
                 double finalHeight = isShop
                     ? height * 0.8

@@ -40,9 +40,11 @@ class _EventImageDisplayState extends State<EventImageDisplay> {
           .get();
       if (eventSnapshot.exists) {
         String? base64Image = eventSnapshot['Image'];
-        setState(() {
-          _imageBase64 = base64Image;
-        });
+        if (mounted) {
+          setState(() {
+            _imageBase64 = base64Image;
+          });
+        }
       }
     } catch (e) {
       print('Error loading image: $e');
@@ -100,9 +102,11 @@ class _EventImageDisplayState extends State<EventImageDisplay> {
         }
 
         String base64Image = base64Encode(imageBytes);
-        setState(() {
-          _imageBase64 = base64Image;
-        });
+        if (mounted) {
+          setState(() {
+            _imageBase64 = base64Image;
+          });
+        }
         print(base64Image);
         print(base64Image.length);
         await FirebaseFirestore.instance

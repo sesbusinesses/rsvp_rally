@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/database_pusher.dart';
 import 'package:rsvp_rally/pages/login_page.dart';
+import 'package:rsvp_rally/pages/main_page_view.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 
@@ -70,7 +71,7 @@ class _SignUpState extends State<SignUpPage> {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => EventPage(username: username)));
+                builder: (context) => MainPageView(username: username)));
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {

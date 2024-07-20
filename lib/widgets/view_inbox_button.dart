@@ -6,11 +6,15 @@ import 'package:rsvp_rally/pages/inbox_page.dart';
 class ViewInboxButton extends StatelessWidget {
   final String username;
   final double userRating;
+  final bool newMessages;
+  final VoidCallback onInboxOpened;
 
   const ViewInboxButton({
     super.key,
     required this.username,
     required this.userRating,
+    required this.newMessages,
+    required this.onInboxOpened,
   });
 
   Future<void> setNewMessagesFalse(BuildContext context) async {
@@ -24,60 +28,30 @@ class ViewInboxButton extends StatelessWidget {
   Widget build(BuildContext context) {
     double leftPadding = 10;
     double topPadding = 10;
-    return FutureBuilder<DocumentSnapshot>(
-      future:
-          FirebaseFirestore.instance.collection('Users').doc(username).get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Padding(
-              padding: EdgeInsets.only(left: leftPadding, top: topPadding),
-              child: Icon(
-                Icons.mark_email_read_rounded,
-                color: getInterpolatedColor(userRating),
-                size: 50,
-              ));
-        } else if (snapshot.hasError) {
-          return Padding(
-              padding: EdgeInsets.only(left: leftPadding, top: topPadding),
-              child: Icon(
-                Icons.error,
-                color: getInterpolatedColor(userRating),
-                size: 50,
-              ));
-        } else if (!snapshot.hasData || !snapshot.data!.exists) {
-          return Padding(
-              padding: EdgeInsets.only(left: leftPadding, top: topPadding),
-              child: Icon(
-                Icons.mark_email_read_rounded,
-                color: getInterpolatedColor(userRating),
-                size: 50,
-              ));
-        } else {
-          DocumentSnapshot hostDoc = snapshot.data!;
-          bool newMessages = hostDoc['NewMessages'] ?? false;
-          return GestureDetector(
-            child: Padding(
-                padding: EdgeInsets.only(left: leftPadding, top: topPadding),
-                child: Icon(
-                  newMessages
-                      ? Icons.mark_email_unread_rounded
-                      : Icons.mark_email_read_rounded,
-                  color: getInterpolatedColor(userRating),
-                  size: 50,
-                )),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => InboxPage(
-                    userRating: userRating,
-                    username: username,
-                  ),
-                ),
-              ).then((_) => setNewMessagesFalse(context));
-            },
-          );
-        }
+    return GestureDetector(
+      child: Padding(
+        padding: EdgeInsets.only(left: leftPadding, top: topPadding),
+        child: Icon(
+          newMessages
+              ? Icons.mark_email_unread_rounded
+              : Icons.mark_email_read_rounded,
+          color: getInterpolatedColor(userRating),
+          size: 50,
+        ),
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InboxPage(
+              userRating: userRating,
+              username: username,
+            ),
+          ),
+        ).then((_) {
+          setNewMessagesFalse(context);
+          onInboxOpened();
+        });
       },
     );
   }

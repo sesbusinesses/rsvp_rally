@@ -36,7 +36,7 @@ class FeedCard extends StatefulWidget {
 class _FeedCardState extends State<FeedCard> {
   bool isLiked = false;
   String? fullName;
-  double userRating = 0.0;
+  double? userRating;
   String? profilePicBase64;
 
   @override
@@ -48,7 +48,7 @@ class _FeedCardState extends State<FeedCard> {
 
   Future<void> fetchUserData() async {
     fullName = await getFullName(widget.user);
-    userRating = (await getUserRating(widget.user))!;
+    userRating = (await getUserRating(widget.user));
     profilePicBase64 = await pullProfilePicture(widget.user);
     if (mounted) {
       setState(() {});
@@ -82,14 +82,15 @@ class _FeedCardState extends State<FeedCard> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          surfaceTintColor: getInterpolatedColor(userRating),
+          surfaceTintColor: getInterpolatedColor(userRating ?? 0),
           title: const Text('Confirm Deletion'),
           content: const Text('Are you sure you want to delete this post?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text('Cancel',
-                  style: TextStyle(color: getInterpolatedColor(userRating))),
+                  style:
+                      TextStyle(color: getInterpolatedColor(userRating ?? 0))),
             ),
             TextButton(
               onPressed: () {
@@ -97,7 +98,8 @@ class _FeedCardState extends State<FeedCard> {
                 Navigator.of(context).pop();
               },
               child: Text('Delete',
-                  style: TextStyle(color: getInterpolatedColor(userRating))),
+                  style:
+                      TextStyle(color: getInterpolatedColor(userRating ?? 0))),
             ),
           ],
         );
@@ -122,6 +124,10 @@ class _FeedCardState extends State<FeedCard> {
 
   @override
   Widget build(BuildContext context) {
+    if (userRating == null) {
+      return Container(); // Show nothing until the rating is loaded
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 35),
       child: Container(
@@ -130,7 +136,7 @@ class _FeedCardState extends State<FeedCard> {
           color: AppColors.light,
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
-            color: getInterpolatedColor(userRating),
+            color: getInterpolatedColor(userRating!),
             width: AppColors.borderWidth,
           ),
           boxShadow: const [
@@ -226,7 +232,7 @@ class _FeedCardState extends State<FeedCard> {
                   if (widget.isUserPost)
                     IconButton(
                       icon: Icon(Icons.delete_outline,
-                          color: getInterpolatedColor(userRating)),
+                          color: getInterpolatedColor(userRating!)),
                       onPressed: () => _showDeleteConfirmationDialog(context),
                     ),
                 ],

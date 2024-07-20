@@ -67,7 +67,10 @@ class InboxPageState extends State<InboxPage> {
           Padding(
             padding: const EdgeInsets.only(bottom: 0),
             child: ListView.builder(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.only(
+                  left: screenSize.width * 0.075,
+                  right: screenSize.width * 0.075,
+                  bottom: 20),
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 return MessageCard(
