@@ -47,11 +47,15 @@ class _FriendsShopPageViewState extends State<FriendsShopPageView> {
     return Scaffold(
       appBar: AppBar(
         title: CustomTabSwitcher(
-          tabs: const ['Friends', 'Shop'],
+          tabs: const [
+            Icons.people, // Represents friends
+            Icons.shopping_bag, // Represents shop
+          ],
           selectedIndex: _selectedIndex,
           onTabChanged: _onTabChanged,
           userRating: widget.rating,
-          padding: const EdgeInsets.only(top: 8.0), // Adjust padding as needed
+          padding: const EdgeInsets.only(top: 8.0),
+          iconSize: 24.0, // Adjust the icon size as needed
         ),
         actions: [
           ViewSettingsButton(
@@ -71,7 +75,7 @@ class _FriendsShopPageViewState extends State<FriendsShopPageView> {
         },
         children: [
           FriendsPage(username: widget.username, rating: widget.rating),
-          const ShopPage(),
+          ShopPage(username: widget.username, rating: widget.rating,), // Pass the username here
         ],
       ),
     );

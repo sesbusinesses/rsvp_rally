@@ -56,11 +56,17 @@ class _MainPageViewState extends State<MainPageView> {
           builder: (context, snapshot) {
             double userRating = snapshot.data ?? 0;
             return CustomTabSwitcher(
-              tabs: const ['Groups', 'Events', 'My Feed'],
+              tabs: const [
+                Icons.group, // Represents groups
+                Icons.event, // Represents events
+                Icons.feed, // Represents my feed
+              ],
               selectedIndex: _selectedIndex,
               onTabChanged: _onTabChanged,
               userRating: userRating,
-              padding: const EdgeInsets.only(top: 8.0),
+              padding:
+                  const EdgeInsets.only(top: 8.0), // Adjust padding as needed
+              iconSize: 24.0, // Adjust the icon size as needed
             );
           },
         ),

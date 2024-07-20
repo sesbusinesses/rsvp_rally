@@ -17,32 +17,33 @@ class UserRatingIndicator extends StatelessWidget {
     }
 
     return Container(
-        width: 220,
-        height: 120,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: const [],
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Positioned(
-              top: 60, // Adjusted position to align the emoji correctly
-              child: Text(
-                getEmoji(userRating), // Displaying the appropriate emoji
-                style: const TextStyle(
-                  fontSize: 50,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+      width: 220,
+      height: 120,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: const [],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            top: 60, // Adjusted position to align the emoji correctly
+            child: Text(
+              getEmoji(userRating), // Displaying the appropriate emoji
+              style: const TextStyle(
+                fontSize: 50,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
-            CustomPaint(
-              size: const Size(200, 100), // Adjusted size for the semicircle
-              painter: _SemicircularPainter(userRating),
-            ),
-          ],
-        ));
+          ),
+          CustomPaint(
+            size: const Size(200, 100), // Adjusted size for the semicircle
+            painter: _SemicircularPainter(userRating),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -60,8 +61,24 @@ class _SemicircularPainter extends CustomPainter {
     final sweepAngle = math.pi * progress;
 
     final gradient = const LinearGradient(
-      colors: [Colors.red, Colors.yellow, Colors.green],
-      stops: [0.0, 0.5, 1.0],
+      colors: [
+        Colors.red,
+        Colors.orange,
+        Colors.yellow,
+        Colors.green,
+        Colors.blue,
+        Colors.indigo,
+        Colors.purple,
+      ],
+      stops: [
+        0.0,
+        1 / 6,
+        2 / 6,
+        3 / 6,
+        4 / 6,
+        5 / 6,
+        1.0,
+      ],
     ).createShader(rect);
 
     final paint = Paint()
