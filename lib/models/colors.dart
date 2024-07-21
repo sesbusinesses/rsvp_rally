@@ -75,8 +75,24 @@ Color getTextOnRatingColor(double rating) {
 }
 
 Color getInterpolatedColor(double value) {
-  const List<Color> colors = [Colors.red, Colors.yellow, Colors.green];
-  const List<double> stops = [0.0, 0.5, 1.0];
+  const List<Color> colors = [
+    Colors.red,
+    Colors.orange,
+    Colors.yellow,
+    Colors.green,
+    Colors.blue,
+    Colors.indigo,
+    Colors.purple,
+  ];
+  const List<double> stops = [
+    0.0,
+    1 / 6,
+    2 / 6,
+    3 / 6,
+    4 / 6,
+    5 / 6,
+    1.0,
+  ];
 
   if (value <= stops.first) return colors.first;
   if (value >= stops.last) return colors.last;
@@ -89,6 +105,7 @@ Color getInterpolatedColor(double value) {
   }
   return colors.last;
 }
+
 
 Color getInterpolatedShadow(double value) {
   Color interpolatedColor = getInterpolatedColor(value);
