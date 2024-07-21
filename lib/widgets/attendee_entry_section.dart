@@ -26,7 +26,7 @@ class AttendeeEntrySection extends StatefulWidget {
 class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
   List<Map<String, dynamic>> friendsData = [];
   List<Map<String, dynamic>> filteredFriends = [];
-  Map<String, bool> selectedFriends = {};
+  Map<String, ValueNotifier<bool>> selectedFriends = {};
   TextEditingController searchController = TextEditingController();
 
   @override
@@ -77,9 +77,9 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
             friendsData = friendsWithRatings;
             filteredFriends = friendsData;
             for (var friend in friendsData) {
-              selectedFriends[friend['username']] =
-                  widget.existingAttendees?.contains(friend['username']) ??
-                      false;
+              selectedFriends[friend['username']] = ValueNotifier<bool>(
+                widget.existingAttendees?.contains(friend['username']) ?? false,
+              );
             }
             log('Friends data with ratings: $friendsData');
           });
@@ -147,13 +147,11 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
   }
 
   void updateSelectedFriends(String username, bool isSelected) {
-    setState(() {
-      selectedFriends[username] = isSelected;
-      widget.onAttendeesChanged(selectedFriends.entries
-          .where((entry) => entry.value)
-          .map((entry) => entry.key)
-          .toList());
-    });
+    selectedFriends[username]?.value = isSelected;
+    widget.onAttendeesChanged(selectedFriends.entries
+        .where((entry) => entry.value.value)
+        .map((entry) => entry.key)
+        .toList());
   }
 
   @override
@@ -195,23 +193,39 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
             ),
           ),
           Column(
-            children: filteredFriends
-                .map((friend) => CheckboxListTile(
-                      title: UserCard(
-                        username: friend['username'],
-                        smallVersion: false,
-                        removePadding: true,
-                        showUsername: false,
-                      ),
+            children: filteredFriends.map((friend) {
+              return ListTile(
+                title: UserCard(
+                  username: friend['username'],
+                  smallVersion: false,
+                  removePadding: true,
+                  showUsername: false,
+                ),
+                leading: ValueListenableBuilder(
+                  valueListenable: selectedFriends[friend['username']]!,
+                  builder: (context, bool isSelected, _) {
+                    return Checkbox(
                       activeColor: getInterpolatedColor(widget.rating),
                       checkColor: getTextOnRatingColor(widget.rating),
-                      value: selectedFriends[friend['username']],
+                      value: isSelected,
                       onChanged: (bool? value) {
                         updateSelectedFriends(friend['username'], value!);
                       },
-                      controlAffinity: ListTileControlAffinity.leading,
-                    ))
-                .toList(),
+                    );
+                  },
+                ),
+                onTap: () {
+                  selectedFriends[friend['username']]!.value =
+                      !(selectedFriends[friend['username']]!.value);
+                  widget.onAttendeesChanged(
+                    selectedFriends.entries
+                        .where((entry) => entry.value.value)
+                        .map((entry) => entry.key)
+                        .toList(),
+                  );
+                },
+              );
+            }).toList(),
           ),
         ],
       ),
