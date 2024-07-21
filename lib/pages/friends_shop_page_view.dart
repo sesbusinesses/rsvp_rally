@@ -51,6 +51,10 @@ class _FriendsShopPageViewState extends State<FriendsShopPageView> {
             Icons.people, // Represents friends
             Icons.shopping_bag, // Represents shop
           ],
+          subtitles: const [
+            'Friends',
+            'Shop',
+          ],
           selectedIndex: _selectedIndex,
           onTabChanged: _onTabChanged,
           userRating: widget.rating,
@@ -75,7 +79,10 @@ class _FriendsShopPageViewState extends State<FriendsShopPageView> {
         },
         children: [
           FriendsPage(username: widget.username, rating: widget.rating),
-          ShopPage(username: widget.username, rating: widget.rating,), // Pass the username here
+          ShopPage(
+            username: widget.username,
+            rating: widget.rating,
+          ), // Pass the username here
         ],
       ),
     );

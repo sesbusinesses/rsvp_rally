@@ -24,6 +24,7 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
   int _selectedIndex = 1; // Set initial index to 1 to start at EventPage
   late Future<double?> userRatingFuture;
   late Future<DocumentSnapshot> inboxFuture;
+  double? userRating;
 
   @override
   void initState() {
@@ -31,6 +32,11 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
     _pageController = PageController(initialPage: _selectedIndex);
     userRatingFuture = getUserRating(widget.username);
     inboxFuture = getInboxData();
+    userRatingFuture.then((rating) {
+      setState(() {
+        userRating = rating;
+      });
+    });
   }
 
   Future<DocumentSnapshot> getInboxData() {
@@ -77,26 +83,34 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    if (userRating == null) {
+      return const Scaffold(
+        body: Center(
+          child: CupertinoActivityIndicator(
+            radius: 15,
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: FutureBuilder<double?>(
-          future: userRatingFuture,
-          builder: (context, snapshot) {
-            double userRating = snapshot.data ?? 0;
-            return CustomTabSwitcher(
-              tabs: const [
-                Icons.group, // Represents groups
-                Icons.event, // Represents events
-                Icons.feed, // Represents my feed
-              ],
-              selectedIndex: _selectedIndex,
-              onTabChanged: _onTabChanged,
-              userRating: userRating,
-              padding:
-                  const EdgeInsets.only(top: 8.0), // Adjust padding as needed
-              iconSize: 24.0, // Adjust the icon size as needed
-            );
-          },
+        title: CustomTabSwitcher(
+          tabs: const [
+            Icons.groups, // Represents groups
+            Icons.calendar_month, // Represents events
+            Icons.photo_library, // Represents my feed
+          ],
+          subtitles: const [
+            'Groups',
+            'Events',
+            'Feed',
+          ],
+          selectedIndex: _selectedIndex,
+          onTabChanged: _onTabChanged,
+          userRating: userRating!,
+          padding: const EdgeInsets.only(top: 8.0), // Adjust padding as needed
+          iconSize: 24.0, // Adjust the icon size as needed
         ),
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
@@ -136,7 +150,7 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
               bool newMessages = hostDoc['NewMessages'] ?? false;
               return ViewInboxButton(
                 username: widget.username,
-                userRating: snapshot.data!['Rating'] ?? 0.0,
+                userRating: hostDoc['Rating'] ?? 0.0,
                 newMessages: newMessages,
                 onInboxOpened: _reloadInboxData,
               );
@@ -144,45 +158,24 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
           },
         ),
         actions: <Widget>[
-          FutureBuilder<double?>(
-            future: userRatingFuture,
-            builder: (context, snapshot) {
-              double userRating = snapshot.data ?? 0;
-              return ViewFriendsButton(
-                username: widget.username,
-                userRating: userRating,
-              );
-            },
+          ViewFriendsButton(
+            username: widget.username,
+            userRating: userRating!,
           ),
         ],
       ),
-      body: FutureBuilder<double?>(
-        future: userRatingFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-                child: CupertinoActivityIndicator(
-              radius: 15,
-            ));
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          double userRating = snapshot.data ?? 0.0;
-          return PageView(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            children: [
-              GroupsPage(),
-              EventPage(username: widget.username, userRating: userRating),
-              FeedPage(username: widget.username, userRating: userRating),
-            ],
-          );
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
         },
+        children: [
+          GroupsPage(),
+          EventPage(username: widget.username, userRating: userRating!),
+          FeedPage(username: widget.username, userRating: userRating!),
+        ],
       ),
     );
   }
