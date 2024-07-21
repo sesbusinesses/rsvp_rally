@@ -196,6 +196,7 @@ Future<void> pushFeedPost(
 Future<void> addRating(String username, double amount) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   DocumentReference userRef = firestore.collection('Users').doc(username);
+  Timestamp timestamp = Timestamp.now();
 
   try {
     DocumentSnapshot userDoc = await userRef.get();
@@ -215,6 +216,7 @@ Future<void> addRating(String username, double amount) async {
           {
             'text': 'Your rating has risen from $currentRating to $newRating.',
             'type': 'Rating Rise',
+            'timestamp': timestamp
           }
         ]),
         'NewMessages': true,
@@ -232,6 +234,7 @@ Future<void> addRating(String username, double amount) async {
 Future<void> subtractRating(String username, double amount) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   DocumentReference userRef = firestore.collection('Users').doc(username);
+  Timestamp timestamp = Timestamp.now();
 
   try {
     DocumentSnapshot userDoc = await userRef.get();
@@ -252,6 +255,7 @@ Future<void> subtractRating(String username, double amount) async {
             'text':
                 'Your rating has dropped from $currentRating to $newRating.',
             'type': 'Rating Drop',
+            'timestamp': timestamp
           }
         ]),
         'NewMessages': true,
@@ -269,6 +273,7 @@ Future<void> changeRatingFour(String username, String eventId) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   DocumentReference userRef = firestore.collection('Users').doc(username);
   DocumentReference eventRef = firestore.collection('Events').doc(eventId);
+  Timestamp timestamp = Timestamp.now();
 
   try {
     DocumentSnapshot userDoc = await userRef.get();
@@ -303,6 +308,7 @@ Future<void> changeRatingFour(String username, String eventId) async {
           {
             'text': 'Your rating has risen from $currentRating to $newRating.',
             'type': 'Rating Rise',
+            'timestamp': timestamp
           }
         ]),
         'NewMessages': true,
@@ -320,6 +326,7 @@ Future<void> changeRatingFive(String username, String eventId) async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   DocumentReference userRef = firestore.collection('Users').doc(username);
   DocumentReference eventRef = firestore.collection('Events').doc(eventId);
+  Timestamp timestamp = Timestamp.now();
 
   try {
     DocumentSnapshot userDoc = await userRef.get();
@@ -355,6 +362,7 @@ Future<void> changeRatingFive(String username, String eventId) async {
             'text':
                 'Your rating has dropped from $currentRating to $newRating.',
             'type': 'Rating Drop',
+            'timestamp': timestamp
           }
         ]),
         'NewMessages': true,
