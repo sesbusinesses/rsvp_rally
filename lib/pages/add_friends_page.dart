@@ -215,7 +215,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                           vertical: 0.0, horizontal: screenSize.width * 0.05),
                       title: UserCard(username: username),
                       trailing: GestureDetector(
-                          child: const Icon(Icons.add),
+                          child: const Icon(Icons.person_add),
                           onTap: () => addFriend(username))),
                 );
               },

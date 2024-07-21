@@ -3,6 +3,7 @@ import 'package:rsvp_rally/models/colors.dart'; // Ensure this import exists
 
 class CustomTabSwitcher extends StatelessWidget {
   final List<IconData> tabs;
+  final List<String> subtitles;
   final int selectedIndex;
   final Function(int) onTabChanged;
   final double userRating;
@@ -10,14 +11,15 @@ class CustomTabSwitcher extends StatelessWidget {
   final double iconSize;
 
   const CustomTabSwitcher({
-    Key? key,
+    super.key,
     required this.tabs,
+    required this.subtitles,
     required this.selectedIndex,
     required this.onTabChanged,
     required this.userRating,
     this.padding = const EdgeInsets.all(0),
     this.iconSize = 24.0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,30 +30,42 @@ class CustomTabSwitcher extends StatelessWidget {
       padding: padding,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: tabs.map((icon) {
-          int index = tabs.indexOf(icon);
+        children: tabs.asMap().entries.map((entry) {
+          int index = entry.key;
+          IconData icon = entry.value;
           bool isSelected = index == selectedIndex;
 
           return GestureDetector(
             onTap: isSelected ? null : () => onTabChanged(index),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 5),
-                Icon(
-                  icon,
-                  size: iconSize,
-                  color: isSelected ? selectedColor : unselectedColor,
-                ),
-                const SizedBox(height: 4),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  height: 2,
-                  width: isSelected ? 60 : 0,
-                  color: isSelected ? selectedColor : Colors.transparent,
-                ),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  vertical: 8.0,
+                  horizontal: 16.0), // Increase the clickable area
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: iconSize,
+                    color: isSelected ? selectedColor : unselectedColor,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitles[index],
+                    style: AppColors.subtitleStyle.copyWith(
+                        fontSize: 12,
+                        color: isSelected ? selectedColor : unselectedColor),
+                  ),
+                  const SizedBox(height: 4),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    height: 2,
+                    width: isSelected ? 60 : 0,
+                    color: isSelected ? selectedColor : Colors.transparent,
+                  ),
+                ],
+              ),
             ),
           );
         }).toList(),
