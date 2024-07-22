@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/group_page_view.dart';
-import 'package:rsvp_rally/pages/group_polls_page.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
 
@@ -24,6 +24,7 @@ class GroupCreatePollPage extends StatefulWidget {
 class GroupCreatePollPageState extends State<GroupCreatePollPage> {
   final TextEditingController pollQuestionController = TextEditingController();
   List<TextEditingController> optionControllers = [];
+  DateTime? selectedDueDate;
 
   @override
   void initState() {
@@ -31,6 +32,7 @@ class GroupCreatePollPageState extends State<GroupCreatePollPage> {
     // Add two empty controllers initially for the minimum two options
     optionControllers.add(TextEditingController());
     optionControllers.add(TextEditingController());
+    selectedDueDate = DateTime.now().add(const Duration(days: 1));
   }
 
   void addOption() {
@@ -44,6 +46,21 @@ class GroupCreatePollPageState extends State<GroupCreatePollPage> {
       optionControllers[index].dispose();
       optionControllers.removeAt(index);
     });
+  }
+
+  Future<void> selectDueDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate:
+          selectedDueDate ?? DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null && picked != selectedDueDate) {
+      setState(() {
+        selectedDueDate = picked;
+      });
+    }
   }
 
   Future<void> createPoll() async {
@@ -92,15 +109,15 @@ class GroupCreatePollPageState extends State<GroupCreatePollPage> {
     }
 
     // Create poll data
-    DateTime now = DateTime.now();
-    DateTime tomorrowLateNight =
-        DateTime(now.year, now.month, now.day + 1, 23, 59);
+    DateTime dueDate =
+        selectedDueDate ?? DateTime.now().add(const Duration(days: 1));
+    DateTime dueDateWithTime =
+        DateTime(dueDate.year, dueDate.month, dueDate.day, 23, 59);
     String pollQuestion = pollQuestionController.text;
     Map<String, dynamic> pollData = {
       'question': pollQuestion,
       'options': options,
-      'CloseTime': Timestamp.fromDate(
-          tomorrowLateNight), // Close time at 11:59 PM next day
+      'CloseTime': Timestamp.fromDate(dueDateWithTime),
       'IsClosed': false
     };
 
@@ -279,6 +296,48 @@ class GroupCreatePollPageState extends State<GroupCreatePollPage> {
                                   widget.userRating), // Adjust color as needed
                             ),
                             child: Text('Add Option',
+                                style: AppColors.buttonStyle.copyWith(
+                                    color: getTextOnRatingColor(
+                                        widget.userRating))),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                          vertical: 10, horizontal: screenSize.width * 0.05),
+                      width: screenSize.width * 0.95,
+                      decoration: BoxDecoration(
+                        color: AppColors.light, // Light background color
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: getInterpolatedColor(
+                              widget.userRating), // Adjust color as needed
+                          width: AppColors.borderWidth,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppColors.shadow,
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text('Poll Due Date', style: AppColors.titleStyle),
+                          ElevatedButton(
+                            onPressed: () => selectDueDate(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: getInterpolatedColor(
+                                  widget.userRating), // Adjust color as needed
+                            ),
+                            child: Text(
+                                selectedDueDate != null
+                                    ? DateFormat.yMMMd()
+                                        .format(selectedDueDate!)
+                                    : 'Select Due Date',
                                 style: AppColors.buttonStyle.copyWith(
                                     color: getTextOnRatingColor(
                                         widget.userRating))),

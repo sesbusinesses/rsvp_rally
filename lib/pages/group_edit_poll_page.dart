@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/pages/group_page_view.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
@@ -26,6 +27,7 @@ class GroupEditPollPage extends StatefulWidget {
 class GroupEditPollPageState extends State<GroupEditPollPage> {
   final TextEditingController pollQuestionController = TextEditingController();
   List<TextEditingController> optionControllers = [];
+  DateTime? selectedDueDate;
 
   @override
   void initState() {
@@ -35,6 +37,7 @@ class GroupEditPollPageState extends State<GroupEditPollPage> {
     widget.pollData['responses']['options'].forEach((option, voters) {
       optionControllers.add(TextEditingController(text: option));
     });
+    selectedDueDate = (widget.pollData['CloseTime'] as Timestamp).toDate();
   }
 
   void addOption() {
@@ -48,6 +51,21 @@ class GroupEditPollPageState extends State<GroupEditPollPage> {
       optionControllers[index].dispose();
       optionControllers.removeAt(index);
     });
+  }
+
+  Future<void> selectDueDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate:
+          selectedDueDate ?? DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null && picked != selectedDueDate) {
+      setState(() {
+        selectedDueDate = picked;
+      });
+    }
   }
 
   Future<void> updatePoll() async {
@@ -81,11 +99,15 @@ class GroupEditPollPageState extends State<GroupEditPollPage> {
     }
 
     // Create poll data
+    DateTime dueDate =
+        selectedDueDate ?? DateTime.now().add(const Duration(days: 1));
+    DateTime dueDateWithTime =
+        DateTime(dueDate.year, dueDate.month, dueDate.day, 23, 59);
     String pollQuestion = pollQuestionController.text;
     Map<String, dynamic> pollData = {
       'question': pollQuestion,
       'options': options,
-      'CloseTime': widget.pollData['CloseTime'],
+      'CloseTime': Timestamp.fromDate(dueDateWithTime),
       'IsClosed': widget.pollData['responses']['IsClosed']
     };
 
@@ -96,12 +118,7 @@ class GroupEditPollPageState extends State<GroupEditPollPage> {
           .doc(widget.groupID)
           .collection('Polls')
           .doc(widget.pollData['question'])
-          .update({
-        'question': pollQuestion,
-        'options': options,
-        'CloseTime': widget.pollData['CloseTime'],
-        'IsClosed': widget.pollData['responses']['IsClosed']
-      });
+          .update(pollData);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -237,9 +254,48 @@ class GroupEditPollPageState extends State<GroupEditPollPage> {
                         ],
                       ),
                     ),
-                    const SizedBox(
-                        height:
-                            80), // Add some space at the bottom for better visibility
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                          vertical: 10, horizontal: screenSize.width * 0.05),
+                      width: screenSize.width * 0.95,
+                      decoration: BoxDecoration(
+                        color: AppColors.light,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: getInterpolatedColor(widget.userRating),
+                          width: AppColors.borderWidth,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppColors.shadow,
+                            blurRadius: 10,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text('Poll Due Date', style: AppColors.titleStyle),
+                          ElevatedButton(
+                            onPressed: () => selectDueDate(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  getInterpolatedColor(widget.userRating),
+                            ),
+                            child: Text(
+                                selectedDueDate != null
+                                    ? DateFormat.yMMMd()
+                                        .format(selectedDueDate!)
+                                    : 'Select Due Date',
+                                style: AppColors.buttonStyle.copyWith(
+                                    color: getTextOnRatingColor(
+                                        widget.userRating))),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 80),
                   ],
                 ),
               ),
