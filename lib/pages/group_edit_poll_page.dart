@@ -163,7 +163,7 @@ class GroupEditPollPageState extends State<GroupEditPollPage> {
                         color: AppColors.light, // Light background color
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
-                          color: AppColors.accentLight,
+                          color: getInterpolatedColor(widget.userRating),
                           width: AppColors.borderWidth,
                         ),
                         boxShadow: const [
@@ -193,7 +193,7 @@ class GroupEditPollPageState extends State<GroupEditPollPage> {
                         color: AppColors.light, // Light background color
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
-                          color: AppColors.accentLight,
+                          color: getInterpolatedColor(widget.userRating),
                           width: AppColors.borderWidth,
                         ),
                         boxShadow: const [
@@ -226,10 +226,13 @@ class GroupEditPollPageState extends State<GroupEditPollPage> {
                           ElevatedButton(
                             onPressed: addOption,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.accentLight,
+                              backgroundColor:
+                                  getInterpolatedColor(widget.userRating),
                             ),
                             child: Text('Add Option',
-                                style: AppColors.buttonStyle),
+                                style: AppColors.buttonStyle.copyWith(
+                                    color: getTextOnRatingColor(
+                                        widget.userRating))),
                           ),
                         ],
                       ),
@@ -246,10 +249,11 @@ class GroupEditPollPageState extends State<GroupEditPollPage> {
             alignment: Alignment.bottomCenter,
             child: Container(
               padding: const EdgeInsets.all(20),
-              height: 100,
+              height: 110,
               child: WideButton(
                 buttonText: 'Update Poll',
                 onPressed: updatePoll,
+                rating: widget.userRating,
               ),
             ),
           ),

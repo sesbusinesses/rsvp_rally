@@ -16,8 +16,6 @@ class GroupCreatePollButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color buttonColor = Colors.blue; // Adjust color as needed
-
     return FloatingActionButton(
       shape: const CircleBorder(),
       onPressed: () {
@@ -31,7 +29,7 @@ class GroupCreatePollButton extends StatelessWidget {
                   )),
         );
       },
-      backgroundColor: buttonColor,
+      backgroundColor: getInterpolatedColor(userRating),
       child: const Icon(Icons.add, color: Color(0xFFfefdfd)),
     );
   }

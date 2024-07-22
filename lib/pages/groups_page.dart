@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/widgets/group_card.dart';
@@ -18,7 +19,10 @@ class GroupsPage extends StatelessWidget {
             FirebaseFirestore.instance.collection('Users').doc(username).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+                child: CupertinoActivityIndicator(
+              radius: 15,
+            ));
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || !snapshot.data!.exists) {

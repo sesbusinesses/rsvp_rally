@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
+import 'package:rsvp_rally/widgets/group_image_display.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 
 class GroupEditPage extends StatefulWidget {
@@ -172,11 +173,47 @@ class GroupEditPageState extends State<GroupEditPage> {
                     SingleChildScrollView(
                       child: Center(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 20),
+                          padding: EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: screenSize.width * 0.075),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
+                              Container(
+                                  width: screenSize.width * 0.85,
+                                  height: screenSize.width * 0.85,
+                                  decoration: BoxDecoration(
+                                    color: AppColors
+                                        .light, // Dark background color
+                                    borderRadius: BorderRadius.circular(15),
+                                    border: Border.all(
+                                      color: getInterpolatedColor(widget
+                                          .rating), // Adjust color as needed
+                                      width: AppColors.borderWidth,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: AppColors.shadow,
+                                        blurRadius: 10,
+                                        offset: Offset(0, 5),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Text('Group Image',
+                                            style: AppColors.titleStyle),
+                                        SizedBox(
+                                          width: screenSize.width * 0.6,
+                                          height: screenSize.width * 0.6,
+                                          child: GroupImageDisplay(
+                                            groupID: widget.groupID,
+                                            clickable: true,
+                                          ),
+                                        )
+                                      ])),
                               const SizedBox(height: 10),
                               AttendeeEntrySection(
                                 rating: widget.rating,

@@ -99,18 +99,24 @@ class _GroupPollCardState extends State<GroupPollCard> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Poll'),
-          content: const Text(
-              'Are you sure you want to delete this poll? This action cannot be undone.'),
+          surfaceTintColor: getInterpolatedColor(widget.userRating),
+          title: Text('Delete Poll', style: AppColors.titleStyle),
+          content: Text(
+              'Are you sure you want to delete this poll? This action cannot be undone.',
+              style: AppColors.bodyStyle),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text('Cancel',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Delete'),
+              child: Text('Delete',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
               onPressed: () async {
                 Navigator.of(context).pop();
                 await _deletePoll();
@@ -163,6 +169,7 @@ class _GroupPollCardState extends State<GroupPollCard> {
                           'Voting not allowed, poll closed or closeTime is null');
                     }
                   },
+                  rating: widget.userRating,
                 ),
               ),
               if (voterNames.isNotEmpty)
@@ -220,7 +227,8 @@ class _GroupPollCardState extends State<GroupPollCard> {
             color: AppColors.light, // Dark background color
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
-              color: Colors.grey, // Adjust color as needed
+              color: getInterpolatedColor(
+                  widget.userRating), // Adjust color as needed
               width: AppColors.borderWidth,
             ),
             boxShadow: const [
@@ -279,7 +287,8 @@ class _GroupPollCardState extends State<GroupPollCard> {
                     color: AppColors.light, // Dark background color
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
-                      color: Colors.grey, // Adjust color as needed
+                      color: getInterpolatedColor(
+                          widget.userRating), // Adjust color as needed
                       width: AppColors.borderWidth,
                     ),
                     boxShadow: const [

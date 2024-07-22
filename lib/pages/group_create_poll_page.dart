@@ -210,7 +210,8 @@ class GroupCreatePollPageState extends State<GroupCreatePollPage> {
                         color: AppColors.light, // Light background color
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
-                          color: Colors.blue, // Adjust color as needed
+                          color: getInterpolatedColor(
+                              widget.userRating), // Adjust color as needed
                           width: AppColors.borderWidth,
                         ),
                         boxShadow: const [
@@ -240,7 +241,8 @@ class GroupCreatePollPageState extends State<GroupCreatePollPage> {
                         color: AppColors.light, // Light background color
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
-                          color: Colors.blue, // Adjust color as needed
+                          color: getInterpolatedColor(
+                              widget.userRating), // Adjust color as needed
                           width: AppColors.borderWidth,
                         ),
                         boxShadow: const [
@@ -273,11 +275,13 @@ class GroupCreatePollPageState extends State<GroupCreatePollPage> {
                           ElevatedButton(
                             onPressed: addOption,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Colors.blue, // Adjust color as needed
+                              backgroundColor: getInterpolatedColor(
+                                  widget.userRating), // Adjust color as needed
                             ),
                             child: Text('Add Option',
-                                style: AppColors.buttonStyle),
+                                style: AppColors.buttonStyle.copyWith(
+                                    color: getTextOnRatingColor(
+                                        widget.userRating))),
                           ),
                         ],
                       ),
@@ -298,6 +302,7 @@ class GroupCreatePollPageState extends State<GroupCreatePollPage> {
               child: WideButton(
                 buttonText: 'Create Poll',
                 onPressed: createPoll,
+                rating: widget.userRating,
               ),
             ),
           ),
