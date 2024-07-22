@@ -1,8 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:rsvp_rally/pages/group_availability_page.dart';
-import 'package:rsvp_rally/pages/group_edit_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/pages/group_current_availability_page.dart';
+import 'package:rsvp_rally/pages/group_upload_availability_page.dart';
 import 'package:rsvp_rally/pages/group_polls_page.dart';
+import 'package:rsvp_rally/pages/group_edit_page.dart';
 import 'package:rsvp_rally/widgets/group_bottom_nav.dart';
 
 class GroupPageView extends StatefulWidget {
@@ -55,10 +56,13 @@ class _GroupPageViewState extends State<GroupPageView> {
   @override
   Widget build(BuildContext context) {
     List<Widget> pages = [
-      GroupAvailabilityPage(
-          groupID: widget.groupID,
-          username: widget.username,
-          userRating: widget.userRating),
+      GroupUploadAvailabilityPage(
+        groupID: widget.groupID,
+        username: widget.username,
+      ),
+      GroupCurrentAvailabilityPage(
+        groupID: widget.groupID,
+      ),
       GroupPollsPage(
         groupID: widget.groupID,
         username: widget.username,
