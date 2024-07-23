@@ -12,12 +12,14 @@ import 'package:rsvp_rally/widgets/feed_card.dart';
 class FriendInfoPage extends StatefulWidget {
   final String username;
   final double rating;
+  final String viewerUsername;
 
   const FriendInfoPage({
-    Key? key,
+    super.key,
     required this.username,
     required this.rating,
-  }) : super(key: key);
+    required this.viewerUsername,
+  });
 
   @override
   _FriendInfoPageState createState() => _FriendInfoPageState();
@@ -173,9 +175,9 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
         future: _getProfileData(widget.username),
         builder: (context, profileSnapshot) {
           if (profileSnapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (profileSnapshot.hasError) {
-            return Center(child: Text('Error loading profile data'));
+            return const Center(child: Text('Error loading profile data'));
           } else if (profileSnapshot.hasData) {
             var profileData = profileSnapshot.data!;
             String? profilePicBase64 = profileData['profilePicBase64'];
@@ -188,9 +190,10 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
                   .get(),
               builder: (context, freakSnapshot) {
                 if (freakSnapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (freakSnapshot.hasError) {
-                  return Center(child: Text('Error loading freak status'));
+                  return const Center(
+                      child: Text('Error loading freak status'));
                 } else {
                   bool isFreak = false;
                   if (freakSnapshot.hasData && freakSnapshot.data != null) {
@@ -292,8 +295,8 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
                           ),
                         ),
                         CustomTabSwitcher(
-                          tabs: [Icons.rss_feed, Icons.people],
-                          subtitles: ['Feed', 'Friends'],
+                          tabs: const [Icons.rss_feed, Icons.people],
+                          subtitles: const ['Feed', 'Friends'],
                           selectedIndex: selectedIndex,
                           onTabChanged: (index) {
                             setState(() {
@@ -313,7 +316,7 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
               },
             );
           }
-          return Center(child: Text('No profile data found'));
+          return const Center(child: Text('No profile data found'));
         },
       ),
     );
@@ -325,6 +328,7 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
         if (filteredFriends.isNotEmpty)
           ...filteredFriends.map((friendData) => UserCard(
                 username: friendData['username'],
+                viewerUsername: widget.viewerUsername,
               )),
         const SizedBox(height: 100),
       ],
@@ -347,25 +351,25 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
     }
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 100),
-      child: ListView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: feeds.length,
-      itemBuilder: (context, index) {
-        var feed = feeds[index];
-        return FeedCard(
-          imageUrl: feed['imageUrl'],
-          description: feed['description'],
-          user: feed['user'],
-          likes: List<String>.from(feed['likes']),
-          chat: List<Map<String, dynamic>>.from(feed['chat']),
-          postId: feed.id,
-          isUserPost: feed['user'] == widget.username,
-          username: widget.username,
-          showDeleteButton: false, // Hide the delete button
-        );
-      },
-    ));
+        padding: const EdgeInsets.only(bottom: 100),
+        child: ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: feeds.length,
+          itemBuilder: (context, index) {
+            var feed = feeds[index];
+            return FeedCard(
+              imageUrl: feed['imageUrl'],
+              description: feed['description'],
+              user: feed['user'],
+              likes: List<String>.from(feed['likes']),
+              chat: List<Map<String, dynamic>>.from(feed['chat']),
+              postId: feed.id,
+              isUserPost: feed['user'] == widget.username,
+              username: widget.username,
+              showDeleteButton: false, // Hide the delete button
+            );
+          },
+        ));
   }
 }

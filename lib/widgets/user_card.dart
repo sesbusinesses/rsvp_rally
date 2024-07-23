@@ -44,6 +44,7 @@ class UserCard extends StatelessWidget {
         isShop: isShop,
         height: height,
         isClickable: isClickable,
+        viewerUsername: viewerUsername,
       ),
     );
   }
@@ -57,22 +58,25 @@ class _UserCardContent extends StatelessWidget {
   final bool isShop;
   final double height;
   final bool isClickable;
+  final String viewerUsername;
 
-  const _UserCardContent({
-    required this.smallVersion,
-    required this.removePadding,
-    required this.showUsername,
-    this.icon,
-    required this.isShop,
-    required this.height,
-    required this.isClickable
-  });
+  const _UserCardContent(
+      {required this.smallVersion,
+      required this.removePadding,
+      required this.showUsername,
+      this.icon,
+      required this.isShop,
+      required this.height,
+      required this.isClickable,
+      required this.viewerUsername});
 
-  void _navigateToFriendPage(BuildContext context, String username, double rating) {
+  void _navigateToFriendPage(BuildContext context, String username,
+      double rating, String viewerUsername) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FriendInfoPage(username: username, rating: rating),
+        builder: (context) => FriendInfoPage(
+            username: username, rating: rating, viewerUsername: viewerUsername),
       ),
     );
   }
@@ -140,7 +144,10 @@ class _UserCardContent extends StatelessWidget {
                       }
 
                       return GestureDetector(
-                        onTap: isClickable ? () => _navigateToFriendPage(context, username, rating) : null,
+                        onTap: isClickable
+                            ? () => _navigateToFriendPage(
+                                context, username, rating, viewerUsername)
+                            : null,
                         child: Container(
                           width: screenSize.width * (isShop ? 0.68 : 0.85),
                           height: finalHeight,
@@ -192,7 +199,7 @@ class _UserCardContent extends StatelessWidget {
                                                   profilePicBase64 != null
                                                       ? MemoryImage(
                                                           base64Decode(
-                                                              profilePicBase64!))
+                                                              profilePicBase64))
                                                       : null,
                                               child: profilePicBase64 == null
                                                   ? Icon(

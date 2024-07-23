@@ -188,8 +188,11 @@ class FriendsPageState extends State<FriendsPage>
                           ),
                           const SizedBox(height: 10),
                           if (filteredFriends.isNotEmpty)
-                            ...filteredFriends.map((friendData) =>
-                                UserCard(username: friendData['username'], isClickable: true,)),
+                            ...filteredFriends.map((friendData) => UserCard(
+                                  username: friendData['username'],
+                                  isClickable: true,
+                                  viewerUsername: widget.username,
+                                )),
                           if (filteredFriends.isEmpty && friendsData.isEmpty)
                             Padding(
                               padding: const EdgeInsets.all(40),
