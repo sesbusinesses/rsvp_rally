@@ -604,9 +604,7 @@ class EditEventPageState extends State<EditEventPage> {
                                 rating: widget.rating,
                                 username: widget.username,
                                 onAttendeesChanged: (newAttendees) {
-                                  setState(() {
-                                    attendees = newAttendees;
-                                  });
+                                  attendees = newAttendees;
                                 },
                                 existingAttendees: attendees,
                               ),
