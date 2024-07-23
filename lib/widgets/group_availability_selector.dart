@@ -61,7 +61,12 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
     super.initState();
     fetchGroupName();
     initializeAvailability();
-    fetchAvailability();
+    fetchAvailability().then((_) {
+      if (!widget.isEditable) {
+        int maxPeople = getMaxAvailability(availability);
+        // print('Maximum people available at any time: $maxPeople');
+      }
+    });
   }
 
   Future<void> fetchGroupName() async {
@@ -95,21 +100,19 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
 
   DateTime getStartOfWeek() {
     DateTime now = DateTime.now();
-    now = DateTime.parse('2024-07-29'); // Remove this line in production
-    int weekday =
-        now.weekday % 7; // Sunday is 0, Monday is 1, ..., Saturday is 6
+    int weekday = (now.weekday + 6) % 7; // Monday is 0, ..., Sunday is 6
     DateTime startOfWeek = now.subtract(Duration(days: weekday));
     if (widget.isEditable) {
       startOfWeek =
           startOfWeek.add(const Duration(days: 7)); // Start from next week
     }
-    print('Start of week: $startOfWeek');
+    // print('Start of week: $startOfWeek');
     return startOfWeek;
   }
 
   Future<void> fetchAvailability() async {
     try {
-      print('Fetching availability for group isEditable: ${widget.isEditable}');
+      // print('Fetching availability for group isEditable: ${widget.isEditable}');
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Groups')
           .doc(widget.groupID)
@@ -118,7 +121,7 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
 
       if (snapshot.docs.isNotEmpty) {
         for (var doc in snapshot.docs) {
-          print(doc.data());
+          // print(doc.data());
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           String date = data['date'];
           String time = data['time'];
@@ -127,11 +130,11 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
           DateTime parsedDate = DateTime.parse(date);
           if (parsedDate
                   .isAfter(startOfWeek.subtract(const Duration(minutes: 1))) &&
-              parsedDate.isBefore(startOfWeek.add(const Duration(days: 7)))) {
+              parsedDate.isBefore(startOfWeek.add(const Duration(days: 6)))) {
             setState(() {
               availability[date] ??= {};
               availability[date]![time] = users;
-              print('Fetched availability for $date $time: $users');
+              // print('Fetched availability for $date $time: $users');
             });
           }
         }
@@ -170,18 +173,30 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
     updateAvailability(date, time, !isSelected);
   }
 
+  int getMaxAvailability(Map<String, Map<String, List<String>>> availability) {
+    int maxPeople = 0;
+
+    availability.forEach((date, times) {
+      times.forEach((time, users) {
+        if (users.length > maxPeople) {
+          maxPeople = users.length;
+        }
+      });
+    });
+
+    return maxPeople;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final cellWidth = screenSize.width / (8); // 7 days + 1 for times column
-    final cellHeight = (screenSize.height - 195) / (times.length + 1);
-
     return GestureDetector(
       onPanStart: (details) {
         RenderBox box = context.findRenderObject() as RenderBox;
         Offset localPosition = box.globalToLocal(details.globalPosition);
-        int dayIndex = (localPosition.dx / cellWidth).floor() - 1;
-        int timeIndex = (localPosition.dy / cellHeight).floor() - 1;
+        int dayIndex = (localPosition.dx / box.size.width * 7).floor();
+        int timeIndex =
+            (localPosition.dy / box.size.height * (times.length + 1)).floor() -
+                1;
 
         if (dayIndex >= 0 &&
             dayIndex < 7 &&
@@ -200,8 +215,11 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
         if (isDragging) {
           RenderBox box = context.findRenderObject() as RenderBox;
           Offset localPosition = box.globalToLocal(details.globalPosition);
-          int dayIndex = (localPosition.dx / cellWidth).floor() - 1;
-          int timeIndex = (localPosition.dy / cellHeight).floor() - 1;
+          int dayIndex = (localPosition.dx / box.size.width * 7).floor();
+          int timeIndex =
+              (localPosition.dy / box.size.height * (times.length + 1))
+                      .floor() -
+                  1;
 
           if (dayIndex >= 0 &&
               dayIndex < 7 &&
@@ -225,57 +243,65 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
         children: [
           Row(
             children: [
-              SizedBox(width: cellWidth, height: cellHeight),
-              ...availability.keys.map((date) => Container(
-                    width: cellWidth,
-                    height: cellHeight,
-                    alignment: Alignment.center,
-                    child: Text(
-                      DateFormat('EEE').format(DateTime.parse(date)),
-                      style: Theme.of(context).textTheme.titleMedium,
+              const Expanded(
+                child: SizedBox.shrink(),
+              ),
+              ...availability.keys.map((date) => Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Text(
+                        DateFormat('EEE').format(DateTime.parse(date)),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                     ),
                   ))
             ],
           ),
-          ...times.map((time) => Row(
+          ...times.map((time) => Expanded(
+                  child: Row(
                 children: [
-                  Container(
-                    width: cellWidth,
-                    height: cellHeight,
-                    alignment: Alignment.center,
-                    child: Text(time,
-                        style: AppColors.subtitleStyle.copyWith(fontSize: 10)),
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: Text(time,
+                          style:
+                              AppColors.subtitleStyle.copyWith(fontSize: 10)),
+                    ),
                   ),
-                  ...availability.keys.map((date) => GestureDetector(
-                        onTap: () {
-                          if (widget.isEditable) {
-                            toggleAvailability(date, time);
-                          }
-                        },
-                        child: Container(
-                          width: cellWidth,
-                          height: cellHeight,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black),
-                            color: widget.isEditable
-                                ? (availability[date] != null &&
-                                        availability[date]![time] != null &&
-                                        availability[date]![time]!
-                                            .contains(widget.username)
-                                    ? getInterpolatedColor(widget.userRating)
-                                    : AppColors.accentLight)
-                                : (availability[date] != null &&
-                                        availability[date]![time] != null &&
-                                        availability[date]![time]!.isNotEmpty)
-                                    ? Colors.blue[100 *
-                                        (availability[date]![time]!.length)]
-                                    : AppColors.accentLight,
+                  ...availability.keys.map((date) => Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            if (widget.isEditable) {
+                              toggleAvailability(date, time);
+                            }
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.black),
+                              color: widget.isEditable
+                                  ? (availability[date] != null &&
+                                          availability[date]![time] != null &&
+                                          availability[date]![time]!
+                                              .contains(widget.username)
+                                      ? getInterpolatedColor(widget.userRating)
+                                      : AppColors.light)
+                                  : (availability[date] != null &&
+                                          availability[date]![time] != null &&
+                                          availability[date]![time]!.isNotEmpty)
+                                      ? Color.lerp(
+                                          AppColors.light,
+                                          getInterpolatedColor(
+                                              widget.userRating),
+                                          availability[date]![time]!.length /
+                                              getMaxAvailability(availability))
+                                      : AppColors.light,
+                            ),
+                            alignment: Alignment.center,
                           ),
-                          alignment: Alignment.center,
                         ),
                       ))
                 ],
-              ))
+              )))
         ],
       ),
     );

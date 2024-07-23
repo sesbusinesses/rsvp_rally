@@ -15,14 +15,27 @@ class GroupCurrentAvailabilityPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Current Week's Availability", style: AppColors.topStyle),
-      ),
-      body: GroupAvailabilitySelector(
-        isEditable: false,
-        groupID: groupID,
-        userRating: userRating,
-      ),
-    );
+        appBar: AppBar(
+          title: Text("This Week's Availability", style: AppColors.topStyle),
+        ),
+        body: Column(children: [
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 30),
+          //   child:
+          //       Text('This week\'s availability', style: AppColors.bodyStyle),
+          // ),
+          Expanded(
+            child: GroupAvailabilitySelector(
+              isEditable: false,
+              groupID: groupID,
+              userRating: userRating,
+            ),
+          ),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 30),
+          //   child: Text('The darker the color the more people are available',
+          //       style: AppColors.bodyStyle),
+          // ),
+        ]));
   }
 }

@@ -73,14 +73,14 @@ class _GroupBottomNavState extends State<GroupBottomNav> {
         children: [
           _buildNavItem(
             icon: Icons.calendar_today,
-            label: "Upload Availability",
+            label: "Next Week",
             index: 0,
             selected: widget.selectedIndex == 0,
             spacing: 8.0, // Adjust this value as needed
           ),
           _buildNavItem(
             icon: Icons.calendar_view_week,
-            label: "Current Availability",
+            label: "This Week",
             index: 1,
             selected: widget.selectedIndex == 1,
             spacing: 8.0, // Adjust this value as needed

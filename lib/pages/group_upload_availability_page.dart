@@ -18,14 +18,29 @@ class GroupUploadAvailabilityPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Upload Upcoming Week's Availability",
-            style: AppColors.topStyle),
+        title: Text("Next Week's Availability", style: AppColors.topStyle),
       ),
-      body: GroupAvailabilitySelector(
-        isEditable: true,
-        groupID: groupID,
-        username: username,
-        userRating: userRating,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 30),
+            child: Text('Select your availability for next week',
+                style: AppColors.bodyStyle),
+          ),
+          Expanded(
+            child: GroupAvailabilitySelector(
+              isEditable: true,
+              groupID: groupID,
+              username: username,
+              userRating: userRating,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 30),
+            child: Text('Availability is due 11:59 PM every Sunday',
+                style: AppColors.bodyStyle),
+          ),
+        ],
       ),
     );
   }
