@@ -30,10 +30,16 @@ class GroupsPage extends StatelessWidget {
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || !snapshot.data!.exists) {
-              return const Center(child: Text('No groups found'));
+              return Center(
+                  child: Text('No groups found', style: AppColors.bodyStyle));
             } else {
               var userData = snapshot.data!;
               var groupIDs = List<String>.from(userData['Groups']);
+
+              if (groupIDs.isEmpty) {
+                return Center(
+                    child: Text('No groups found', style: AppColors.bodyStyle));
+              }
 
               return Padding(
                   padding: EdgeInsets.only(
