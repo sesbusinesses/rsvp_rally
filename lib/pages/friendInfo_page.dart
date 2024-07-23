@@ -293,6 +293,7 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
                         ),
                         CustomTabSwitcher(
                           tabs: [Icons.rss_feed, Icons.people],
+                          subtitles: ['Feed', 'People'],
                           selectedIndex: selectedIndex,
                           onTabChanged: (index) {
                             setState(() {
@@ -300,7 +301,7 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
                             });
                           },
                           userRating: widget.rating,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 0),
                           iconSize: 30,
                         ),
                         if (selectedIndex == 1) _buildFriendsList(),
@@ -321,11 +322,11 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
   Widget _buildFriendsList() {
     return Column(
       children: [
-        const SizedBox(height: 10),
         if (filteredFriends.isNotEmpty)
           ...filteredFriends.map((friendData) => UserCard(
                 username: friendData['username'],
               )),
+        const SizedBox(height: 100),
       ],
     );
   }
