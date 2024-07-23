@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/pages/details_page.dart';
 import 'package:rsvp_rally/pages/event_page_view.dart';
 import 'package:rsvp_rally/widgets/event_image_display.dart';
 

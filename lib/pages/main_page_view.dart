@@ -172,7 +172,7 @@ class _MainPageViewState extends State<MainPageView> with RouteAware {
           });
         },
         children: [
-          GroupsPage(),
+          GroupsPage(username: widget.username, userRating: userRating!),
           EventPage(username: widget.username, userRating: userRating!),
           FeedPage(username: widget.username, userRating: userRating!),
         ],
