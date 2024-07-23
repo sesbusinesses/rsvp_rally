@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:rsvp_rally/models/colors.dart';
 
 class GroupAvailabilitySelector extends StatefulWidget {
   final bool isEditable;
@@ -21,56 +23,31 @@ class GroupAvailabilitySelector extends StatefulWidget {
 class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
   String groupName = "Loading...";
   Map<String, Map<String, List<String>>> availability = {};
-  final List<String> days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   final List<String> times = [
     "12:00 AM",
-    "12:30 AM",
     "1:00 AM",
-    "1:30 AM",
     "2:00 AM",
-    "2:30 AM",
     "3:00 AM",
-    "3:30 AM",
     "4:00 AM",
-    "4:30 AM",
     "5:00 AM",
-    "5:30 AM",
     "6:00 AM",
-    "6:30 AM",
     "7:00 AM",
-    "7:30 AM",
     "8:00 AM",
-    "8:30 AM",
     "9:00 AM",
-    "9:30 AM",
     "10:00 AM",
-    "10:30 AM",
     "11:00 AM",
-    "11:30 AM",
     "12:00 PM",
-    "12:30 PM",
     "1:00 PM",
-    "1:30 PM",
     "2:00 PM",
-    "2:30 PM",
     "3:00 PM",
-    "3:30 PM",
     "4:00 PM",
-    "4:30 PM",
     "5:00 PM",
-    "5:30 PM",
     "6:00 PM",
-    "6:30 PM",
     "7:00 PM",
-    "7:30 PM",
     "8:00 PM",
-    "8:30 PM",
     "9:00 PM",
-    "9:30 PM",
     "10:00 PM",
-    "10:30 PM",
-    "11:00 PM",
-    "11:30 PM"
+    "11:00 PM"
   ];
   bool isDragging = false;
   bool addMode = true;
@@ -102,12 +79,29 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
   }
 
   void initializeAvailability() {
-    for (var day in days) {
-      availability[day] = {};
+    DateTime startOfWeek = getStartOfWeek();
+    for (int i = 0; i < 7; i++) {
+      DateTime date = startOfWeek.add(Duration(days: i));
+      String dateString = DateFormat('yyyy-MM-dd').format(date);
+      availability[dateString] = {};
       for (var time in times) {
-        availability[day]![time] = [];
+        availability[dateString]![time] = [];
       }
     }
+  }
+
+  DateTime getStartOfWeek() {
+    // DateTime now = DateTime.now();
+    DateTime now = DateTime.parse('2024-07-29'); // For testing
+    print(now);
+    int weekday =
+        now.weekday % 7; // Sunday is 0, Monday is 1, ..., Saturday is 6
+    DateTime startOfWeek = now.subtract(Duration(days: weekday));
+    if (widget.isEditable) {
+      startOfWeek =
+          startOfWeek.add(const Duration(days: 7)); // Start from next week
+    }
+    return startOfWeek;
   }
 
   Future<void> fetchAvailability() async {
@@ -115,20 +109,18 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Groups')
           .doc(widget.groupID)
-          .collection(widget.isEditable
-              ? 'UpcomingAvailability'
-              : 'CurrentAvailability')
+          .collection('Availability')
           .get();
 
       if (snapshot.docs.isNotEmpty) {
         for (var doc in snapshot.docs) {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          String day = data['day'];
+          String date = data['date'];
           String time = data['time'];
           List<String> users = List<String>.from(data['users'] ?? []);
 
           setState(() {
-            availability[day]![time] = users;
+            availability[date]![time] = users;
           });
         }
       }
@@ -137,43 +129,43 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
     }
   }
 
-  void updateAvailability(String day, String time, bool selected) {
+  void updateAvailability(String date, String time, bool selected) {
     if (!widget.isEditable || widget.username == null) return;
 
     setState(() {
       if (selected) {
-        if (!availability[day]![time]!.contains(widget.username)) {
-          availability[day]![time]!.add(widget.username!);
+        if (!availability[date]![time]!.contains(widget.username)) {
+          availability[date]![time]!.add(widget.username!);
         }
       } else {
-        availability[day]![time]!.remove(widget.username);
+        availability[date]![time]!.remove(widget.username);
       }
     });
 
     FirebaseFirestore.instance
         .collection('Groups')
         .doc(widget.groupID)
-        .collection('UpcomingAvailability')
-        .doc('${widget.username}-$day-$time')
+        .collection('Availability')
+        .doc('${widget.username}-$date-$time')
         .set({
-      'day': day,
+      'date': date,
       'time': time,
       'username': widget.username,
-      'users': availability[day]![time]!
+      'users': availability[date]![time]!
     });
   }
 
-  void toggleAvailability(String day, String time) {
+  void toggleAvailability(String date, String time) {
     if (!widget.isEditable || widget.username == null) return;
 
-    bool isSelected = availability[day]![time]!.contains(widget.username);
-    updateAvailability(day, time, !isSelected);
+    bool isSelected = availability[date]![time]!.contains(widget.username);
+    updateAvailability(date, time, !isSelected);
   }
 
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final cellWidth = screenSize.width / (days.length + 1);
+    final cellWidth = screenSize.width / (8); // 7 days + 1 for times column
     final cellHeight = screenSize.height / (times.length + 15);
 
     return GestureDetector(
@@ -184,13 +176,14 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
         int timeIndex = (localPosition.dy / cellHeight).floor() - 1;
 
         if (dayIndex >= 0 &&
-            dayIndex < days.length &&
+            dayIndex < 7 &&
             timeIndex >= 0 &&
             timeIndex < times.length) {
+          String date = availability.keys.elementAt(dayIndex);
           setState(() {
             isDragging = true;
             visitedCells.clear();
-            addMode = !availability[days[dayIndex]]![times[timeIndex]]!
+            addMode = !availability[date]![times[timeIndex]]!
                 .contains(widget.username);
           });
         }
@@ -203,13 +196,14 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
           int timeIndex = (localPosition.dy / cellHeight).floor() - 1;
 
           if (dayIndex >= 0 &&
-              dayIndex < days.length &&
+              dayIndex < 7 &&
               timeIndex >= 0 &&
               timeIndex < times.length) {
-            String cellKey = '${days[dayIndex]}-${times[timeIndex]}';
+            String date = availability.keys.elementAt(dayIndex);
+            String cellKey = '$date-${times[timeIndex]}';
             if (!visitedCells.contains(cellKey)) {
               visitedCells.add(cellKey);
-              toggleAvailability(days[dayIndex], times[timeIndex]);
+              toggleAvailability(date, times[timeIndex]);
             }
           }
         }
@@ -224,12 +218,14 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
           Row(
             children: [
               SizedBox(width: cellWidth, height: cellHeight),
-              ...days.map((day) => Container(
+              ...availability.keys.map((date) => Container(
                     width: cellWidth,
                     height: cellHeight,
                     alignment: Alignment.center,
-                    child: Text(day,
-                        style: Theme.of(context).textTheme.titleMedium),
+                    child: Text(
+                      DateFormat('EEE').format(DateTime.parse(date)),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                   ))
             ],
           ),
@@ -240,24 +236,24 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
                     height: cellHeight,
                     alignment: Alignment.center,
                     child: Text(time,
-                        style: Theme.of(context).textTheme.bodySmall),
+                        style: AppColors.subtitleStyle.copyWith(fontSize: 10)),
                   ),
-                  ...days.map((day) => GestureDetector(
+                  ...availability.keys.map((date) => GestureDetector(
                         onTap: () {
                           if (widget.isEditable) {
-                            toggleAvailability(day, time);
+                            toggleAvailability(date, time);
                           }
                         },
                         child: Container(
                           width: cellWidth,
                           height: cellHeight,
                           alignment: Alignment.center,
-                          color: availability[day]![time]!
+                          color: availability[date]![time]!
                                   .contains(widget.username)
                               ? Colors.green
-                              : Colors.blue[
-                                  100 * (availability[day]![time]!.length + 1)],
-                          child: Text('${availability[day]![time]!.length}'),
+                              : Colors.blue[100 *
+                                  (availability[date]![time]!.length + 1)],
+                          child: Text('${availability[date]![time]!.length}'),
                         ),
                       ))
                 ],
