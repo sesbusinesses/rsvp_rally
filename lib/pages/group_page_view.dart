@@ -59,9 +59,11 @@ class _GroupPageViewState extends State<GroupPageView> {
       GroupUploadAvailabilityPage(
         groupID: widget.groupID,
         username: widget.username,
+        userRating: widget.userRating,
       ),
       GroupCurrentAvailabilityPage(
         groupID: widget.groupID,
+        userRating: widget.userRating,
       ),
       GroupPollsPage(
         groupID: widget.groupID,

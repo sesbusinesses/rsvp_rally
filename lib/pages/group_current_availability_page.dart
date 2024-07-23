@@ -4,10 +4,12 @@ import 'package:rsvp_rally/widgets/group_availability_selector.dart';
 
 class GroupCurrentAvailabilityPage extends StatelessWidget {
   final String groupID;
+  final double userRating;
 
   const GroupCurrentAvailabilityPage({
     super.key,
     required this.groupID,
+    required this.userRating,
   });
 
   @override
@@ -19,6 +21,7 @@ class GroupCurrentAvailabilityPage extends StatelessWidget {
       body: GroupAvailabilitySelector(
         isEditable: false,
         groupID: groupID,
+        userRating: userRating,
       ),
     );
   }
