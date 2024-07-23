@@ -293,7 +293,7 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
                         ),
                         CustomTabSwitcher(
                           tabs: [Icons.rss_feed, Icons.people],
-                          subtitles: ['Feed', 'People'],
+                          subtitles: ['Feed', 'Friends'],
                           selectedIndex: selectedIndex,
                           onTabChanged: (index) {
                             setState(() {
@@ -346,7 +346,9 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
       );
     }
 
-    return ListView.builder(
+    return Padding(
+      padding: EdgeInsets.only(bottom: 100),
+      child: ListView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       itemCount: feeds.length,
@@ -364,6 +366,6 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
           showDeleteButton: false, // Hide the delete button
         );
       },
-    );
+    ));
   }
 }
