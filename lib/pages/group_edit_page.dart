@@ -229,6 +229,95 @@ class GroupEditPageState extends State<GroupEditPage> {
                                 buttonText: 'Update Group',
                                 onPressed: updateGroup,
                               ),
+                              const SizedBox(height: 10),
+                              WideButton(
+                                rating: widget.rating,
+                                buttonText: 'Delete Group',
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        surfaceTintColor:
+                                            getInterpolatedColor(widget.rating),
+                                        title: Text('Delete Group',
+                                            style: AppColors.titleStyle),
+                                        content: Text(
+                                          'Are you sure you want to delete this group? This action cannot be undone.',
+                                          style: AppColors.bodyStyle,
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(
+                                              'Cancel',
+                                              style:
+                                                  AppColors.bodyStyle.copyWith(
+                                                color: getInterpolatedColor(
+                                                    widget.rating),
+                                              ),
+                                            ),
+                                          ),
+                                          TextButton(
+                                            onPressed: () async {
+                                              FirebaseFirestore firestore =
+                                                  FirebaseFirestore.instance;
+                                              WriteBatch batch =
+                                                  firestore.batch();
+
+                                              // Remove the group ID from each member's document
+                                              for (String member in members) {
+                                                DocumentReference userDocRef =
+                                                    firestore
+                                                        .collection('Users')
+                                                        .doc(member);
+                                                batch.update(userDocRef, {
+                                                  'Groups':
+                                                      FieldValue.arrayRemove(
+                                                          [widget.groupID])
+                                                });
+                                              }
+
+                                              // Delete the group document
+                                              DocumentReference groupDocRef =
+                                                  firestore
+                                                      .collection('Groups')
+                                                      .doc(widget.groupID);
+                                              batch.delete(groupDocRef);
+
+                                              // Remove the group ID from the host's document
+                                              DocumentReference hostDocRef =
+                                                  firestore
+                                                      .collection('Users')
+                                                      .doc(widget.username);
+                                              batch.update(hostDocRef, {
+                                                'Groups':
+                                                    FieldValue.arrayRemove(
+                                                        [widget.groupID])
+                                              });
+
+                                              await batch.commit();
+
+                                              Navigator.of(context).pop();
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Text(
+                                              'Delete',
+                                              style:
+                                                  AppColors.bodyStyle.copyWith(
+                                                color: getInterpolatedColor(
+                                                    widget.rating),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                               const SizedBox(height: 170),
                             ],
                           ),
