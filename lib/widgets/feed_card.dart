@@ -13,6 +13,7 @@ class FeedCard extends StatefulWidget {
   final List<Map<String, dynamic>> chat;
   final String postId;
   final bool isUserPost;
+  final bool showDeleteButton;
   final VoidCallback? onDelete;
   final String username;
 
@@ -26,6 +27,7 @@ class FeedCard extends StatefulWidget {
     required this.isUserPost,
     required this.username,
     this.onDelete,
+    this.showDeleteButton = true,
     super.key,
   });
 
@@ -229,7 +231,7 @@ class _FeedCardState extends State<FeedCard> {
                       ),
                     ],
                   ),
-                  if (widget.isUserPost)
+                  if (widget.isUserPost && widget.showDeleteButton)
                     IconButton(
                       icon: Icon(Icons.delete_outline,
                           color: getInterpolatedColor(userRating!)),

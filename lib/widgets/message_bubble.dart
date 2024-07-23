@@ -121,7 +121,7 @@ class MessageBubble extends StatelessWidget {
                             },
                           ),
                         )
-                      : Text(message, style: AppColors.bodyStyle),
+                      : Text(message, style: AppColors.bodyStyle.copyWith(color: getTextOnRatingColor(userRating))),
                 ),
               ),
               if (isMe)

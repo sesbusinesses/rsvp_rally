@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
+import 'package:rsvp_rally/models/colors.dart';
+
 class UserRatingIndicator extends StatelessWidget {
   final double userRating;
 
@@ -8,13 +10,6 @@ class UserRatingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine the emoji based on the user rating
-    String getEmoji(double rating) {
-      if (rating <= 0.25) return '😡'; // Mad
-      if (rating <= 0.5) return '😕'; // Confused
-      if (rating <= 0.75) return '😐'; // Straight face
-      return '😊'; // Joyful
-    }
 
     return Container(
       width: 220,
@@ -26,20 +21,17 @@ class UserRatingIndicator extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Positioned(
-            top: 60, // Adjusted position to align the emoji correctly
-            child: Text(
-              getEmoji(userRating), // Displaying the appropriate emoji
-              style: const TextStyle(
-                fontSize: 50,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
           CustomPaint(
             size: const Size(200, 100), // Adjusted size for the semicircle
             painter: _SemicircularPainter(userRating),
+          ),
+          Positioned(
+            top: 60, // Adjust position to align the image correctly
+            child: Image.asset(
+              getEmoji(userRating), // Displaying the appropriate emoji image
+              width: 50,
+              height: 50,
+            ),
           ),
         ],
       ),

@@ -74,6 +74,15 @@ Color getTextOnRatingColor(double rating) {
   }
 }
 
+String getEmoji(double rating) {
+      if (rating <= 1 / 7) return 'assets/images/octopus.png'; // Worm (Red)
+      if (rating <= 2 / 7) return 'assets/images/squid.png'; // Shrimp (Orange)
+      if (rating <= 3 / 7) return 'assets/images/bumblebee.png'; // Bumblebee (Yellow)
+      if (rating <= 4 / 7) return 'assets/images/turtle.png'; // Turtle (Green)
+      if (rating <= 5 / 7) return 'assets/images/whale.png'; // Whale (Blue)
+      if (rating <= 6 / 7) return 'assets/images/dinosaur.png'; // Jellyfish (Indigo)
+      return 'assets/images/unicorn.png'; // Unicorn (Violet/Purple)
+    }
 Color getInterpolatedColor(double value) {
   const List<Color> colors = [
     Colors.red,
@@ -105,7 +114,6 @@ Color getInterpolatedColor(double value) {
   }
   return colors.last;
 }
-
 
 Color getInterpolatedShadow(double value) {
   Color interpolatedColor = getInterpolatedColor(value);

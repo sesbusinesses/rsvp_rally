@@ -135,13 +135,6 @@ class _ProfilePictureState extends State<ProfilePicture> {
     }
   }
 
-  String getEmoji(double rating) {
-    if (rating <= 0.25) return '😡'; // Mad
-    if (rating <= 0.5) return '😕'; // Confused
-    if (rating <= 0.75) return '😐'; // Straight face
-    return '😊'; // Joyful
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -157,24 +150,25 @@ class _ProfilePictureState extends State<ProfilePicture> {
                 onTap: _changeProfilePicture,
                 child: CircleAvatar(
                   radius: 50,
-                  backgroundImage: _profilePicBase64 != null
-                      ? MemoryImage(base64Decode(_profilePicBase64!))
+                  backgroundImage: widget.profilePicBase64 != null
+                      ? MemoryImage(base64Decode(widget.profilePicBase64!))
                       : null,
-                  child: _profilePicBase64 == null
+                  child: widget.profilePicBase64 == null
                       ? const Icon(Icons.add, size: 50, color: Colors.grey)
                       : null,
                 ),
               ),
-              if (_profilePicBase64 != null)
+              if (widget.profilePicBase64 != null)
                 Positioned(
                   bottom: 5, // Adjusted for smaller CircleAvatar
                   right: -3, // Adjusted for smaller CircleAvatar
                   child: CircleAvatar(
                     radius: 20, // Smaller radius
                     backgroundColor: Colors.transparent,
-                    child: Text(
-                      getEmoji(widget.rating),
-                      style: const TextStyle(fontSize: 30), // Larger font size
+                    child: Image.asset(
+                      getEmoji(widget.rating), // Displaying the appropriate emoji image
+                      width: 30,
+                      height: 30,
                     ),
                   ),
                 ),

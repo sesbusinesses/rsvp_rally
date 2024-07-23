@@ -114,6 +114,13 @@ flutter:
   assets:
     - assets/logo.jpeg
     - assets/rsvp_rally.jpeg
+    - assets/images/octopus.png
+    - assets/images/squid.png
+    - assets/images/bumblebee.png
+    - assets/images/turtle.png
+    - assets/images/whale.png
+    - assets/images/dinosaur.png
+    - assets/images/unicorn.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
