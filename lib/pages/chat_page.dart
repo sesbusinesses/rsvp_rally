@@ -168,6 +168,7 @@ class _ChatPageState extends State<ChatPage> {
             child: WideTextBox(
               hintText: 'Type a message',
               controller: _controller,
+              canGrow: true,
             ),
           ),
           IconButton(
