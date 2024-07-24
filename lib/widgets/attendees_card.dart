@@ -70,7 +70,7 @@ class AttendeesCard extends StatelessWidget {
         Map<String, dynamic> polls = eventData['Polls'] ?? {};
 
         bool hasRespondedYes = false;
-        bool hasRespondedNo = false; // Updated logic
+        bool hasRespondedNo = true; // Assume 'No' until proven otherwise
 
         for (var pollName in polls.keys) {
           if (pollName.startsWith('RSVP for')) {
@@ -78,16 +78,23 @@ class AttendeesCard extends StatelessWidget {
             if (responses['Yes'] != null &&
                 responses['Yes'].contains(username)) {
               hasRespondedYes = true;
+              hasRespondedNo =
+                  false; // User has responded 'Yes', so not all 'No'
+              break; // No need to check further if 'Yes' is found
             }
             if (responses['No'] != null && responses['No'].contains(username)) {
-              hasRespondedNo = true;
+              // Continue checking other polls
+            } else {
+              hasRespondedNo =
+                  false; // User has not responded 'No' to this poll
             }
           }
         }
 
         if (hasRespondedYes) return 'yes';
-        if (hasRespondedNo) return 'no';
-        return 'maybe';
+        if (hasRespondedNo)
+          return 'no'; // Return 'no' if no 'Yes' was found and at least one 'No' was found
+        return 'maybe'; // Default response if no 'Yes' and no 'No' was found
       } else {
         return 'maybe'; // Default response if the event does not exist
       }
