@@ -59,11 +59,11 @@ class MessageBubble extends StatelessWidget {
         return Padding(
           padding: EdgeInsets.only(
             left: isMe
-                ? 50.0
+                ? 75.0
                 : 8.0, // Padding between profile picture and screen edge
             right: isMe
                 ? 8.0
-                : 50.0, // Padding between profile picture and screen edge
+                : 75.0, // Padding between profile picture and screen edge
           ),
           child: Row(
             mainAxisAlignment:
@@ -121,7 +121,9 @@ class MessageBubble extends StatelessWidget {
                             },
                           ),
                         )
-                      : Text(message, style: AppColors.bodyStyle.copyWith(color: getTextOnRatingColor(userRating))),
+                      : Text(message,
+                          style: AppColors.bodyStyle.copyWith(
+                              color: getTextOnRatingColor(userRating))),
                 ),
               ),
               if (isMe)
