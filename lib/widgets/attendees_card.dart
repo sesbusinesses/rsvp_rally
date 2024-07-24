@@ -92,8 +92,9 @@ class AttendeesCard extends StatelessWidget {
         }
 
         if (hasRespondedYes) return 'yes';
-        if (hasRespondedNo)
+        if (hasRespondedNo) {
           return 'no'; // Return 'no' if no 'Yes' was found and at least one 'No' was found
+        }
         return 'maybe'; // Default response if no 'Yes' and no 'No' was found
       } else {
         return 'maybe'; // Default response if the event does not exist
@@ -185,6 +186,7 @@ class AttendeesCard extends StatelessWidget {
                                     getInterpolatedColor(attendee['rating'])),
                             viewerUsername: username,
                             isClickable: true,
+                            isShop: true,
                           );
                         },
                       ),
