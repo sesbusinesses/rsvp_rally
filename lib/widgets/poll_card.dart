@@ -99,6 +99,7 @@ class _PollCardState extends State<PollCard> {
                       _vote(option);
                     }
                   },
+                  smallVersion: true,
                 ),
               ),
               if (voterNames.isNotEmpty)
@@ -113,6 +114,7 @@ class _PollCardState extends State<PollCard> {
                           snapshot.hasData) {
                         return Wrap(
                           spacing: 8.0,
+                          runSpacing: 4.0,
                           children: snapshot.data!.map((profilePictureData) {
                             return CircleAvatar(
                               radius: 15,
@@ -174,32 +176,12 @@ class _PollCardState extends State<PollCard> {
                   style: AppColors.titleStyle,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 10),
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: AppColors.light, // Dark background color
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                      color: getInterpolatedColor(widget.userRating),
-                      width: AppColors.borderWidth,
-                    ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: AppColors.shadow,
-                        blurRadius: 10,
-                        offset: Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: Column(
-                      children: responseWidgets,
-                    ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Column(
+                    children: responseWidgets,
                   ),
                 ),
-                const SizedBox(height: 10),
                 Text(
                   "Poll responses locked at $formattedCloseTime",
                   style: AppColors.subtitleStyle,

@@ -280,7 +280,8 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
                           },
                           child: Container(
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black),
+                              border:
+                                  Border.all(color: Colors.black, width: 0.25),
                               color: widget.isEditable
                                   ? (availability[date] != null &&
                                           availability[date]![time] != null &&
