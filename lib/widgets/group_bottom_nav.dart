@@ -87,7 +87,7 @@ class _GroupBottomNavState extends State<GroupBottomNav> {
           ),
           _buildNavItem(
             icon: Icons.poll,
-            label: "Polls",
+            label: "   Polls  ",
             index: 2,
             selected: widget.selectedIndex == 2,
             spacing: 8.0, // Adjust this value as needed
@@ -95,7 +95,7 @@ class _GroupBottomNavState extends State<GroupBottomNav> {
           if (isHost)
             _buildNavItem(
               icon: Icons.edit,
-              label: "Edit",
+              label: "  Edit  ",
               index: 3,
               selected: widget.selectedIndex == 3,
               spacing: 8.0, // Adjust this value as needed
