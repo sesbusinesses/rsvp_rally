@@ -339,6 +339,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                       message: messageEntry['message'],
                       isMe: messageEntry['username'] == widget.user,
                       username: messageEntry['username'],
+                      viewerUsername: widget.user,
                     );
                   },
                 ),

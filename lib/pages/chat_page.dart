@@ -132,6 +132,7 @@ class _ChatPageState extends State<ChatPage> {
                                     isMe: entry.key == widget.username,
                                     username: entry.key,
                                     isPhoto: isPhoto,
+                                    viewerUsername: widget.username,
                                   );
                                 },
                               );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart'; // Import pullProfilePicture
+import 'package:rsvp_rally/pages/friendInfo_page.dart';
 import 'dart:convert';
 
 class MessageBubble extends StatelessWidget {
@@ -8,6 +9,7 @@ class MessageBubble extends StatelessWidget {
   final bool isMe;
   final String username;
   final bool isPhoto;
+  final String viewerUsername;
 
   const MessageBubble({
     super.key,
@@ -15,6 +17,7 @@ class MessageBubble extends StatelessWidget {
     required this.isMe,
     required this.username,
     this.isPhoto = false,
+    required this.viewerUsername,
   });
 
   @override
@@ -34,19 +37,49 @@ class MessageBubble extends StatelessWidget {
             double? userRatingData = snapshot.data![1] as double?;
             userRating = userRatingData ?? 0.0;
 
-            profilePicture = CircleAvatar(
-              radius: 15,
-              backgroundImage: profilePictureData != null
-                  ? MemoryImage(base64Decode(profilePictureData))
-                  : null,
-              child: profilePictureData == null
-                  ? const Icon(Icons.person, size: 20, color: Colors.grey)
-                  : null,
+            profilePicture = GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FriendInfoPage(
+                      username: username,
+                      rating: userRating,
+                      viewerUsername:
+                          viewerUsername, // Replace with the actual viewer username
+                    ),
+                  ),
+                );
+              },
+              child: CircleAvatar(
+                radius: 15,
+                backgroundImage: profilePictureData != null
+                    ? MemoryImage(base64Decode(profilePictureData))
+                    : null,
+                child: profilePictureData == null
+                    ? const Icon(Icons.person, size: 20, color: Colors.grey)
+                    : null,
+              ),
             );
           } else {
-            profilePicture = const CircleAvatar(
-              radius: 15,
-              child: Icon(Icons.person, size: 20, color: Colors.grey),
+            profilePicture = GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FriendInfoPage(
+                      username: username,
+                      rating: userRating,
+                      viewerUsername:
+                          viewerUsername, // Replace with the actual viewer username
+                    ),
+                  ),
+                );
+              },
+              child: const CircleAvatar(
+                radius: 15,
+                child: Icon(Icons.person, size: 20, color: Colors.grey),
+              ),
             );
           }
         } else {
