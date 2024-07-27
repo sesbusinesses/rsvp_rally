@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/pages/event_page_view.dart';
 import 'package:rsvp_rally/pages/poll_page.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
@@ -96,6 +97,7 @@ class CreatePollPageState extends State<CreatePollPage> {
         DateTime(now.year, now.month, now.day + 1, 23, 59);
     String pollQuestion = pollQuestionController.text;
     Map<String, dynamic> pollData = {
+      'Question': pollQuestion,
       ...options,
       'CloseTime': Timestamp.fromDate(
           tomorrowLateNight), // Close time at 11:59 PM next day
@@ -103,10 +105,10 @@ class CreatePollPageState extends State<CreatePollPage> {
     };
 
     try {
-      // Update event document with the new poll
+      // Add the new poll to the NonessentialPolls subcollection
       DocumentReference eventDocRef =
           firestore.collection('Events').doc(widget.eventID);
-      await eventDocRef.update({'Polls.$pollQuestion': pollData});
+      await eventDocRef.collection('NonessentialPolls').add(pollData);
 
       // Fetch the event data to get the attendees
       DocumentSnapshot eventDoc = await eventDocRef.get();
@@ -157,7 +159,7 @@ class CreatePollPageState extends State<CreatePollPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PollPage(
+          builder: (context) => EventPageView(
             username: widget.username,
             rating: widget.rating,
             eventID: widget.eventID,

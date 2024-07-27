@@ -44,43 +44,63 @@ class _PollPageState extends State<PollPage> {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchPolls(String subcollection) async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('Events')
+        .doc(widget.eventID)
+        .collection(subcollection)
+        .get();
+    return snapshot.docs
+        .map(
+            (doc) => {'id': doc.id, 'data': doc.data() as Map<String, dynamic>})
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Event Poll', style: AppColors.topStyle),
-        backgroundColor:
-            Colors.transparent, // Transparent background for AppBar
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
       ),
       body: Column(
         children: [
           Expanded(
-            child: FutureBuilder<DocumentSnapshot>(
-              future: FirebaseFirestore.instance
-                  .collection('Events')
-                  .doc(widget.eventID)
-                  .get(),
-              builder: (context, snapshot) {
+            child: FutureBuilder(
+              future: Future.wait([
+                fetchPolls('EssentialPolls'),
+                fetchPolls('NonessentialPolls')
+              ]),
+              builder: (context,
+                  AsyncSnapshot<List<List<Map<String, dynamic>>>> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   if (snapshot.hasData && snapshot.data != null) {
-                    Map<String, dynamic> data =
-                        snapshot.data!.data() as Map<String, dynamic>;
-                    Map<String, dynamic> polls =
-                        Map<String, dynamic>.from(data['Polls']);
+                    List<Map<String, dynamic>> essentialPolls =
+                        snapshot.data![0];
+                    List<Map<String, dynamic>> nonessentialPolls =
+                        snapshot.data![1];
 
-                    // Sort the polls by CloseTime
-                    List<MapEntry<String, dynamic>> sortedPolls =
-                        polls.entries.toList();
+                    List<Map<String, dynamic>> sortedPolls = [
+                      ...essentialPolls.map((poll) => {
+                            'id': poll['id'],
+                            'data': poll['data'],
+                            'isEssential': true
+                          }),
+                      ...nonessentialPolls.map((poll) => {
+                            'id': poll['id'],
+                            'data': poll['data'],
+                            'isEssential': false
+                          })
+                    ];
                     sortedPolls.sort((a, b) {
-                      Timestamp aCloseTime = a.value['CloseTime'];
-                      Timestamp bCloseTime = b.value['CloseTime'];
+                      Timestamp aCloseTime = a['data']['CloseTime'];
+                      Timestamp bCloseTime = b['data']['CloseTime'];
                       return aCloseTime.compareTo(bCloseTime);
                     });
 
                     return SingleChildScrollView(
-                      padding: const EdgeInsets.only(
-                          bottom: 170), // Padding to avoid overlap
+                      padding: const EdgeInsets.only(bottom: 170),
                       child: Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -88,18 +108,17 @@ class _PollPageState extends State<PollPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              ...sortedPolls.map((entry) {
+                              ...sortedPolls.map((poll) {
                                 return PollCard(
                                   userRating: widget.rating,
                                   eventID: widget.eventID,
                                   username: widget.username,
-                                  pollData: {
-                                    'question': entry.key,
-                                    'responses': entry.value,
-                                  },
+                                  pollID: poll['id'],
+                                  pollData: poll['data'],
+                                  isEssential: poll['isEssential'],
                                 );
                               }),
-                              const SizedBox(height: 80), // Space at the bottom
+                              const SizedBox(height: 80),
                             ],
                           ),
                         ),
@@ -124,8 +143,7 @@ class _PollPageState extends State<PollPage> {
       ),
       floatingActionButton: isHost
           ? Padding(
-              padding: const EdgeInsets.only(
-                  bottom: 40.0), // Adjust offset as needed
+              padding: const EdgeInsets.only(bottom: 40.0),
               child: CreatePollButton(
                 eventID: widget.eventID,
                 userRating: widget.rating,

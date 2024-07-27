@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
+import 'package:rsvp_rally/pages/main_page_view.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
@@ -86,6 +87,42 @@ class EditEventPageState extends State<EditEventPage> {
             }).toList() ??
             [];
 
+// Initialize phaseGeopoints to an empty list
+        phaseGeopoints = [];
+
+        phaseControllers = (eventData['Timeline'] as List<dynamic>?)
+                ?.map((phase) {
+              GeoPoint? geoPoint = phase['PhaseGeopoint'];
+              Map<String, double>? geopointMap;
+              if (geoPoint != null) {
+                geopointMap = {
+                  'lat': geoPoint.latitude,
+                  'lng': geoPoint.longitude,
+                };
+              }
+
+              // Add the geopoint to phaseGeopoints
+              phaseGeopoints.add(geopointMap ?? {});
+
+              return {
+                'name': TextEditingController(text: phase['PhaseName'] ?? ''),
+                'location':
+                    TextEditingController(text: phase['PhaseLocation'] ?? ''),
+                'startTime': TextEditingController(
+                    text: phase['StartTime'] != null
+                        ? dateFormat
+                            .format((phase['StartTime'] as Timestamp).toDate())
+                        : ''),
+                'endTime': TextEditingController(
+                    text: phase['EndTime'] != null
+                        ? dateFormat
+                            .format((phase['EndTime'] as Timestamp).toDate())
+                        : ''),
+                'geopoint': geopointMap,
+              };
+            }).toList() ??
+            [];
+
         notificationControllers =
             (eventData['Notifications'] as List<dynamic>?)?.map((notification) {
                   return {
@@ -130,14 +167,16 @@ class EditEventPageState extends State<EditEventPage> {
   }
 
   void removePhase(int index) {
-    setState(() {
-      phaseControllers[index]['name']?.dispose();
-      phaseControllers[index]['location']?.dispose();
-      phaseControllers[index]['startTime']?.dispose();
-      phaseControllers[index]['endTime']?.dispose();
-      phaseControllers.removeAt(index);
-      phaseGeopoints.removeAt(index);
-    });
+    if (index >= 0 && index < phaseControllers.length) {
+      setState(() {
+        phaseControllers[index]['name']?.dispose();
+        phaseControllers[index]['location']?.dispose();
+        phaseControllers[index]['startTime']?.dispose();
+        phaseControllers[index]['endTime']?.dispose();
+        phaseControllers.removeAt(index);
+        phaseGeopoints.removeAt(index);
+      });
+    }
   }
 
   void addNotification() {
@@ -150,36 +189,41 @@ class EditEventPageState extends State<EditEventPage> {
   }
 
   void removeNotification(int index) {
-    setState(() {
-      notificationControllers[index]['text']?.dispose();
-      notificationControllers[index]['time']?.dispose();
-      notificationControllers.removeAt(index);
-    });
+    if (index >= 0 && index < notificationControllers.length) {
+      setState(() {
+        notificationControllers[index]['text']?.dispose();
+        notificationControllers[index]['time']?.dispose();
+        notificationControllers.removeAt(index);
+      });
+    }
   }
 
   Future<void> updateEvent() async {
     if (eventNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content:
-                Text('Please enter the event name', style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight),
+          content:
+              Text('Please enter the event name', style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ),
       );
       return;
     } else if (eventDetailsController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Please enter the event details',
-                style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight),
+          content: Text('Please enter the event details',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ),
       );
       return;
     } else if (attendees.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Please invite at least one person',
-                style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight),
+          content: Text('Please invite at least one person',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ),
       );
       return;
     } else if (phaseControllers.any((controller) =>
@@ -190,34 +234,38 @@ class EditEventPageState extends State<EditEventPage> {
             controller != phaseControllers.last))) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Please fill out all phase details',
-                style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight),
+          content: Text('Please fill out all phase details',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ),
       );
       return;
     } else if (notificationControllers.any((controller) =>
         controller['text']!.text.isEmpty || controller['time']!.text.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Please fill in all notification details',
-                style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight),
+          content: Text('Please fill in all notification details',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ),
       );
       return;
     } else if (eventNameController.text.contains('/')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Event name cannot contain "/"',
-                style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight),
+          content:
+              Text('Event name cannot contain "/"', style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ),
       );
       return;
     } else if (eventDetailsController.text.contains('/')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Event details cannot contain "/"',
-                style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight),
+          content: Text('Event details cannot contain "/"',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ),
       );
       return;
     } else if (phaseControllers.any((controller) =>
@@ -225,18 +273,20 @@ class EditEventPageState extends State<EditEventPage> {
         controller['location']!.text.contains('/'))) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Phase name or location cannot contain "/"',
-                style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight),
+          content: Text('Phase name or location cannot contain "/"',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ),
       );
       return;
     } else if (notificationControllers
         .any((controller) => controller['text']!.text.contains('/'))) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Notification text cannot contain "/"',
-                style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight),
+          content: Text('Notification text cannot contain "/"',
+              style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ),
       );
       return;
     }
@@ -273,144 +323,201 @@ class EditEventPageState extends State<EditEventPage> {
         'PhaseLocation': phaseControllers[i]['location']!.text,
         'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
         'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
-        'PhaseGeopoint': geopoint,
+        'GeoPoint': geopoint,
       });
-
-      List<Map<String, dynamic>> notifications =
-          notificationControllers.map((controller) {
-        DateTime? notificationTime;
-        try {
-          notificationTime = parseDateTimeFromController(controller['time']!);
-        } catch (e) {
-          notificationTime = null;
-        }
-
-        return {
-          'NotificationTime': notificationTime != null
-              ? Timestamp.fromDate(notificationTime)
-              : null,
-          'NotificationMessage': controller['text']!.text,
-        };
-      }).toList();
-
-      //   return {
-      //     'NotificationText': controller['text']!.text,
-      //     'NotificationTime': notificationTime != null
-      //         ? Timestamp.fromDate(notificationTime)
-      //         : null,
-      //   };
-      // }).toList();
-
-      Map<String, dynamic> eventData = {
-        'EventName': eventNameController.text,
-        'Details': eventDetailsController.text,
-        'HostName': widget.username,
-        'Attendees': attendees,
-        'Timeline': phases,
-        'Notifications': notifications,
-      };
-
-      try {
-        await firestore
-            .collection('Events')
-            .doc(widget.eventID)
-            .update(eventData);
-
-        WriteBatch batch = firestore.batch();
-
-        DocumentReference hostDocRef =
-            firestore.collection('Users').doc(widget.username);
-        batch.update(hostDocRef, {
-          'Events': FieldValue.arrayUnion([widget.eventID])
-        });
-
-        Timestamp timestamp = Timestamp.now();
-        DocumentSnapshot hostDoc =
-            await firestore.collection('Users').doc(widget.username).get();
-        String hostFirstName = hostDoc['FirstName'] ?? widget.username;
-        String hostLastName = hostDoc['LastName'] ?? '';
-        List<String> removedAttendees = originalAttendees
-            .where((attendee) => !attendees.contains(attendee))
-            .toList();
-
-        for (String friend in removedAttendees) {
-          DocumentReference userDocRef =
-              firestore.collection('Users').doc(friend);
-          batch.update(userDocRef, {
-            'Messages': FieldValue.arrayUnion([
-              {
-                'text':
-                    '$hostFirstName $hostLastName has cancelled ${eventData['EventName']}.',
-                'type': 'event cancelled',
-                'eventID': widget.eventID,
-                'timestamp': timestamp
-              }
-            ]),
-            'NewMessages': true,
-            'Events': FieldValue.arrayRemove([widget.eventID])
-          });
-        }
-
-        for (String attendee in attendees) {
-          DocumentReference userDocRef =
-              firestore.collection('Users').doc(attendee);
-          Map<String, dynamic> updateData = {
-            'Events': FieldValue.arrayUnion([widget.eventID]),
-          };
-
-          if (!originalAttendees.contains(attendee)) {
-            updateData['Messages'] = FieldValue.arrayUnion([
-              {
-                'text':
-                    '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!',
-                'type': 'event invitation',
-                'eventID': widget.eventID,
-                'timestamp': timestamp
-              }
-            ]);
-            updateData['NewMessages'] = true;
-          }
-
-          batch.update(userDocRef, updateData);
-        }
-
-        await batch.commit();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Event updated successfully',
-                  style: AppColors.bodyStyle),
-              backgroundColor: AppColors.accentLight),
-        );
-
-        // Navigator.pop(context);
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Failed to update event: $e',
-                    style: AppColors.bodyStyle),
-                backgroundColor: AppColors.accentLight),
-          );
-        }
-      }
     }
 
-    @override
-    void dispose() {
-      eventNameController.dispose();
-      eventDetailsController.dispose();
-      for (var controller in phaseControllers) {
-        controller['name']?.dispose();
-        controller['location']?.dispose();
-        controller['startTime']?.dispose();
-        controller['endTime']?.dispose();
+    // Collect notifications
+    List<Map<String, dynamic>> notifications =
+        notificationControllers.map((controller) {
+      DateTime? notificationTime;
+      try {
+        notificationTime = parseDateTimeFromController(controller['time']!);
+      } catch (e) {
+        notificationTime = null;
       }
-      for (var controller in notificationControllers) {
-        controller['text']?.dispose();
-        controller['time']?.dispose();
+
+      return {
+        'NotificationTime': notificationTime != null
+            ? Timestamp.fromDate(notificationTime)
+            : null,
+        'NotificationMessage': controller['text']!.text,
+      };
+    }).toList();
+
+    // Create event data
+    Map<String, dynamic> eventData = {
+      'EventName': eventNameController.text,
+      'Details': eventDetailsController.text,
+      'HostName': widget.username,
+      'Attendees': attendees,
+      'Timeline': phases,
+      'Notifications': notifications,
+    };
+
+    try {
+      // Update event in Firestore
+      DocumentReference eventDocRef =
+          firestore.collection('Events').doc(widget.eventID);
+      DocumentSnapshot initialEventDoc = await eventDocRef.get();
+      Map<String, dynamic> initialEventData =
+          initialEventDoc.data() as Map<String, dynamic>;
+      List<dynamic> initialTimeline = initialEventData['Timeline'];
+
+      await eventDocRef.update(eventData);
+
+      // Update essential polls based on the new phases
+      WriteBatch batch = firestore.batch();
+      CollectionReference essentialPollsRef =
+          eventDocRef.collection('EssentialPolls');
+      QuerySnapshot existingPollsSnapshot = await essentialPollsRef.get();
+
+      // Print the current timeline for debugging
+      print('Current Timeline:');
+      for (var phase in phases) {
+        print('Phase: ${phase['PhaseName']}');
       }
-      super.dispose();
+
+      // Handle essential polls
+      List<String> existingPollIDs = [];
+      for (var doc in existingPollsSnapshot.docs) {
+        existingPollIDs.add(doc.id);
+      }
+
+      // Print the existing essential polls for debugging
+      print('Existing Essential Polls:');
+      for (var doc in existingPollsSnapshot.docs) {
+        print('Poll ID: ${doc.id}, Question: ${doc['Question']}');
+      }
+
+      List<String> initialPhaseNames =
+          initialTimeline.map((p) => p['PhaseName'] as String).toList();
+      List<String> finalPhaseNames =
+          phases.map((p) => p['PhaseName'] as String).toList();
+
+      // Rename or delete existing polls
+      for (var doc in existingPollsSnapshot.docs) {
+        String pollID = doc.id;
+        String question = doc['Question'];
+        String? phaseName;
+
+        try {
+          phaseName =
+              finalPhaseNames.firstWhere((name) => question.contains(name));
+        } catch (e) {
+          phaseName = null;
+        }
+
+        if (phaseName != null) {
+          // Update the question string if needed
+          String newQuestion = 'RSVP for $phaseName';
+          if (question != newQuestion) {
+            batch.update(doc.reference, {'Question': newQuestion});
+            print('Updated Poll: $pollID, New Question: $newQuestion');
+          }
+        } else {
+          // Delete the poll if the phase no longer exists
+          batch.delete(doc.reference);
+          print('Deleted Poll: $pollID');
+        }
+      }
+
+      // Create new polls for new phases
+      for (var phase in phases) {
+        if (!initialPhaseNames.contains(phase['PhaseName'])) {
+          String pollQuestion = 'RSVP for ${phase['PhaseName']}';
+          DateTime now = DateTime.now();
+          DateTime tomorrowLateNight =
+              DateTime(now.year, now.month, now.day + 1, 23, 59);
+          Map<String, dynamic> pollData = {
+            'Question': pollQuestion,
+            'Yes': [],
+            'No': [],
+            'CloseTime': Timestamp.fromDate(tomorrowLateNight),
+            'IsClosed': false,
+          };
+          DocumentReference newPollRef = essentialPollsRef.doc();
+          batch.set(newPollRef, pollData);
+          print('Created New Poll: ${newPollRef.id}, Question: $pollQuestion');
+        }
+      }
+
+      // Add the event ID to the 'Events' field for the host and each attendee
+      DocumentReference hostDocRef =
+          firestore.collection('Users').doc(widget.username);
+      batch.update(hostDocRef, {
+        'Events': FieldValue.arrayUnion([widget.eventID])
+      });
+
+      Timestamp timestamp = Timestamp.now();
+      DocumentSnapshot hostDoc =
+          await firestore.collection('Users').doc(widget.username).get();
+      String hostFirstName = hostDoc['FirstName'] ?? widget.username;
+      String hostLastName = hostDoc['LastName'] ?? '';
+      List<String> removedAttendees = originalAttendees
+          .where((attendee) => !attendees.contains(attendee))
+          .toList();
+
+      for (String friend in removedAttendees) {
+        DocumentReference userDocRef =
+            firestore.collection('Users').doc(friend);
+        batch.update(userDocRef, {
+          'Messages': FieldValue.arrayUnion([
+            {
+              'text':
+                  '$hostFirstName $hostLastName has cancelled ${eventData['EventName']}.',
+              'type': 'event cancelled',
+              'eventID': widget.eventID,
+              'timestamp': timestamp
+            }
+          ]),
+          'NewMessages': true,
+          'Events': FieldValue.arrayRemove([widget.eventID])
+        });
+      }
+
+      for (String attendee in attendees) {
+        DocumentReference userDocRef =
+            firestore.collection('Users').doc(attendee);
+        Map<String, dynamic> updateData = {
+          'Events': FieldValue.arrayUnion([widget.eventID]),
+        };
+
+        if (!originalAttendees.contains(attendee)) {
+          updateData['Messages'] = FieldValue.arrayUnion([
+            {
+              'text':
+                  '$hostFirstName $hostLastName has invited you to ${eventNameController.text}. You have 24 hours to RSVP!',
+              'type': 'event invitation',
+              'eventID': widget.eventID,
+              'timestamp': timestamp
+            }
+          ]);
+          updateData['NewMessages'] = true;
+        }
+
+        batch.update(userDocRef, updateData);
+      }
+
+      await batch.commit();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Event updated successfully', style: AppColors.bodyStyle),
+          backgroundColor: AppColors.accentLight,
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Failed to update event: $e', style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight,
+          ),
+        );
+      }
     }
   }
 

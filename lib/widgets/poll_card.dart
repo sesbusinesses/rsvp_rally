@@ -9,15 +9,19 @@ import 'package:rsvp_rally/widgets/widebutton.dart';
 class PollCard extends StatefulWidget {
   final String eventID;
   final String username;
+  final String pollID;
   final Map<String, dynamic> pollData;
-  final double userRating; // Add userRating parameter
+  final double userRating;
+  final bool isEssential;
 
   const PollCard({
     super.key,
     required this.eventID,
     required this.username,
+    required this.pollID,
     required this.pollData,
-    required this.userRating, // Add userRating parameter
+    required this.userRating,
+    required this.isEssential,
   });
 
   @override
@@ -32,42 +36,50 @@ class _PollCardState extends State<PollCard> {
   void initState() {
     super.initState();
     pollData = widget.pollData;
-    closeTime = (pollData['responses']['CloseTime'] as Timestamp).toDate();
+    closeTime = (pollData['CloseTime'] as Timestamp).toDate();
   }
 
   Future<void> _vote(String selectedOption) async {
     try {
-      DocumentReference eventRef =
-          FirebaseFirestore.instance.collection('Events').doc(widget.eventID);
-      DocumentSnapshot eventSnapshot = await eventRef.get();
-      Map<String, dynamic> eventData =
-          eventSnapshot.data() as Map<String, dynamic>;
+      DocumentReference pollRef = FirebaseFirestore.instance
+          .collection('Events')
+          .doc(widget.eventID)
+          .collection(
+              widget.isEssential ? 'EssentialPolls' : 'NonessentialPolls')
+          .doc(widget.pollID);
 
-      Map<String, dynamic> polls =
-          Map<String, dynamic>.from(eventData['Polls']);
-      Map<String, dynamic> pollResponses =
-          Map<String, dynamic>.from(polls[pollData['question']]);
+      DocumentSnapshot pollSnapshot = await pollRef.get();
+      if (pollSnapshot.exists) {
+        Map<String, dynamic>? pollResponses =
+            pollSnapshot.data() as Map<String, dynamic>?;
 
-      // Remove user from all other options
-      pollResponses.forEach((option, voters) {
-        if (voters is List<dynamic>) {
-          voters.remove(widget.username);
+        if (pollResponses != null) {
+          // Remove user from all other options
+          pollResponses.forEach((option, voters) {
+            if (voters is List<dynamic>) {
+              voters.remove(widget.username);
+            }
+          });
+
+          // Add user to the selected option
+          List<dynamic> selectedVoters = pollResponses[selectedOption] ?? [];
+          if (!selectedVoters.contains(widget.username)) {
+            selectedVoters.add(widget.username);
+            pollResponses[selectedOption] = selectedVoters;
+          }
+
+          await pollRef.update(pollResponses);
+
+          // Update local pollData state
+          setState(() {
+            pollData = pollResponses;
+          });
+        } else {
+          print('Poll data is null');
         }
-      });
-
-      // Add user to the selected option
-      List<dynamic> selectedVoters = pollResponses[selectedOption] ?? [];
-      if (!selectedVoters.contains(widget.username)) {
-        selectedVoters.add(widget.username);
-        pollResponses[selectedOption] = selectedVoters;
+      } else {
+        print('Poll document does not exist');
       }
-
-      await eventRef.update({'Polls.${pollData['question']}': pollResponses});
-
-      // Update local pollData state
-      setState(() {
-        pollData['responses'] = pollResponses;
-      });
     } catch (e) {
       print('Error voting: $e');
     }
@@ -82,7 +94,7 @@ class _PollCardState extends State<PollCard> {
     Size screenSize = MediaQuery.of(context).size;
     List<Widget> responseWidgets = [];
 
-    pollData['responses'].forEach((option, voters) {
+    pollData.forEach((option, voters) {
       if (voters is List<dynamic>) {
         List<String> voterNames = List<String>.from(voters);
 
@@ -152,7 +164,7 @@ class _PollCardState extends State<PollCard> {
         child: Container(
           width: MediaQuery.of(context).size.width * 0.85,
           decoration: BoxDecoration(
-            color: AppColors.light, // Dark background color
+            color: AppColors.light,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
               color: getInterpolatedColor(widget.userRating),
@@ -172,7 +184,7 @@ class _PollCardState extends State<PollCard> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  pollData['question'],
+                  pollData['Question'],
                   style: AppColors.titleStyle,
                   textAlign: TextAlign.center,
                 ),

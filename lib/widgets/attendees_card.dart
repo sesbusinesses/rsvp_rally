@@ -62,43 +62,38 @@ class AttendeesCard extends StatelessWidget {
   Future<String> isComing(String eventID, String username) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     try {
-      DocumentSnapshot eventDoc =
-          await firestore.collection('Events').doc(eventID).get();
-      if (eventDoc.exists) {
-        Map<String, dynamic> eventData =
-            eventDoc.data() as Map<String, dynamic>;
-        Map<String, dynamic> polls = eventData['Polls'] ?? {};
+      // Fetch the essential polls for the event
+      QuerySnapshot essentialPollsSnapshot = await firestore
+          .collection('Events')
+          .doc(eventID)
+          .collection('EssentialPolls')
+          .get();
 
-        bool hasRespondedYes = false;
-        bool hasRespondedNo = true; // Assume 'No' until proven otherwise
+      bool hasRespondedYes = false;
+      bool hasRespondedNo = true; // Assume 'No' until proven otherwise
 
-        for (var pollName in polls.keys) {
-          if (pollName.startsWith('RSVP for')) {
-            var responses = polls[pollName];
-            if (responses['Yes'] != null &&
-                responses['Yes'].contains(username)) {
-              hasRespondedYes = true;
-              hasRespondedNo =
-                  false; // User has responded 'Yes', so not all 'No'
-              break; // No need to check further if 'Yes' is found
-            }
-            if (responses['No'] != null && responses['No'].contains(username)) {
-              // Continue checking other polls
-            } else {
-              hasRespondedNo =
-                  false; // User has not responded 'No' to this poll
-            }
+      for (var doc in essentialPollsSnapshot.docs) {
+        Map<String, dynamic> pollData = doc.data() as Map<String, dynamic>;
+
+        if (pollData['Question'].startsWith('RSVP for')) {
+          if (pollData['Yes'] != null && pollData['Yes'].contains(username)) {
+            hasRespondedYes = true;
+            hasRespondedNo = false; // User has responded 'Yes', so not all 'No'
+            break; // No need to check further if 'Yes' is found
+          }
+          if (pollData['No'] != null && pollData['No'].contains(username)) {
+            // Continue checking other polls
+          } else {
+            hasRespondedNo = false; // User has not responded 'No' to this poll
           }
         }
-
-        if (hasRespondedYes) return 'yes';
-        if (hasRespondedNo) {
-          return 'no'; // Return 'no' if no 'Yes' was found and at least one 'No' was found
-        }
-        return 'maybe'; // Default response if no 'Yes' and no 'No' was found
-      } else {
-        return 'maybe'; // Default response if the event does not exist
       }
+
+      if (hasRespondedYes) return 'yes';
+      if (hasRespondedNo) {
+        return 'no'; // Return 'no' if no 'Yes' was found and at least one 'No' was found
+      }
+      return 'maybe'; // Default response if no 'Yes' and no 'No' was found
     } catch (e) {
       log("Error fetching event or processing data: $e");
       return 'maybe'; // Default response in case of error

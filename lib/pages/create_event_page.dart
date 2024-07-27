@@ -221,23 +221,6 @@ class CreateEventPageState extends State<CreateEventPage> {
       };
     }).toList();
 
-    // Create polls for each phase
-    Map<String, dynamic> polls = {};
-    for (var phase in phases) {
-      String pollQuestion = 'RSVP for ${phase['PhaseName']}';
-      // Calculate the close time as the end of the next day at 11:59 PM
-      DateTime now = DateTime.now();
-      DateTime tomorrowLateNight =
-          DateTime(now.year, now.month, now.day + 1, 23, 59);
-      polls[pollQuestion] = {
-        'Yes': [],
-        'No': [],
-        'CloseTime': Timestamp.fromDate(
-            tomorrowLateNight), // Close time at 11:59 PM next day
-        'IsClosed': false,
-      };
-    }
-
     // Create event data
     Map<String, dynamic> eventData = {
       'EventName': eventNameController.text,
@@ -246,7 +229,6 @@ class CreateEventPageState extends State<CreateEventPage> {
       'Attendees': attendees,
       'Timeline': phases,
       'Notifications': notifications,
-      'Polls': polls,
     };
 
     try {
@@ -257,6 +239,26 @@ class CreateEventPageState extends State<CreateEventPage> {
 
       // Create timestamp
       Timestamp timestamp = Timestamp.now();
+
+      // Create polls for each phase in EssentialPolls subcollection
+      for (var phase in phases) {
+        String pollQuestion = 'RSVP for ${phase['PhaseName']}';
+        DateTime now = DateTime.now();
+        DateTime tomorrowLateNight =
+            DateTime(now.year, now.month, now.day + 1, 23, 59);
+        Map<String, dynamic> pollData = {
+          'Question': pollQuestion,
+          'Yes': [],
+          'No': [],
+          'CloseTime': Timestamp.fromDate(tomorrowLateNight),
+          'IsClosed': false,
+        };
+        await firestore
+            .collection('Events')
+            .doc(eventID)
+            .collection('EssentialPolls')
+            .add(pollData);
+      }
 
       // Add the event ID to the 'Events' field for the host and each attendee
       WriteBatch batch = firestore.batch();

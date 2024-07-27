@@ -22,24 +22,28 @@ class EventTimeline extends StatelessWidget {
     required this.username,
   });
 
-  Future<bool> hasRSVPdYes(String phaseName) async {
+  Future<bool> hasRSVPdYes(
+      String eventID, String username, String phaseName) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     try {
-      DocumentSnapshot eventDoc =
-          await firestore.collection('Events').doc(eventID).get();
-      if (eventDoc.exists) {
-        Map<String, dynamic> eventData =
-            eventDoc.data() as Map<String, dynamic>;
-        Map<String, dynamic> polls = eventData['Polls'] ?? {};
+      // Fetch the relevant RSVP poll from the EssentialPolls subcollection
+      QuerySnapshot essentialPollsSnapshot = await firestore
+          .collection('Events')
+          .doc(eventID)
+          .collection('EssentialPolls')
+          .where('Question', isEqualTo: 'RSVP for $phaseName')
+          .get();
 
-        if (polls.containsKey('RSVP for $phaseName')) {
-          var responses = polls['RSVP for $phaseName'];
-          return responses['Yes'] != null &&
-              responses['Yes'].contains(username);
+      if (essentialPollsSnapshot.docs.isNotEmpty) {
+        DocumentSnapshot pollDoc = essentialPollsSnapshot.docs.first;
+        Map<String, dynamic> pollData = pollDoc.data() as Map<String, dynamic>;
+
+        if (pollData['Yes'] != null && pollData['Yes'].contains(username)) {
+          return true;
         }
       }
     } catch (e) {
-      log("Error fetching event or processing data: $e");
+      print("Error fetching event or processing data: $e");
     }
     return false;
   }
@@ -63,7 +67,7 @@ class EventTimeline extends StatelessWidget {
                 if (phaseIndex < timelineData.length) {
                   final data = timelineData[phaseIndex];
                   return FutureBuilder<bool>(
-                    future: hasRSVPdYes(data['phaseName']),
+                    future: hasRSVPdYes(eventID, username, data['phaseName']),
                     builder: (context, rsvpSnapshot) {
                       if (rsvpSnapshot.connectionState ==
                           ConnectionState.done) {
@@ -78,7 +82,8 @@ class EventTimeline extends StatelessWidget {
                 } else {
                   final lastData = timelineData.last;
                   return FutureBuilder<bool>(
-                    future: hasRSVPdYes(lastData['phaseName']),
+                    future:
+                        hasRSVPdYes(eventID, username, lastData['phaseName']),
                     builder: (context, rsvpSnapshot) {
                       if (rsvpSnapshot.connectionState ==
                           ConnectionState.done) {
