@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
+import 'package:rsvp_rally/pages/edit_poll_page.dart';
 
 class PollCard extends StatefulWidget {
   final String eventID;
@@ -13,6 +14,7 @@ class PollCard extends StatefulWidget {
   final Map<String, dynamic> pollData;
   final double userRating;
   final bool isEssential;
+  final bool isHost;
 
   const PollCard({
     super.key,
@@ -22,6 +24,7 @@ class PollCard extends StatefulWidget {
     required this.pollData,
     required this.userRating,
     required this.isEssential,
+    required this.isHost,
   });
 
   @override
@@ -87,6 +90,58 @@ class _PollCardState extends State<PollCard> {
 
   Future<String?> _fetchProfilePicture(String username) async {
     return await pullProfilePicture(username);
+  }
+
+  Future<void> _confirmDelete() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          surfaceTintColor: getInterpolatedColor(widget.userRating),
+          title: Text('Delete Poll', style: AppColors.titleStyle),
+          content: Text(
+              'Are you sure you want to delete this poll? This action cannot be undone.',
+              style: AppColors.bodyStyle),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _deletePoll();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deletePoll() async {
+    if (widget.isEssential) return; // Essential polls can't be deleted
+
+    try {
+      DocumentReference pollRef = FirebaseFirestore.instance
+          .collection('Events')
+          .doc(widget.eventID)
+          .collection('NonessentialPolls')
+          .doc(widget.pollID);
+
+      await pollRef.delete();
+      print('Poll deleted from database');
+    } catch (e) {
+      print('Error deleting poll: $e');
+    }
   }
 
   @override
@@ -183,10 +238,45 @@ class _PollCardState extends State<PollCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  pollData['Question'],
-                  style: AppColors.titleStyle,
-                  textAlign: TextAlign.center,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (!widget.isEssential && widget.isHost)
+                      IconButton(
+                        icon: Icon(Icons.delete,
+                            color: getInterpolatedColor(widget.userRating)),
+                        onPressed: () {
+                          _confirmDelete();
+                        },
+                      ),
+                    Expanded(
+                      child: Text(
+                        pollData['Question'],
+                        style: AppColors.titleStyle,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    if (widget.isHost)
+                      IconButton(
+                        icon: Icon(Icons.edit,
+                            color: getInterpolatedColor(widget.userRating)),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditPollPage(
+                                username: widget.username,
+                                eventID: widget.eventID,
+                                pollID: widget.pollID,
+                                pollData: pollData,
+                                isEssential: widget.isEssential,
+                                userRating: widget.userRating,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 10),

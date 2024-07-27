@@ -116,6 +116,7 @@ class _PollPageState extends State<PollPage> {
                                   pollID: poll['id'],
                                   pollData: poll['data'],
                                   isEssential: poll['isEssential'],
+                                  isHost: isHost,
                                 );
                               }),
                               const SizedBox(height: 80),
