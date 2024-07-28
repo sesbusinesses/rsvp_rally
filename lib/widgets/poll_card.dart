@@ -44,6 +44,12 @@ class _PollCardState extends State<PollCard> {
   }
 
   Future<void> _vote(String selectedOption) async {
+    if (DateTime.now().isAfter(closeTime)) {
+      bool shouldVote = await _confirmVoteAfterCloseTime();
+      if (!shouldVote) return;
+      await _decreaseUserRating(widget.username);
+    }
+
     try {
       DocumentReference pollRef = FirebaseFirestore.instance
           .collection('Events')
@@ -107,6 +113,72 @@ class _PollCardState extends State<PollCard> {
       }
     } catch (e) {
       print('Error voting: $e');
+    }
+  }
+
+  Future<bool> _confirmVoteAfterCloseTime() async {
+    bool shouldVote = false;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          surfaceTintColor: getInterpolatedColor(widget.userRating),
+          title: Text('Change Response After Close Time',
+              style: AppColors.titleStyle),
+          content: Text(
+              'Are you sure you want to change your response after the close time? This will drop your rating by 0.1.',
+              style: AppColors.bodyStyle),
+          actions: [
+            TextButton(
+              onPressed: () {
+                shouldVote = false;
+                Navigator.of(context).pop();
+              },
+              child: Text('No',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
+            ),
+            TextButton(
+              onPressed: () {
+                shouldVote = true;
+                Navigator.of(context).pop();
+              },
+              child: Text('Yes',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
+            ),
+          ],
+        );
+      },
+    );
+    return shouldVote;
+  }
+
+  Future<void> _decreaseUserRating(String username) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    try {
+      DocumentReference userRef = firestore.collection('Users').doc(username);
+      DocumentSnapshot userDoc = await userRef.get();
+      if (userDoc.exists) {
+        double currentRating = userDoc.get('Rating');
+        double newRating = (currentRating - 0.1).clamp(0.0, 1.0);
+        String timestamp = DateTime.now().toIso8601String();
+
+        await userRef.update({
+          'Rating': newRating,
+          'Messages': FieldValue.arrayUnion([
+            {
+              'text':
+                  'Your rating has dropped from $currentRating to $newRating because you changed your response after the poll close time.',
+              'type': 'rating drop',
+              'timestamp': timestamp
+            }
+          ]),
+          'NewMessages': true,
+        });
+      }
+    } catch (e) {
+      print('Error decreasing user rating: $e');
     }
   }
 
@@ -215,9 +287,7 @@ class _PollCardState extends State<PollCard> {
                   buttonText: option,
                   rating: widget.userRating,
                   onPressed: () {
-                    if (DateTime.now().isBefore(closeTime)) {
-                      _vote(option);
-                    }
+                    _vote(option);
                   },
                   smallVersion: true,
                 ),
@@ -267,9 +337,7 @@ class _PollCardState extends State<PollCard> {
                   buttonText: option,
                   rating: widget.userRating,
                   onPressed: () {
-                    if (DateTime.now().isBefore(closeTime)) {
-                      _vote(option);
-                    }
+                    _vote(option);
                   },
                   smallVersion: true,
                 ),
