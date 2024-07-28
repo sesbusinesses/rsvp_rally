@@ -90,12 +90,14 @@ class _ChatPageState extends State<ChatPage> {
         Map<String, dynamic> pollData = doc.data() as Map<String, dynamic>;
 
         if (pollData['Question'].startsWith('RSVP for')) {
+          // Check if the user has responded 'Yes'
           if (pollData['Yes'] != null && pollData['Yes'].contains(username)) {
             hasRespondedYes = true;
             hasRespondedNo = false; // User has responded 'Yes', so not all 'No'
             break; // No need to check further if 'Yes' is found
           }
-          if (pollData['No'] != null && pollData['No'].contains(username)) {
+          // Check if the user has responded 'No'
+          if (pollData['No'] != null && pollData['No'].containsKey(username)) {
             // Continue checking other polls
           } else {
             hasRespondedNo = false; // User has not responded 'No' to this poll

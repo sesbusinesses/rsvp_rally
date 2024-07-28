@@ -189,11 +189,10 @@ class CreateEventPageState extends State<CreateEventPage> {
       if (geopoint == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                'Could not fetch geopoint for phase ${phaseControllers[i]['name']!.text}',
-                style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight,
-          ),
+              content: Text(
+                  'Could not fetch geopoint for phase ${phaseControllers[i]['name']!.text}',
+                  style: AppColors.bodyStyle),
+              backgroundColor: AppColors.accentLight),
         );
         return;
       }
@@ -249,7 +248,7 @@ class CreateEventPageState extends State<CreateEventPage> {
         Map<String, dynamic> pollData = {
           'Question': pollQuestion,
           'Yes': [],
-          'No': [],
+          'No': {},
           'CloseTime': Timestamp.fromDate(tomorrowLateNight),
           'IsClosed': false,
         };

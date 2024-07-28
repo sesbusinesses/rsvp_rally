@@ -71,7 +71,7 @@ class EditPollPageState extends State<EditPollPage> {
     );
     if (picked != null && picked != closeTime) {
       setState(() {
-        closeTime = picked;
+        closeTime = picked.add(const Duration(hours: 23, minutes: 59));
       });
     }
   }

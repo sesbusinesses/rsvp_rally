@@ -6,6 +6,7 @@ import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/pages/edit_poll_page.dart';
+import 'package:rsvp_rally/widgets/widetextbox.dart';
 
 class PollCard extends StatefulWidget {
   final String eventID;
@@ -61,14 +62,35 @@ class _PollCardState extends State<PollCard> {
           pollResponses.forEach((option, voters) {
             if (voters is List<dynamic>) {
               voters.remove(widget.username);
+            } else if (voters is Map<String, dynamic>) {
+              voters.remove(widget.username);
             }
           });
 
           // Add user to the selected option
-          List<dynamic> selectedVoters = pollResponses[selectedOption] ?? [];
-          if (!selectedVoters.contains(widget.username)) {
-            selectedVoters.add(widget.username);
-            pollResponses[selectedOption] = selectedVoters;
+          if (selectedOption == 'No' && widget.isEssential) {
+            String reason = await _getReasonForNo();
+            if (reason.isNotEmpty) {
+              pollResponses[selectedOption] ??= {};
+              pollResponses[selectedOption][widget.username] = reason;
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'You must provide a reason',
+                    style: AppColors.bodyStyle,
+                  ),
+                  backgroundColor: AppColors.accentLight,
+                ),
+              );
+              return;
+            }
+          } else {
+            List<dynamic> selectedVoters = pollResponses[selectedOption] ?? [];
+            if (!selectedVoters.contains(widget.username)) {
+              selectedVoters.add(widget.username);
+              pollResponses[selectedOption] = selectedVoters;
+            }
           }
 
           await pollRef.update(pollResponses);
@@ -90,6 +112,36 @@ class _PollCardState extends State<PollCard> {
 
   Future<String?> _fetchProfilePicture(String username) async {
     return await pullProfilePicture(username);
+  }
+
+  Future<String> _getReasonForNo() async {
+    String reason = '';
+    await showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController reasonController = TextEditingController();
+        return AlertDialog(
+          surfaceTintColor: getInterpolatedColor(widget.userRating),
+          title: Text('Reason for not attending', style: AppColors.titleStyle),
+          content: WideTextBox(
+            controller: reasonController,
+            hintText: 'Enter your reason here',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                reason = reasonController.text;
+                Navigator.of(context).pop();
+              },
+              child: Text('Submit',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
+            ),
+          ],
+        );
+      },
+    );
+    return reason;
   }
 
   Future<void> _confirmDelete() async {
@@ -150,15 +202,16 @@ class _PollCardState extends State<PollCard> {
     List<Widget> responseWidgets = [];
 
     pollData.forEach((option, voters) {
-      if (voters is List<dynamic>) {
-        List<String> voterNames = List<String>.from(voters);
+      if (option != 'CloseTime' &&
+          option != 'IsClosed' &&
+          option != 'Question') {
+        if (voters is List<dynamic>) {
+          List<String> voterNames = List<String>.from(voters);
 
-        responseWidgets.add(
-          Column(
-            children: [
-              SizedBox(
-                width: screenSize.width * 0.7225,
-                child: WideButton(
+          responseWidgets.add(
+            Column(
+              children: [
+                WideButton(
                   buttonText: option,
                   rating: widget.userRating,
                   onPressed: () {
@@ -168,45 +221,115 @@ class _PollCardState extends State<PollCard> {
                   },
                   smallVersion: true,
                 ),
-              ),
-              if (voterNames.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 10, bottom: 10),
-                  child: FutureBuilder<List<String?>>(
-                    future: Future.wait(voterNames
-                        .map((username) => _fetchProfilePicture(username))
-                        .toList()),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done &&
-                          snapshot.hasData) {
-                        return Wrap(
-                          spacing: 8.0,
-                          runSpacing: 4.0,
-                          children: snapshot.data!.map((profilePictureData) {
-                            return CircleAvatar(
-                              radius: 15,
-                              backgroundImage: profilePictureData != null
-                                  ? MemoryImage(
-                                      base64Decode(profilePictureData))
-                                  : null,
-                              child: profilePictureData == null
-                                  ? const Icon(Icons.person,
-                                      size: 20, color: Colors.grey)
-                                  : null,
-                            );
-                          }).toList(),
+                if (voterNames.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    child: FutureBuilder<List<String?>>(
+                      future: Future.wait(voterNames
+                          .map((username) => _fetchProfilePicture(username))
+                          .toList()),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done &&
+                            snapshot.hasData) {
+                          return Wrap(
+                            spacing: 8.0,
+                            runSpacing: 4.0,
+                            children: snapshot.data!.map((profilePictureData) {
+                              return CircleAvatar(
+                                radius: 15,
+                                backgroundImage: profilePictureData != null
+                                    ? MemoryImage(
+                                        base64Decode(profilePictureData))
+                                    : null,
+                                child: profilePictureData == null
+                                    ? const Icon(Icons.person,
+                                        size: 20, color: Colors.grey)
+                                    : null,
+                              );
+                            }).toList(),
+                          );
+                        } else {
+                          return Container();
+                        }
+                      },
+                    ),
+                  )
+                else
+                  const SizedBox(height: 10),
+              ],
+            ),
+          );
+        } else if (voters is Map<String, dynamic>) {
+          responseWidgets.add(
+            Column(
+              children: [
+                WideButton(
+                  buttonText: option,
+                  rating: widget.userRating,
+                  onPressed: () {
+                    if (DateTime.now().isBefore(closeTime)) {
+                      _vote(option);
+                    }
+                  },
+                  smallVersion: true,
+                ),
+                if (voters.isNotEmpty)
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(top: 10, bottom: 10, left: 0),
+                    child: Column(
+                      children: voters.entries.map<Widget>((entry) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            FutureBuilder<String?>(
+                              future: _fetchProfilePicture(entry.key),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                        ConnectionState.done &&
+                                    snapshot.hasData) {
+                                  return CircleAvatar(
+                                    radius: 15,
+                                    backgroundImage: snapshot.data != null
+                                        ? MemoryImage(
+                                            base64Decode(snapshot.data!))
+                                        : null,
+                                    child: snapshot.data == null
+                                        ? const Icon(Icons.person,
+                                            size: 20, color: Colors.grey)
+                                        : null,
+                                  );
+                                } else {
+                                  return const CircleAvatar(
+                                      radius: 15,
+                                      backgroundImage: null,
+                                      child: Icon(Icons.person,
+                                          size: 20, color: Colors.grey));
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  text: '"${entry.value}"',
+                                  style: AppColors.subtitleStyle,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                              ),
+                            ),
+                          ],
                         );
-                      } else {
-                        return Container();
-                      }
-                    },
-                  ),
-                )
-              else
-                const SizedBox(height: 10),
-            ],
-          ),
-        );
+                      }).toList(),
+                    ),
+                  )
+                else
+                  const SizedBox(height: 10),
+              ],
+            ),
+          );
+        }
       }
     });
 

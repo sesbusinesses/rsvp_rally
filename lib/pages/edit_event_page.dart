@@ -231,41 +231,37 @@ class EditEventPageState extends State<EditEventPage> {
         controller['location']!.text.isEmpty ||
         controller['startTime']!.text.isEmpty ||
         (controller['endTime']!.text.isEmpty &&
-            controller != phaseControllers.last))) {
+            controller == phaseControllers.last))) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please fill out all phase details',
-              style: AppColors.bodyStyle),
-          backgroundColor: AppColors.accentLight,
-        ),
+            content: Text('Please fill out all phase details',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     } else if (notificationControllers.any((controller) =>
         controller['text']!.text.isEmpty || controller['time']!.text.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please fill in all notification details',
-              style: AppColors.bodyStyle),
-          backgroundColor: AppColors.accentLight,
-        ),
+            content: Text('Please fill in all notification details',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     } else if (eventNameController.text.contains('/')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('Event name cannot contain "/"', style: AppColors.bodyStyle),
-          backgroundColor: AppColors.accentLight,
-        ),
+            content: Text('Event name cannot contain "/"',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     } else if (eventDetailsController.text.contains('/')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Event details cannot contain "/"',
-              style: AppColors.bodyStyle),
-          backgroundColor: AppColors.accentLight,
-        ),
+            content: Text('Event details cannot contain "/"',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     } else if (phaseControllers.any((controller) =>
@@ -273,20 +269,18 @@ class EditEventPageState extends State<EditEventPage> {
         controller['location']!.text.contains('/'))) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Phase name or location cannot contain "/"',
-              style: AppColors.bodyStyle),
-          backgroundColor: AppColors.accentLight,
-        ),
+            content: Text('Phase name or location cannot contain "/"',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     } else if (notificationControllers
         .any((controller) => controller['text']!.text.contains('/'))) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Notification text cannot contain "/"',
-              style: AppColors.bodyStyle),
-          backgroundColor: AppColors.accentLight,
-        ),
+            content: Text('Notification text cannot contain "/"',
+                style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
       return;
     }
@@ -432,7 +426,7 @@ class EditEventPageState extends State<EditEventPage> {
           Map<String, dynamic> pollData = {
             'Question': pollQuestion,
             'Yes': [],
-            'No': [],
+            'No': {},
             'CloseTime': Timestamp.fromDate(tomorrowLateNight),
             'IsClosed': false,
           };
@@ -503,19 +497,17 @@ class EditEventPageState extends State<EditEventPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('Event updated successfully', style: AppColors.bodyStyle),
-          backgroundColor: AppColors.accentLight,
-        ),
+            content:
+                Text('Event updated successfully', style: AppColors.bodyStyle),
+            backgroundColor: AppColors.accentLight),
       );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Failed to update event: $e', style: AppColors.bodyStyle),
-            backgroundColor: AppColors.accentLight,
-          ),
+              content: Text('Failed to update event: $e',
+                  style: AppColors.bodyStyle),
+              backgroundColor: AppColors.accentLight),
         );
       }
     }
