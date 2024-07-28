@@ -185,6 +185,7 @@ class AttendeesCard extends StatelessWidget {
                                     getInterpolatedColor(attendee['rating'])),
                             viewerUsername: username,
                             isClickable: true,
+                            isShop: true,
                           );
                         },
                       ),
