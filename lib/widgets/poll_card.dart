@@ -5,19 +5,27 @@ import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
+import 'package:rsvp_rally/pages/edit_poll_page.dart';
+import 'package:rsvp_rally/widgets/widetextbox.dart';
 
 class PollCard extends StatefulWidget {
   final String eventID;
   final String username;
+  final String pollID;
   final Map<String, dynamic> pollData;
-  final double userRating; // Add userRating parameter
+  final double userRating;
+  final bool isEssential;
+  final bool isHost;
 
   const PollCard({
     super.key,
     required this.eventID,
     required this.username,
+    required this.pollID,
     required this.pollData,
-    required this.userRating, // Add userRating parameter
+    required this.userRating,
+    required this.isEssential,
+    required this.isHost,
   });
 
   @override
@@ -32,44 +40,145 @@ class _PollCardState extends State<PollCard> {
   void initState() {
     super.initState();
     pollData = widget.pollData;
-    closeTime = (pollData['responses']['CloseTime'] as Timestamp).toDate();
+    closeTime = (pollData['CloseTime'] as Timestamp).toDate();
   }
 
   Future<void> _vote(String selectedOption) async {
+    if (DateTime.now().isAfter(closeTime)) {
+      bool shouldVote = await _confirmVoteAfterCloseTime();
+      if (!shouldVote) return;
+      await _decreaseUserRating(widget.username);
+    }
+
     try {
-      DocumentReference eventRef =
-          FirebaseFirestore.instance.collection('Events').doc(widget.eventID);
-      DocumentSnapshot eventSnapshot = await eventRef.get();
-      Map<String, dynamic> eventData =
-          eventSnapshot.data() as Map<String, dynamic>;
+      DocumentReference pollRef = FirebaseFirestore.instance
+          .collection('Events')
+          .doc(widget.eventID)
+          .collection(
+              widget.isEssential ? 'EssentialPolls' : 'NonessentialPolls')
+          .doc(widget.pollID);
 
-      Map<String, dynamic> polls =
-          Map<String, dynamic>.from(eventData['Polls']);
-      Map<String, dynamic> pollResponses =
-          Map<String, dynamic>.from(polls[pollData['question']]);
+      DocumentSnapshot pollSnapshot = await pollRef.get();
+      if (pollSnapshot.exists) {
+        Map<String, dynamic>? pollResponses =
+            pollSnapshot.data() as Map<String, dynamic>?;
 
-      // Remove user from all other options
-      pollResponses.forEach((option, voters) {
-        if (voters is List<dynamic>) {
-          voters.remove(widget.username);
+        if (pollResponses != null) {
+          // Remove user from all other options
+          pollResponses.forEach((option, voters) {
+            if (voters is List<dynamic>) {
+              voters.remove(widget.username);
+            } else if (voters is Map<String, dynamic>) {
+              voters.remove(widget.username);
+            }
+          });
+
+          // Add user to the selected option
+          if (selectedOption == 'No' && widget.isEssential) {
+            String reason = await _getReasonForNo();
+            if (reason.isNotEmpty) {
+              pollResponses[selectedOption] ??= {};
+              pollResponses[selectedOption][widget.username] = reason;
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'You must provide a reason',
+                    style: AppColors.bodyStyle,
+                  ),
+                  backgroundColor: AppColors.accentLight,
+                ),
+              );
+              return;
+            }
+          } else {
+            List<dynamic> selectedVoters = pollResponses[selectedOption] ?? [];
+            if (!selectedVoters.contains(widget.username)) {
+              selectedVoters.add(widget.username);
+              pollResponses[selectedOption] = selectedVoters;
+            }
+          }
+
+          await pollRef.update(pollResponses);
+
+          // Update local pollData state
+          setState(() {
+            pollData = pollResponses;
+          });
+        } else {
+          print('Poll data is null');
         }
-      });
-
-      // Add user to the selected option
-      List<dynamic> selectedVoters = pollResponses[selectedOption] ?? [];
-      if (!selectedVoters.contains(widget.username)) {
-        selectedVoters.add(widget.username);
-        pollResponses[selectedOption] = selectedVoters;
+      } else {
+        print('Poll document does not exist');
       }
-
-      await eventRef.update({'Polls.${pollData['question']}': pollResponses});
-
-      // Update local pollData state
-      setState(() {
-        pollData['responses'] = pollResponses;
-      });
     } catch (e) {
       print('Error voting: $e');
+    }
+  }
+
+  Future<bool> _confirmVoteAfterCloseTime() async {
+    bool shouldVote = false;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          surfaceTintColor: getInterpolatedColor(widget.userRating),
+          title: Text('Change Response After Close Time',
+              style: AppColors.titleStyle),
+          content: Text(
+              'Are you sure you want to change your response after the close time? This will drop your rating by 0.1.',
+              style: AppColors.bodyStyle),
+          actions: [
+            TextButton(
+              onPressed: () {
+                shouldVote = false;
+                Navigator.of(context).pop();
+              },
+              child: Text('No',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
+            ),
+            TextButton(
+              onPressed: () {
+                shouldVote = true;
+                Navigator.of(context).pop();
+              },
+              child: Text('Yes',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
+            ),
+          ],
+        );
+      },
+    );
+    return shouldVote;
+  }
+
+  Future<void> _decreaseUserRating(String username) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    try {
+      DocumentReference userRef = firestore.collection('Users').doc(username);
+      DocumentSnapshot userDoc = await userRef.get();
+      if (userDoc.exists) {
+        double currentRating = userDoc.get('Rating');
+        double newRating = (currentRating - 0.1).clamp(0.0, 1.0);
+        String timestamp = DateTime.now().toIso8601String();
+
+        await userRef.update({
+          'Rating': newRating,
+          'Messages': FieldValue.arrayUnion([
+            {
+              'text':
+                  'Your rating has dropped from $currentRating to $newRating because you changed your response after the poll close time.',
+              'type': 'rating drop',
+              'timestamp': timestamp
+            }
+          ]),
+          'NewMessages': true,
+        });
+      }
+    } catch (e) {
+      print('Error decreasing user rating: $e');
     }
   }
 
@@ -77,69 +186,218 @@ class _PollCardState extends State<PollCard> {
     return await pullProfilePicture(username);
   }
 
+  Future<String> _getReasonForNo() async {
+    String reason = '';
+    await showDialog(
+      context: context,
+      builder: (context) {
+        TextEditingController reasonController = TextEditingController();
+        return AlertDialog(
+          surfaceTintColor: getInterpolatedColor(widget.userRating),
+          title: Text('Reason for not attending', style: AppColors.titleStyle),
+          content: WideTextBox(
+            controller: reasonController,
+            hintText: 'Enter your reason here',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                reason = reasonController.text;
+                Navigator.of(context).pop();
+              },
+              child: Text('Submit',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
+            ),
+          ],
+        );
+      },
+    );
+    return reason;
+  }
+
+  Future<void> _confirmDelete() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          surfaceTintColor: getInterpolatedColor(widget.userRating),
+          title: Text('Delete Poll', style: AppColors.titleStyle),
+          content: Text(
+              'Are you sure you want to delete this poll? This action cannot be undone.',
+              style: AppColors.bodyStyle),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Delete',
+                  style: AppColors.bodyStyle.copyWith(
+                      color: getInterpolatedColor(widget.userRating))),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _deletePoll();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deletePoll() async {
+    if (widget.isEssential) return; // Essential polls can't be deleted
+
+    try {
+      DocumentReference pollRef = FirebaseFirestore.instance
+          .collection('Events')
+          .doc(widget.eventID)
+          .collection('NonessentialPolls')
+          .doc(widget.pollID);
+
+      await pollRef.delete();
+      print('Poll deleted from database');
+    } catch (e) {
+      print('Error deleting poll: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     List<Widget> responseWidgets = [];
 
-    pollData['responses'].forEach((option, voters) {
-      if (voters is List<dynamic>) {
-        List<String> voterNames = List<String>.from(voters);
+    pollData.forEach((option, voters) {
+      if (option != 'CloseTime' &&
+          option != 'IsClosed' &&
+          option != 'Question') {
+        if (voters is List<dynamic>) {
+          List<String> voterNames = List<String>.from(voters);
 
-        responseWidgets.add(
-          Column(
-            children: [
-              SizedBox(
-                width: screenSize.width * 0.7225,
-                child: WideButton(
+          responseWidgets.add(
+            Column(
+              children: [
+                WideButton(
                   buttonText: option,
                   rating: widget.userRating,
                   onPressed: () {
-                    if (DateTime.now().isBefore(closeTime)) {
-                      _vote(option);
-                    }
+                    _vote(option);
                   },
                   smallVersion: true,
                 ),
-              ),
-              if (voterNames.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 10, bottom: 10),
-                  child: FutureBuilder<List<String?>>(
-                    future: Future.wait(voterNames
-                        .map((username) => _fetchProfilePicture(username))
-                        .toList()),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done &&
-                          snapshot.hasData) {
-                        return Wrap(
-                          spacing: 8.0,
-                          runSpacing: 4.0,
-                          children: snapshot.data!.map((profilePictureData) {
-                            return CircleAvatar(
-                              radius: 15,
-                              backgroundImage: profilePictureData != null
-                                  ? MemoryImage(
-                                      base64Decode(profilePictureData))
-                                  : null,
-                              child: profilePictureData == null
-                                  ? const Icon(Icons.person,
-                                      size: 20, color: Colors.grey)
-                                  : null,
-                            );
-                          }).toList(),
+                if (voterNames.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10, bottom: 10),
+                    child: FutureBuilder<List<String?>>(
+                      future: Future.wait(voterNames
+                          .map((username) => _fetchProfilePicture(username))
+                          .toList()),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done &&
+                            snapshot.hasData) {
+                          return Wrap(
+                            spacing: 8.0,
+                            runSpacing: 4.0,
+                            children: snapshot.data!.map((profilePictureData) {
+                              return CircleAvatar(
+                                radius: 15,
+                                backgroundImage: profilePictureData != null
+                                    ? MemoryImage(
+                                        base64Decode(profilePictureData))
+                                    : null,
+                                child: profilePictureData == null
+                                    ? const Icon(Icons.person,
+                                        size: 20, color: Colors.grey)
+                                    : null,
+                              );
+                            }).toList(),
+                          );
+                        } else {
+                          return Container();
+                        }
+                      },
+                    ),
+                  )
+                else
+                  const SizedBox(height: 10),
+              ],
+            ),
+          );
+        } else if (voters is Map<String, dynamic>) {
+          responseWidgets.add(
+            Column(
+              children: [
+                WideButton(
+                  buttonText: option,
+                  rating: widget.userRating,
+                  onPressed: () {
+                    _vote(option);
+                  },
+                  smallVersion: true,
+                ),
+                if (voters.isNotEmpty)
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(top: 10, bottom: 10, left: 0),
+                    child: Column(
+                      children: voters.entries.map<Widget>((entry) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            FutureBuilder<String?>(
+                              future: _fetchProfilePicture(entry.key),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                        ConnectionState.done &&
+                                    snapshot.hasData) {
+                                  return CircleAvatar(
+                                    radius: 15,
+                                    backgroundImage: snapshot.data != null
+                                        ? MemoryImage(
+                                            base64Decode(snapshot.data!))
+                                        : null,
+                                    child: snapshot.data == null
+                                        ? const Icon(Icons.person,
+                                            size: 20, color: Colors.grey)
+                                        : null,
+                                  );
+                                } else {
+                                  return const CircleAvatar(
+                                      radius: 15,
+                                      backgroundImage: null,
+                                      child: Icon(Icons.person,
+                                          size: 20, color: Colors.grey));
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  text: '"${entry.value}"',
+                                  style: AppColors.subtitleStyle,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                              ),
+                            ),
+                          ],
                         );
-                      } else {
-                        return Container();
-                      }
-                    },
-                  ),
-                )
-              else
-                const SizedBox(height: 10),
-            ],
-          ),
-        );
+                      }).toList(),
+                    ),
+                  )
+                else
+                  const SizedBox(height: 10),
+              ],
+            ),
+          );
+        }
       }
     });
 
@@ -152,7 +410,7 @@ class _PollCardState extends State<PollCard> {
         child: Container(
           width: MediaQuery.of(context).size.width * 0.85,
           decoration: BoxDecoration(
-            color: AppColors.light, // Dark background color
+            color: AppColors.light,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(
               color: getInterpolatedColor(widget.userRating),
@@ -171,10 +429,45 @@ class _PollCardState extends State<PollCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  pollData['question'],
-                  style: AppColors.titleStyle,
-                  textAlign: TextAlign.center,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (!widget.isEssential && widget.isHost)
+                      IconButton(
+                        icon: Icon(Icons.delete,
+                            color: getInterpolatedColor(widget.userRating)),
+                        onPressed: () {
+                          _confirmDelete();
+                        },
+                      ),
+                    Expanded(
+                      child: Text(
+                        pollData['Question'],
+                        style: AppColors.titleStyle,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    if (widget.isHost)
+                      IconButton(
+                        icon: Icon(Icons.edit,
+                            color: getInterpolatedColor(widget.userRating)),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditPollPage(
+                                username: widget.username,
+                                eventID: widget.eventID,
+                                pollID: widget.pollID,
+                                pollData: pollData,
+                                isEssential: widget.isEssential,
+                                userRating: widget.userRating,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 10),
