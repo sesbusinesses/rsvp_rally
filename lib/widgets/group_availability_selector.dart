@@ -193,7 +193,10 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
       onPanStart: (details) {
         RenderBox box = context.findRenderObject() as RenderBox;
         Offset localPosition = box.globalToLocal(details.globalPosition);
-        int dayIndex = (localPosition.dx / box.size.width * 7).floor();
+        double usableWidth =
+            box.size.width * 7 / 8; // Assuming 50 pixels are non-selectable
+        int dayIndex =
+            ((localPosition.dx - box.size.width / 8) / usableWidth * 7).floor();
         int timeIndex =
             (localPosition.dy / box.size.height * (times.length + 1)).floor() -
                 1;
@@ -212,25 +215,25 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
         }
       },
       onPanUpdate: (details) {
-        if (isDragging) {
-          RenderBox box = context.findRenderObject() as RenderBox;
-          Offset localPosition = box.globalToLocal(details.globalPosition);
-          int dayIndex = (localPosition.dx / box.size.width * 7).floor();
-          int timeIndex =
-              (localPosition.dy / box.size.height * (times.length + 1))
-                      .floor() -
-                  1;
+        RenderBox box = context.findRenderObject() as RenderBox;
+        Offset localPosition = box.globalToLocal(details.globalPosition);
+        double usableWidth =
+            box.size.width * 7 / 8; // Adjusting for non-selectable area
+        int dayIndex =
+            ((localPosition.dx - box.size.width / 8) / usableWidth * 7).floor();
+        int timeIndex =
+            (localPosition.dy / box.size.height * (times.length + 1)).floor() -
+                1;
 
-          if (dayIndex >= 0 &&
-              dayIndex < 7 &&
-              timeIndex >= 0 &&
-              timeIndex < times.length) {
-            String date = availability.keys.elementAt(dayIndex);
-            String cellKey = '$date-${times[timeIndex]}';
-            if (!visitedCells.contains(cellKey)) {
-              visitedCells.add(cellKey);
-              toggleAvailability(date, times[timeIndex]);
-            }
+        if (dayIndex >= 0 &&
+            dayIndex < 7 &&
+            timeIndex >= 0 &&
+            timeIndex < times.length) {
+          String date = availability.keys.elementAt(dayIndex);
+          String cellKey = '$date-${times[timeIndex]}';
+          if (!visitedCells.contains(cellKey)) {
+            visitedCells.add(cellKey);
+            toggleAvailability(date, times[timeIndex]);
           }
         }
       },
@@ -277,7 +280,8 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
                           },
                           child: Container(
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.black),
+                              border:
+                                  Border.all(color: Colors.black, width: 0.25),
                               color: widget.isEditable
                                   ? (availability[date] != null &&
                                           availability[date]![time] != null &&

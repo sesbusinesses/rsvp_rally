@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -72,6 +73,49 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  Future<String> isComing(String eventID, String username) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    try {
+      // Fetch the essential polls for the event
+      QuerySnapshot essentialPollsSnapshot = await firestore
+          .collection('Events')
+          .doc(eventID)
+          .collection('EssentialPolls')
+          .get();
+
+      bool hasRespondedYes = false;
+      bool hasRespondedNo = true; // Assume 'No' until proven otherwise
+
+      for (var doc in essentialPollsSnapshot.docs) {
+        Map<String, dynamic> pollData = doc.data() as Map<String, dynamic>;
+
+        if (pollData['Question'].startsWith('RSVP for')) {
+          // Check if the user has responded 'Yes'
+          if (pollData['Yes'] != null && pollData['Yes'].contains(username)) {
+            hasRespondedYes = true;
+            hasRespondedNo = false; // User has responded 'Yes', so not all 'No'
+            break; // No need to check further if 'Yes' is found
+          }
+          // Check if the user has responded 'No'
+          if (pollData['No'] != null && pollData['No'].containsKey(username)) {
+            // Continue checking other polls
+          } else {
+            hasRespondedNo = false; // User has not responded 'No' to this poll
+          }
+        }
+      }
+
+      if (hasRespondedYes) return 'yes';
+      if (hasRespondedNo) {
+        return 'no'; // Return 'no' if no 'Yes' was found and at least one 'No' was found
+      }
+      return 'maybe'; // Default response if no 'Yes' and no 'No' was found
+    } catch (e) {
+      log("Error fetching event or processing data: $e");
+      return 'maybe'; // Default response in case of error
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,6 +176,7 @@ class _ChatPageState extends State<ChatPage> {
                                     isMe: entry.key == widget.username,
                                     username: entry.key,
                                     isPhoto: isPhoto,
+                                    viewerUsername: widget.username,
                                   );
                                 },
                               );
@@ -168,6 +213,7 @@ class _ChatPageState extends State<ChatPage> {
             child: WideTextBox(
               hintText: 'Type a message',
               controller: _controller,
+              canGrow: true,
             ),
           ),
           IconButton(

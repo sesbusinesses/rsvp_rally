@@ -58,7 +58,7 @@ class EventPageState extends State<EventPage>
 
     try {
       final eventIds = await getUserEvents(widget.username);
-      await checkEventsExistenceAndRSVP(eventIds);
+      await checkEventsExistence(eventIds);
 
       if (mounted) {
         setState(() {
@@ -97,45 +97,7 @@ class EventPageState extends State<EventPage>
     }
   }
 
-  Future<String> isComing(String eventID, String username) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    try {
-      DocumentSnapshot eventDoc =
-          await firestore.collection('Events').doc(eventID).get();
-      if (eventDoc.exists) {
-        Map<String, dynamic> eventData =
-            eventDoc.data() as Map<String, dynamic>;
-        Map<String, dynamic> polls = eventData['Polls'] ?? {};
-
-        bool hasRespondedYes = false;
-        bool hasRespondedNo = false; // Updated logic
-
-        for (var pollName in polls.keys) {
-          if (pollName.startsWith('RSVP for')) {
-            var responses = polls[pollName];
-            if (responses['Yes'] != null &&
-                responses['Yes'].contains(username)) {
-              hasRespondedYes = true;
-            }
-            if (responses['No'] != null && responses['No'].contains(username)) {
-              hasRespondedNo = true;
-            }
-          }
-        }
-
-        if (hasRespondedYes) return 'yes';
-        if (hasRespondedNo) return 'no';
-        return 'maybe';
-      } else {
-        return 'maybe'; // Default response if the event does not exist
-      }
-    } catch (e) {
-      log("Error fetching event or processing data: $e");
-      return 'maybe'; // Default response in case of error
-    }
-  }
-
-  Future<void> checkEventsExistenceAndRSVP(List<String> eventIds) async {
+  Future<void> checkEventsExistence(List<String> eventIds) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     List<String> tempEventIds = [];
     Map<String, DateTime?> tempEventStartTimes = {};
@@ -145,18 +107,12 @@ class EventPageState extends State<EventPage>
         DocumentSnapshot eventDoc =
             await firestore.collection('Events').doc(eventId).get();
         if (eventDoc.exists) {
-          String rsvpStatus = await isComing(eventId, widget.username);
-          if (rsvpStatus != 'no') {
-            tempEventIds.add(eventId);
-            DateTime? startTime = await getEventStartTime(eventId);
-            tempEventStartTimes[eventId] = startTime;
-          } else {
-            await _removeEventFromUserDoc(
-                widget.username, eventId, eventDoc['EventName'], false);
-          }
+          tempEventIds.add(eventId);
+          DateTime? startTime = await getEventStartTime(eventId);
+          tempEventStartTimes[eventId] = startTime;
         } else {
           await _removeEventFromUserDoc(
-              widget.username, eventId, "Unknown Event", true);
+              widget.username, eventId, eventDoc['EventName']);
         }
       }).toList();
 
@@ -174,7 +130,7 @@ class EventPageState extends State<EventPage>
       existingEventIds = tempEventIds;
       eventStartTimes = tempEventStartTimes;
     } catch (e) {
-      log("Error in checkEventsExistenceAndRSVP: $e");
+      log("Error in checkEventsExistence: $e");
     }
   }
 
@@ -224,11 +180,10 @@ class EventPageState extends State<EventPage>
     return startTime;
   }
 
-  Future<void> _removeEventFromUserDoc(String username, String eventID,
-      String eventName, bool eventExpired) async {
+  Future<void> _removeEventFromUserDoc(
+      String username, String eventID, String eventName) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     DocumentReference userDocRef = firestore.collection('Users').doc(username);
-    DocumentReference eventDocRef = firestore.collection('Events').doc(eventID);
 
     WriteBatch batch = firestore.batch();
 
@@ -243,33 +198,6 @@ class EventPageState extends State<EventPage>
       if (events.contains(eventID)) {
         events.remove(eventID);
         batch.update(userDocRef, {'Events': events});
-
-        if (eventExpired) {
-          DocumentReference eventChatRef =
-              firestore.collection('Chats').doc(eventID);
-          batch.delete(eventChatRef);
-        } else {
-          DocumentSnapshot eventDoc = await eventDocRef.get();
-          if (eventDoc.exists) {
-            List<String> declined;
-            if ((eventDoc.data() as Map).containsKey('Declined')) {
-              declined = List.from(eventDoc.get('Declined'));
-            } else {
-              declined = [];
-            }
-
-            List<String> attendees = List.from(eventDoc.get('Attendees'));
-            if (attendees.contains(username)) {
-              attendees.remove(username);
-              batch.update(eventDocRef, {'Attendees': attendees});
-            }
-
-            if (!declined.contains(username)) {
-              declined.add(username);
-              batch.update(eventDocRef, {'Declined': declined});
-            }
-          }
-        }
 
         await batch.commit();
       } else {
@@ -323,7 +251,7 @@ class EventPageState extends State<EventPage>
                           } else {
                             List<String> eventIds = snapshot.data!;
                             return FutureBuilder<void>(
-                              future: checkEventsExistenceAndRSVP(eventIds),
+                              future: checkEventsExistence(eventIds),
                               builder: (context, checkSnapshot) {
                                 if (checkSnapshot.connectionState ==
                                     ConnectionState.waiting) {
