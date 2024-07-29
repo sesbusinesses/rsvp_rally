@@ -18,12 +18,14 @@ class ChatPage extends StatefulWidget {
   final String eventID;
   final double rating;
   final String username;
+  final bool isGroup;
 
   const ChatPage({
     super.key,
     required this.eventID,
     required this.rating,
     required this.username,
+    this.isGroup = false,
   });
 
   @override
@@ -133,7 +135,7 @@ class _ChatPageState extends State<ChatPage> {
                 Expanded(
                   child: Container(
                     color: Colors.grey[200], // Light grey background
-                    child: rsvpStatus == 'yes'
+                    child: rsvpStatus == 'yes' || widget.isGroup
                         ? StreamBuilder<DocumentSnapshot>(
                             stream: FirebaseFirestore.instance
                                 .collection('Chats')
@@ -190,7 +192,8 @@ class _ChatPageState extends State<ChatPage> {
                           ),
                   ),
                 ),
-                if (rsvpStatus == 'yes') _buildMessageInputArea(),
+                if (rsvpStatus == 'yes' || widget.isGroup)
+                  _buildMessageInputArea(),
               ],
             ),
           ],

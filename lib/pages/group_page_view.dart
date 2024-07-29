@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rsvp_rally/pages/chat_page.dart';
 import 'package:rsvp_rally/pages/group_current_availability_page.dart';
 import 'package:rsvp_rally/pages/group_upload_availability_page.dart';
 import 'package:rsvp_rally/pages/group_polls_page.dart';
@@ -56,20 +57,22 @@ class _GroupPageViewState extends State<GroupPageView> {
   @override
   Widget build(BuildContext context) {
     List<Widget> pages = [
-      GroupUploadAvailabilityPage(
-        groupID: widget.groupID,
-        username: widget.username,
-        userRating: widget.userRating,
-      ),
       GroupCurrentAvailabilityPage(
         groupID: widget.groupID,
         userRating: widget.userRating,
+        username: widget.username,
       ),
       GroupPollsPage(
         groupID: widget.groupID,
         username: widget.username,
         userRating: widget.userRating,
       ),
+      ChatPage(
+        eventID: widget.groupID,
+        rating: widget.userRating,
+        username: widget.username,
+        isGroup: true,
+      )
     ];
 
     if (isHost) {

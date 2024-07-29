@@ -73,21 +73,21 @@ class _GroupBottomNavState extends State<GroupBottomNav> {
         children: [
           _buildNavItem(
             icon: Icons.calendar_today,
-            label: "Next Week",
+            label: "Availability",
             index: 0,
             selected: widget.selectedIndex == 0,
             spacing: 8.0, // Adjust this value as needed
           ),
           _buildNavItem(
-            icon: Icons.calendar_view_week,
-            label: "This Week",
+            icon: Icons.poll,
+            label: "   Polls  ",
             index: 1,
             selected: widget.selectedIndex == 1,
             spacing: 8.0, // Adjust this value as needed
           ),
           _buildNavItem(
-            icon: Icons.poll,
-            label: "   Polls  ",
+            icon: Icons.chat,
+            label: "   Chat   ",
             index: 2,
             selected: widget.selectedIndex == 2,
             spacing: 8.0, // Adjust this value as needed
