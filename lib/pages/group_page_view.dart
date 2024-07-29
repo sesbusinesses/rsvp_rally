@@ -56,14 +56,10 @@ class _GroupPageViewState extends State<GroupPageView> {
   @override
   Widget build(BuildContext context) {
     List<Widget> pages = [
-      GroupUploadAvailabilityPage(
-        groupID: widget.groupID,
-        username: widget.username,
-        userRating: widget.userRating,
-      ),
       GroupCurrentAvailabilityPage(
         groupID: widget.groupID,
         userRating: widget.userRating,
+        username: widget.username,
       ),
       GroupPollsPage(
         groupID: widget.groupID,

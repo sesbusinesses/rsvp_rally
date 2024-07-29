@@ -6,14 +6,14 @@ import 'package:rsvp_rally/models/colors.dart';
 class GroupAvailabilitySelector extends StatefulWidget {
   final bool isEditable;
   final String groupID;
-  final String? username;
+  final String username;
   final double userRating;
 
   const GroupAvailabilitySelector({
     super.key,
     required this.isEditable,
     required this.groupID,
-    this.username,
+    required this.username,
     required this.userRating,
   });
 
@@ -87,7 +87,7 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
   }
 
   void initializeAvailability() {
-    startOfWeek = getStartOfWeek();
+    startOfWeek = DateTime.now();
     for (int i = 0; i < 7; i++) {
       DateTime date = startOfWeek.add(Duration(days: i));
       String dateString = DateFormat('yyyy-MM-dd').format(date);
@@ -98,21 +98,8 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
     }
   }
 
-  DateTime getStartOfWeek() {
-    DateTime now = DateTime.now();
-    int weekday = (now.weekday + 6) % 7; // Monday is 0, ..., Sunday is 6
-    DateTime startOfWeek = now.subtract(Duration(days: weekday));
-    if (widget.isEditable) {
-      startOfWeek =
-          startOfWeek.add(const Duration(days: 7)); // Start from next week
-    }
-    // print('Start of week: $startOfWeek');
-    return startOfWeek;
-  }
-
   Future<void> fetchAvailability() async {
     try {
-      // print('Fetching availability for group isEditable: ${widget.isEditable}');
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Groups')
           .doc(widget.groupID)
@@ -121,7 +108,6 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
 
       if (snapshot.docs.isNotEmpty) {
         for (var doc in snapshot.docs) {
-          // print(doc.data());
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           String date = data['date'];
           String time = data['time'];
@@ -129,12 +115,11 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
 
           DateTime parsedDate = DateTime.parse(date);
           if (parsedDate
-                  .isAfter(startOfWeek.subtract(const Duration(minutes: 1))) &&
-              parsedDate.isBefore(startOfWeek.add(const Duration(days: 6)))) {
+                  .isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
+              parsedDate.isBefore(startOfWeek.add(const Duration(days: 7)))) {
             setState(() {
               availability[date] ??= {};
               availability[date]![time] = users;
-              // print('Fetched availability for $date $time: $users');
             });
           }
         }
@@ -145,15 +130,14 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
   }
 
   void updateAvailability(String date, String time, bool selected) {
-    if (!widget.isEditable || widget.username == null) return;
+    if (!widget.isEditable) return;
 
     setState(() {
       if (selected) {
         if (!availability[date]![time]!.contains(widget.username)) {
-          availability[date]![time]!.add(widget.username!);
+          availability[date]![time]!.add(widget.username);
         }
       } else {
-        print('Removing ${widget.username} from $date at $time');
         availability[date]![time]!.remove(widget.username);
       }
     });
@@ -168,7 +152,7 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
   }
 
   void toggleAvailability(String date, String time) {
-    if (!widget.isEditable || widget.username == null) return;
+    if (!widget.isEditable) return;
 
     bool isSelected = availability[date]![time]!.contains(widget.username);
     updateAvailability(date, time, !isSelected);
@@ -283,25 +267,23 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
                             decoration: BoxDecoration(
                               border:
                                   Border.all(color: Colors.black, width: 0.25),
-                              color: widget.isEditable
-                                  ? (availability[date] != null &&
-                                          availability[date]![time] != null &&
-                                          availability[date]![time]!
-                                              .contains(widget.username)
-                                      ? getInterpolatedColor(widget.userRating)
-                                      : AppColors.light)
-                                  : (availability[date] != null &&
-                                          availability[date]![time] != null &&
-                                          availability[date]![time]!.isNotEmpty)
-                                      ? Color.lerp(
-                                          AppColors.light,
-                                          getInterpolatedColor(
-                                              widget.userRating),
-                                          availability[date]![time]!.length /
-                                              getMaxAvailability(availability))
-                                      : AppColors.light,
+                              color: (availability[date] != null &&
+                                      availability[date]![time] != null &&
+                                      availability[date]![time]!.isNotEmpty)
+                                  ? Color.lerp(
+                                      AppColors.light,
+                                      getInterpolatedColor(widget.userRating),
+                                      availability[date]![time]!.length /
+                                          getMaxAvailability(availability))
+                                  : AppColors.light,
                             ),
                             alignment: Alignment.center,
+                            child: (availability[date] != null &&
+                                    availability[date]![time] != null &&
+                                    availability[date]![time]!
+                                        .contains(widget.username))
+                                ? const Icon(Icons.check)
+                                : null,
                           ),
                         ),
                       ))

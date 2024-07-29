@@ -72,32 +72,25 @@ class _GroupBottomNavState extends State<GroupBottomNav> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildNavItem(
-            icon: Icons.calendar_today,
-            label: "Next Week",
+            icon: Icons.calendar_view_week,
+            label: "Us",
             index: 0,
             selected: widget.selectedIndex == 0,
             spacing: 8.0, // Adjust this value as needed
           ),
           _buildNavItem(
-            icon: Icons.calendar_view_week,
-            label: "This Week",
-            index: 1,
-            selected: widget.selectedIndex == 1,
-            spacing: 8.0, // Adjust this value as needed
-          ),
-          _buildNavItem(
             icon: Icons.poll,
             label: "   Polls  ",
-            index: 2,
-            selected: widget.selectedIndex == 2,
+            index: 1,
+            selected: widget.selectedIndex == 1,
             spacing: 8.0, // Adjust this value as needed
           ),
           if (isHost)
             _buildNavItem(
               icon: Icons.edit,
               label: "  Edit  ",
-              index: 3,
-              selected: widget.selectedIndex == 3,
+              index: 2,
+              selected: widget.selectedIndex == 2,
               spacing: 8.0, // Adjust this value as needed
             ),
         ],
