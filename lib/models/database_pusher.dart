@@ -164,11 +164,17 @@ Future<void> sendMessage(
       await chatRef.set({'EventID': eventID, 'Messages': []});
     }
 
+    Timestamp timestamp = Timestamp.now();
+
+    // Create a message with a timestamp
+    Map<String, dynamic> messageData = {
+      username: message,
+      'timestamp': timestamp,
+    };
+
     // Update the Messages array
     await chatRef.update({
-      'Messages': FieldValue.arrayUnion([
-        {username: message}
-      ])
+      'Messages': FieldValue.arrayUnion([messageData])
     });
   } catch (e) {
     print('Error sending message: $e');
