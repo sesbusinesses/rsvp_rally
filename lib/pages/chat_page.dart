@@ -256,7 +256,7 @@ class _ChatPageState extends State<ChatPage> {
                   gifDecoder.decodeAnimation(imageBytes)!;
               img.Animation resizedGif = img.Animation();
 
-              double reductionFactor = math.sqrt(1000000 / imageBytes.length);
+              double reductionFactor = math.sqrt(100000 / imageBytes.length);
               for (var frame in originalGif.frames) {
                 int newWidth = (frame.width * reductionFactor).toInt();
                 int newHeight = (frame.height * reductionFactor).toInt();
@@ -270,7 +270,7 @@ class _ChatPageState extends State<ChatPage> {
               }
             } else {
               // Handle static images
-              double reductionFactor = math.sqrt(1000000 / imageBytes.length);
+              double reductionFactor = math.sqrt(100000 / imageBytes.length);
               int newWidth = (originalImage.width * reductionFactor).toInt();
               int newHeight = (originalImage.height * reductionFactor).toInt();
 
