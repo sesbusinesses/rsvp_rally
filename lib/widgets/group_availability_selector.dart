@@ -153,6 +153,7 @@ class _GroupAvailabilitySelectorState extends State<GroupAvailabilitySelector> {
           availability[date]![time]!.add(widget.username!);
         }
       } else {
+        print('Removing ${widget.username} from $date at $time');
         availability[date]![time]!.remove(widget.username);
       }
     });
