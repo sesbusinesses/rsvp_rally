@@ -144,7 +144,7 @@ class _PollPageState extends State<PollPage> {
       ),
       floatingActionButton: isHost
           ? Padding(
-              padding: const EdgeInsets.only(bottom: 40.0),
+              padding: const EdgeInsets.only(bottom: 10.0),
               child: CreatePollButton(
                 eventID: widget.eventID,
                 userRating: widget.rating,
