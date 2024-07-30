@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:image/image.dart' as img;
 import 'dart:math' as math;
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:path_provider/path_provider.dart';
 
 class SharedAlbumPage extends StatefulWidget {
   final String eventID;
@@ -25,6 +28,8 @@ class SharedAlbumPage extends StatefulWidget {
 
 class _SharedAlbumPageState extends State<SharedAlbumPage> {
   final ImagePicker _picker = ImagePicker();
+  final Set<String> _selectedPhotos = {};
+  late List<Photo> _photos;
 
   Future<void> _pickAndUploadPhoto() async {
     try {
@@ -34,10 +39,10 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
         List<int> imageBytes = await file.readAsBytes();
 
         // Resize the image if it is too large
-        if (imageBytes.length > 1000000) {
+        if (imageBytes.length > 100000) {
           img.Image? originalImage = img.decodeImage(imageBytes);
           if (originalImage != null) {
-            double reductionFactor = math.sqrt(1000000 / imageBytes.length);
+            double reductionFactor = math.sqrt(100000 / imageBytes.length);
             int newWidth = (originalImage.width * reductionFactor).toInt();
             int newHeight = (originalImage.height * reductionFactor).toInt();
 
@@ -71,12 +76,76 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
     }
   }
 
+  void _viewPhoto(Photo photo) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.memory(base64Decode(photo.base64Image)),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text('Uploaded by ${photo.uploadedBy}'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _downloadSelectedPhotos() async {
+    for (String photoId in _selectedPhotos) {
+      DocumentSnapshot photoDoc = await FirebaseFirestore.instance
+          .collection('Events')
+          .doc(widget.eventID)
+          .collection('Photos')
+          .doc(photoId)
+          .get();
+
+      if (photoDoc.exists) {
+        Photo photo =
+            Photo.fromMap(photoDoc.data() as Map<String, dynamic>, photoDoc.id);
+        Uint8List imageBytes = base64Decode(photo.base64Image);
+        final result = await ImageGallerySaver.saveImage(
+          imageBytes,
+          quality: 60,
+          name: photo.id,
+        );
+        print(result);
+      }
+    }
+
+    setState(() {
+      _selectedPhotos.clear();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Selected photos downloaded')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Shared Album', style: AppColors.topStyle),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.select_all),
+            onPressed: () {
+              setState(() {
+                _selectedPhotos.clear();
+                _selectedPhotos.addAll(_photos.map((photo) => photo.id));
+              });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: _selectedPhotos.isEmpty ? null : _downloadSelectedPhotos,
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -89,17 +158,40 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final photos = snapshot.data!.docs.map((doc) {
+          _photos = snapshot.data!.docs.map((doc) {
             return Photo.fromMap(doc.data() as Map<String, dynamic>, doc.id);
           }).toList();
 
           return GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3),
-            itemCount: photos.length,
+            itemCount: _photos.length,
             itemBuilder: (context, index) {
-              final photo = photos[index];
-              return Image.memory(base64Decode(photo.base64Image));
+              final photo = _photos[index];
+              final isSelected = _selectedPhotos.contains(photo.id);
+              return GestureDetector(
+                onTap: () => _viewPhoto(photo),
+                onLongPress: () {
+                  setState(() {
+                    if (isSelected) {
+                      _selectedPhotos.remove(photo.id);
+                    } else {
+                      _selectedPhotos.add(photo.id);
+                    }
+                  });
+                },
+                child: Stack(
+                  children: [
+                    Image.memory(base64Decode(photo.base64Image)),
+                    if (isSelected)
+                      const Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Icon(Icons.check_circle, color: Colors.green),
+                      ),
+                  ],
+                ),
+              );
             },
           );
         },
