@@ -117,71 +117,73 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
   void _viewPhoto(Photo photo) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.memory(base64Decode(photo.base64Image)),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text('Uploaded by ${photo.uploadedBy}'),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Column(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.thumb_up,
-                        color: photo.likedBy.contains(widget.username)
-                            ? Colors.blue
-                            : Colors.grey,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Dialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.memory(base64Decode(photo.base64Image)),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Uploaded by ${photo.uploadedBy}'),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Column(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.thumb_up,
+                          color: photo.likedBy.contains(widget.username)
+                              ? Colors.blue
+                              : Colors.grey,
+                        ),
+                        onPressed: () async {
+                          if (!photo.likedBy.contains(widget.username)) {
+                            photo.likedBy.add(widget.username);
+                            await FirebaseFirestore.instance
+                                .collection('Events')
+                                .doc(widget.eventID)
+                                .collection('Photos')
+                                .doc(photo.id)
+                                .update({'likedBy': photo.likedBy});
+                            setState(() {});
+                          }
+                        },
                       ),
-                      onPressed: () async {
-                        if (!photo.likedBy.contains(widget.username)) {
-                          photo.likedBy.add(widget.username);
-                          await FirebaseFirestore.instance
-                              .collection('Events')
-                              .doc(widget.eventID)
-                              .collection('Photos')
-                              .doc(photo.id)
-                              .update({'likedBy': photo.likedBy});
-                          setState(() {});
-                        }
-                      },
-                    ),
-                    Text(photo.likedBy.join(', ')),
-                  ],
-                ),
-                Column(
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.thumb_down,
-                        color: photo.dislikedBy.contains(widget.username)
-                            ? Colors.red
-                            : Colors.grey,
+                      Text(photo.likedBy.join(', ')),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.thumb_down,
+                          color: photo.dislikedBy.contains(widget.username)
+                              ? Colors.red
+                              : Colors.grey,
+                        ),
+                        onPressed: () async {
+                          if (!photo.dislikedBy.contains(widget.username)) {
+                            photo.dislikedBy.add(widget.username);
+                            await FirebaseFirestore.instance
+                                .collection('Events')
+                                .doc(widget.eventID)
+                                .collection('Photos')
+                                .doc(photo.id)
+                                .update({'dislikedBy': photo.dislikedBy});
+                            setState(() {});
+                          }
+                        },
                       ),
-                      onPressed: () async {
-                        if (!photo.dislikedBy.contains(widget.username)) {
-                          photo.dislikedBy.add(widget.username);
-                          await FirebaseFirestore.instance
-                              .collection('Events')
-                              .doc(widget.eventID)
-                              .collection('Photos')
-                              .doc(photo.id)
-                              .update({'dislikedBy': photo.dislikedBy});
-                          setState(() {});
-                        }
-                      },
-                    ),
-                    Text(photo.dislikedBy.join(', ')),
-                  ],
-                ),
-              ],
-            ),
-          ],
+                      Text(photo.dislikedBy.join(', ')),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
