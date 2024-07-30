@@ -425,7 +425,7 @@ class EditEventPageState extends State<EditEventPage> {
               DateTime(now.year, now.month, now.day + 1, 23, 59);
           Map<String, dynamic> pollData = {
             'Question': pollQuestion,
-            'Yes': [],
+            'Yes': [widget.username],
             'No': {},
             'CloseTime': Timestamp.fromDate(tomorrowLateNight),
             'IsClosed': false,
