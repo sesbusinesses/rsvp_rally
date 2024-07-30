@@ -91,12 +91,19 @@ class _BottomNavState extends State<BottomNav> {
             selected: widget.selectedIndex == 2,
             spacing: 8.0, // Adjust this value as needed
           ),
+          _buildNavItem(
+            icon: Icons.photo_album,
+            label: "Album",
+            index: 3,
+            selected: widget.selectedIndex == 3,
+            spacing: 8.0, // Adjust this value as needed
+          ),
           if (isHost)
             _buildNavItem(
               icon: Icons.edit,
               label: "Edit",
-              index: 3,
-              selected: widget.selectedIndex == 3,
+              index: 4,
+              selected: widget.selectedIndex == 4,
               spacing: 8.0, // Adjust this value as needed
             ),
         ],
