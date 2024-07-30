@@ -40,19 +40,53 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
           File file = File(image.path);
           List<int> imageBytes = await file.readAsBytes();
 
-          // Resize the image if it is too large
-          if (imageBytes.length > 100000) {
-            img.Image? originalImage = img.decodeImage(imageBytes);
-            if (originalImage != null) {
+          // Check if the image is a GIF
+          if (imageBytes.sublist(0, 6).every((byte) => [
+                0x47,
+                0x49,
+                0x46,
+                0x38,
+                0x39,
+                0x61,
+                0x38,
+                0x37,
+                0x61
+              ].contains(byte))) {
+            // Handle GIF
+            img.GifDecoder gifDecoder = img.GifDecoder();
+            img.Animation? originalGif = gifDecoder.decodeAnimation(imageBytes);
+            if (originalGif != null && imageBytes.length > 100000) {
+              img.Animation resizedGif = img.Animation();
+
               double reductionFactor = math.sqrt(100000 / imageBytes.length);
-              int newWidth = (originalImage.width * reductionFactor).toInt();
-              int newHeight = (originalImage.height * reductionFactor).toInt();
+              for (var frame in originalGif.frames) {
+                int newWidth = (frame.width * reductionFactor).toInt();
+                int newHeight = (frame.height * reductionFactor).toInt();
+                img.Image resizedFrame =
+                    img.copyResize(frame, width: newWidth, height: newHeight);
+                resizedGif.addFrame(resizedFrame);
+              }
+              var encodedGif = img.encodeGifAnimation(resizedGif);
+              if (encodedGif != null) {
+                imageBytes = encodedGif;
+              }
+            }
+          } else {
+            // Handle static images
+            if (imageBytes.length > 100000) {
+              img.Image? originalImage = img.decodeImage(imageBytes);
+              if (originalImage != null) {
+                double reductionFactor = math.sqrt(100000 / imageBytes.length);
+                int newWidth = (originalImage.width * reductionFactor).toInt();
+                int newHeight =
+                    (originalImage.height * reductionFactor).toInt();
 
-              img.Image resizedImage = img.copyResize(originalImage,
-                  width: newWidth, height: newHeight);
+                img.Image resizedImage = img.copyResize(originalImage,
+                    width: newWidth, height: newHeight);
 
-              // Adjust the quality parameter to reduce file size
-              imageBytes = img.encodeJpg(resizedImage, quality: 75);
+                // Adjust the quality parameter to reduce file size
+                imageBytes = img.encodeJpg(resizedImage, quality: 75);
+              }
             }
           }
 
@@ -226,10 +260,11 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
                   children: [
                     Image.memory(base64Decode(photo.base64Image)),
                     if (isSelected)
-                      const Positioned(
+                      Positioned(
                         top: 0,
                         right: 0,
-                        child: Icon(Icons.check_circle, color: Colors.green),
+                        child: Icon(Icons.check_circle,
+                            color: getInterpolatedColor(widget.rating)),
                       ),
                   ],
                 ),
