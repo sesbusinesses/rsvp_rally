@@ -103,6 +103,7 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
             base64Image: base64Image,
             uploadedBy: widget.username,
             likedBy: [],
+            dislikedBy: [],
             downloadedBy: [],
           );
           await photoRef.set(photo.toMap());
@@ -125,25 +126,60 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
               padding: const EdgeInsets.all(8.0),
               child: Text('Uploaded by ${photo.uploadedBy}'),
             ),
-            IconButton(
-              icon: Icon(
-                Icons.thumb_up,
-                color: photo.likedBy.contains(widget.username)
-                    ? Colors.blue
-                    : Colors.grey,
-              ),
-              onPressed: () async {
-                if (!photo.likedBy.contains(widget.username)) {
-                  photo.likedBy.add(widget.username);
-                  await FirebaseFirestore.instance
-                      .collection('Events')
-                      .doc(widget.eventID)
-                      .collection('Photos')
-                      .doc(photo.id)
-                      .update({'likedBy': photo.likedBy});
-                  setState(() {});
-                }
-              },
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.thumb_up,
+                        color: photo.likedBy.contains(widget.username)
+                            ? Colors.blue
+                            : Colors.grey,
+                      ),
+                      onPressed: () async {
+                        if (!photo.likedBy.contains(widget.username)) {
+                          photo.likedBy.add(widget.username);
+                          await FirebaseFirestore.instance
+                              .collection('Events')
+                              .doc(widget.eventID)
+                              .collection('Photos')
+                              .doc(photo.id)
+                              .update({'likedBy': photo.likedBy});
+                          setState(() {});
+                        }
+                      },
+                    ),
+                    Text(photo.likedBy.join(', ')),
+                  ],
+                ),
+                Column(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.thumb_down,
+                        color: photo.dislikedBy.contains(widget.username)
+                            ? Colors.red
+                            : Colors.grey,
+                      ),
+                      onPressed: () async {
+                        if (!photo.dislikedBy.contains(widget.username)) {
+                          photo.dislikedBy.add(widget.username);
+                          await FirebaseFirestore.instance
+                              .collection('Events')
+                              .doc(widget.eventID)
+                              .collection('Photos')
+                              .doc(photo.id)
+                              .update({'dislikedBy': photo.dislikedBy});
+                          setState(() {});
+                        }
+                      },
+                    ),
+                    Text(photo.dislikedBy.join(', ')),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -352,6 +388,7 @@ class Photo {
   String base64Image;
   String uploadedBy;
   List<String> likedBy;
+  List<String> dislikedBy;
   List<String> downloadedBy;
 
   Photo({
@@ -359,6 +396,7 @@ class Photo {
     required this.base64Image,
     required this.uploadedBy,
     required this.likedBy,
+    required this.dislikedBy,
     required this.downloadedBy,
   });
 
@@ -367,6 +405,7 @@ class Photo {
       'base64Image': base64Image,
       'uploadedBy': uploadedBy,
       'likedBy': likedBy,
+      'dislikedBy': dislikedBy,
       'downloadedBy': downloadedBy,
     };
   }
@@ -377,6 +416,7 @@ class Photo {
       base64Image: map['base64Image'],
       uploadedBy: map['uploadedBy'],
       likedBy: List<String>.from(map['likedBy']),
+      dislikedBy: List<String>.from(map['dislikedBy']),
       downloadedBy: List<String>.from(map['downloadedBy']),
     );
   }
