@@ -194,12 +194,25 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
 
   void _deleteSelectedPhotos() async {
     for (String photoId in _selectedPhotos) {
-      await FirebaseFirestore.instance
+      DocumentSnapshot photoDoc = await FirebaseFirestore.instance
           .collection('Events')
           .doc(widget.eventID)
           .collection('Photos')
           .doc(photoId)
-          .delete();
+          .get();
+
+      if (photoDoc.exists) {
+        Photo photo =
+            Photo.fromMap(photoDoc.data() as Map<String, dynamic>, photoDoc.id);
+        if (photo.uploadedBy == widget.username) {
+          await FirebaseFirestore.instance
+              .collection('Events')
+              .doc(widget.eventID)
+              .collection('Photos')
+              .doc(photoId)
+              .delete();
+        }
+      }
     }
 
     setState(() {
