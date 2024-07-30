@@ -192,36 +192,51 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
     );
   }
 
-  void _deleteSelectedPhotos() async {
-    for (String photoId in _selectedPhotos) {
-      DocumentSnapshot photoDoc = await FirebaseFirestore.instance
-          .collection('Events')
-          .doc(widget.eventID)
-          .collection('Photos')
-          .doc(photoId)
-          .get();
+  Future<void> _deleteSelectedPhotos() async {
+    final userUploadedPhotos = _selectedPhotos.where((photoId) {
+      final photo = _photos.firstWhere((photo) => photo.id == photoId);
+      return photo.uploadedBy == widget.username;
+    }).toList();
 
-      if (photoDoc.exists) {
-        Photo photo =
-            Photo.fromMap(photoDoc.data() as Map<String, dynamic>, photoDoc.id);
-        if (photo.uploadedBy == widget.username) {
-          await FirebaseFirestore.instance
-              .collection('Events')
-              .doc(widget.eventID)
-              .collection('Photos')
-              .doc(photoId)
-              .delete();
-        }
-      }
-    }
+    if (userUploadedPhotos.isEmpty) return;
 
-    setState(() {
-      _selectedPhotos.clear();
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Selected photos deleted')),
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Photos'),
+        content: Text(
+            'Are you sure you want to delete the ${userUploadedPhotos.length} photos that you uploaded? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
     );
+
+    if (shouldDelete == true) {
+      for (String photoId in userUploadedPhotos) {
+        await FirebaseFirestore.instance
+            .collection('Events')
+            .doc(widget.eventID)
+            .collection('Photos')
+            .doc(photoId)
+            .delete();
+      }
+
+      setState(() {
+        _selectedPhotos.clear();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selected photos deleted')),
+      );
+    }
   }
 
   void _toggleSelectMode() {
