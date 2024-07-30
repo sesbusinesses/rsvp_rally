@@ -246,6 +246,16 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
     });
   }
 
+  void _toggleSelectAll() {
+    setState(() {
+      if (_selectedPhotos.length == _photos.length) {
+        _selectedPhotos.clear();
+      } else {
+        _selectedPhotos.addAll(_photos.map((photo) => photo.id));
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -260,12 +270,7 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
           if (_selectMode)
             IconButton(
               icon: const Icon(Icons.select_all),
-              onPressed: () {
-                setState(() {
-                  _selectedPhotos.clear();
-                  _selectedPhotos.addAll(_photos.map((photo) => photo.id));
-                });
-              },
+              onPressed: _toggleSelectAll,
             ),
           if (_selectMode)
             IconButton(
