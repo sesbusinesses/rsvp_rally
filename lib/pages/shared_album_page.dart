@@ -34,46 +34,48 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
 
   Future<void> _pickAndUploadPhoto() async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        File file = File(image.path);
-        List<int> imageBytes = await file.readAsBytes();
+      final List<XFile> images = await _picker.pickMultiImage();
+      if (images.isNotEmpty) {
+        for (XFile image in images) {
+          File file = File(image.path);
+          List<int> imageBytes = await file.readAsBytes();
 
-        // Resize the image if it is too large
-        if (imageBytes.length > 100000) {
-          img.Image? originalImage = img.decodeImage(imageBytes);
-          if (originalImage != null) {
-            double reductionFactor = math.sqrt(100000 / imageBytes.length);
-            int newWidth = (originalImage.width * reductionFactor).toInt();
-            int newHeight = (originalImage.height * reductionFactor).toInt();
+          // Resize the image if it is too large
+          if (imageBytes.length > 100000) {
+            img.Image? originalImage = img.decodeImage(imageBytes);
+            if (originalImage != null) {
+              double reductionFactor = math.sqrt(100000 / imageBytes.length);
+              int newWidth = (originalImage.width * reductionFactor).toInt();
+              int newHeight = (originalImage.height * reductionFactor).toInt();
 
-            img.Image resizedImage = img.copyResize(originalImage,
-                width: newWidth, height: newHeight);
+              img.Image resizedImage = img.copyResize(originalImage,
+                  width: newWidth, height: newHeight);
 
-            // Adjust the quality parameter to reduce file size
-            imageBytes = img.encodeJpg(resizedImage, quality: 75);
+              // Adjust the quality parameter to reduce file size
+              imageBytes = img.encodeJpg(resizedImage, quality: 75);
+            }
           }
+
+          String base64Image = base64Encode(imageBytes);
+
+          // Create a new photo document in the sub-collection
+          final photoRef = FirebaseFirestore.instance
+              .collection('Events')
+              .doc(widget.eventID)
+              .collection('Photos')
+              .doc();
+          final photo = Photo(
+            id: photoRef.id,
+            base64Image: base64Image,
+            uploadedBy: widget.username,
+            likedBy: [],
+            downloadedBy: [],
+          );
+          await photoRef.set(photo.toMap());
         }
-
-        String base64Image = base64Encode(imageBytes);
-
-        // Create a new photo document in the sub-collection
-        final photoRef = FirebaseFirestore.instance
-            .collection('Events')
-            .doc(widget.eventID)
-            .collection('Photos')
-            .doc();
-        final photo = Photo(
-          id: photoRef.id,
-          base64Image: base64Image,
-          uploadedBy: widget.username,
-          likedBy: [],
-          downloadedBy: [],
-        );
-        await photoRef.set(photo.toMap());
       }
     } catch (e) {
-      print('Error picking or uploading photo: $e');
+      print('Error picking or uploading photos: $e');
     }
   }
 
