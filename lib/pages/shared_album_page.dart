@@ -125,6 +125,26 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
               padding: const EdgeInsets.all(8.0),
               child: Text('Uploaded by ${photo.uploadedBy}'),
             ),
+            IconButton(
+              icon: Icon(
+                Icons.thumb_up,
+                color: photo.likedBy.contains(widget.username)
+                    ? Colors.blue
+                    : Colors.grey,
+              ),
+              onPressed: () async {
+                if (!photo.likedBy.contains(widget.username)) {
+                  photo.likedBy.add(widget.username);
+                  await FirebaseFirestore.instance
+                      .collection('Events')
+                      .doc(widget.eventID)
+                      .collection('Photos')
+                      .doc(photo.id)
+                      .update({'likedBy': photo.likedBy});
+                  setState(() {});
+                }
+              },
+            ),
           ],
         ),
       ),
@@ -150,6 +170,16 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
           name: photo.id,
         );
         print(result);
+
+        if (!photo.downloadedBy.contains(widget.username)) {
+          photo.downloadedBy.add(widget.username);
+          await FirebaseFirestore.instance
+              .collection('Events')
+              .doc(widget.eventID)
+              .collection('Photos')
+              .doc(photo.id)
+              .update({'downloadedBy': photo.downloadedBy});
+        }
       }
     }
 
@@ -258,7 +288,8 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
                     : () => _viewPhoto(photo),
                 child: Stack(
                   children: [
-                    Image.memory(base64Decode(photo.base64Image)),
+                    Center(
+                        child: Image.memory(base64Decode(photo.base64Image))),
                     if (isSelected)
                       Positioned(
                         top: 0,
