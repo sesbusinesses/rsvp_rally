@@ -161,27 +161,30 @@ class _ChatPageState extends State<ChatPage> {
                                 _scrollToBottom();
                               });
 
-                              return ListView.builder(
-                                controller: _scrollController,
-                                padding: const EdgeInsets.only(bottom: 60),
-                                itemCount: messages.length,
-                                itemBuilder: (context, index) {
-                                  var messageEntry = Map<String, dynamic>.from(
-                                      messages[index]);
-                                  var entry = messageEntry.entries.first;
-                                  bool isPhoto = entry.value is String &&
-                                      entry.value
-                                          .toString()
-                                          .startsWith('data:image');
-                                  return MessageBubble(
-                                    message: entry.value,
-                                    isMe: entry.key == widget.username,
-                                    username: entry.key,
-                                    isPhoto: isPhoto,
-                                    viewerUsername: widget.username,
-                                  );
-                                },
-                              );
+                              return GestureDetector(
+                                  onTap: () => FocusScope.of(context).unfocus(),
+                                  child: ListView.builder(
+                                    controller: _scrollController,
+                                    padding: const EdgeInsets.only(bottom: 60),
+                                    itemCount: messages.length,
+                                    itemBuilder: (context, index) {
+                                      var messageEntry =
+                                          Map<String, dynamic>.from(
+                                              messages[index]);
+                                      var entry = messageEntry.entries.first;
+                                      bool isPhoto = entry.value is String &&
+                                          entry.value
+                                              .toString()
+                                              .startsWith('data:image');
+                                      return MessageBubble(
+                                        message: entry.value,
+                                        isMe: entry.key == widget.username,
+                                        username: entry.key,
+                                        isPhoto: isPhoto,
+                                        viewerUsername: widget.username,
+                                      );
+                                    },
+                                  ));
                             },
                           )
                         : Center(
