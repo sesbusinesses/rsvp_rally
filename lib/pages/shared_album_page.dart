@@ -51,18 +51,20 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
 
         String base64Image = base64Encode(imageBytes);
 
-        // Create a new photo document
-        final photoRef = FirebaseFirestore.instance.collection('photos').doc();
-        final photo = Photo(id: photoRef.id, base64Image: base64Image);
-        await photoRef.set(photo.toMap());
-
-        // Update the event document to include the new photo ID
-        await FirebaseFirestore.instance
+        // Create a new photo document in the sub-collection
+        final photoRef = FirebaseFirestore.instance
             .collection('Events')
             .doc(widget.eventID)
-            .update({
-          'photoIds': FieldValue.arrayUnion([photo.id])
-        });
+            .collection('Photos')
+            .doc();
+        final photo = Photo(
+          id: photoRef.id,
+          base64Image: base64Image,
+          uploadedBy: widget.username,
+          likedBy: [],
+          downloadedBy: [],
+        );
+        await photoRef.set(photo.toMap());
       }
     } catch (e) {
       print('Error picking or uploading photo: $e');
@@ -76,41 +78,28 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
         title: Text('Shared Album', style: AppColors.topStyle),
         centerTitle: true,
       ),
-      body: StreamBuilder<DocumentSnapshot>(
+      body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('Events')
             .doc(widget.eventID)
+            .collection('Photos')
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final event = snapshot.data!.data() as Map<String, dynamic>;
-          final photoIds = List<String>.from(event['photoIds'] ?? []);
+          final photos = snapshot.data!.docs.map((doc) {
+            return Photo.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+          }).toList();
 
           return GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3),
-            itemCount: photoIds.length,
+            itemCount: photos.length,
             itemBuilder: (context, index) {
-              final photoId = photoIds[index];
-              return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance
-                    .collection('photos')
-                    .doc(photoId)
-                    .get(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  final photo = Photo.fromMap(
-                      snapshot.data!.data() as Map<String, dynamic>,
-                      snapshot.data!.id);
-                  return Image.memory(base64Decode(photo.base64Image));
-                },
-              );
+              final photo = photos[index];
+              return Image.memory(base64Decode(photo.base64Image));
             },
           );
         },
@@ -128,15 +117,24 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
 class Photo {
   String id;
   String base64Image;
+  String uploadedBy;
+  List<String> likedBy;
+  List<String> downloadedBy;
 
   Photo({
     required this.id,
     required this.base64Image,
+    required this.uploadedBy,
+    required this.likedBy,
+    required this.downloadedBy,
   });
 
   Map<String, dynamic> toMap() {
     return {
       'base64Image': base64Image,
+      'uploadedBy': uploadedBy,
+      'likedBy': likedBy,
+      'downloadedBy': downloadedBy,
     };
   }
 
@@ -144,6 +142,9 @@ class Photo {
     return Photo(
       id: id,
       base64Image: map['base64Image'],
+      uploadedBy: map['uploadedBy'],
+      likedBy: List<String>.from(map['likedBy']),
+      downloadedBy: List<String>.from(map['downloadedBy']),
     );
   }
 }
