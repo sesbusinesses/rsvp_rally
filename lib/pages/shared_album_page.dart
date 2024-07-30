@@ -30,6 +30,7 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
   final ImagePicker _picker = ImagePicker();
   final Set<String> _selectedPhotos = {};
   late List<Photo> _photos;
+  bool _selectMode = false;
 
   Future<void> _pickAndUploadPhoto() async {
     try {
@@ -125,6 +126,32 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
     );
   }
 
+  void _deleteSelectedPhotos() async {
+    for (String photoId in _selectedPhotos) {
+      await FirebaseFirestore.instance
+          .collection('Events')
+          .doc(widget.eventID)
+          .collection('Photos')
+          .doc(photoId)
+          .delete();
+    }
+
+    setState(() {
+      _selectedPhotos.clear();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Selected photos deleted')),
+    );
+  }
+
+  void _toggleSelectMode() {
+    setState(() {
+      _selectMode = !_selectMode;
+      _selectedPhotos.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -133,18 +160,30 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.select_all),
-            onPressed: () {
-              setState(() {
-                _selectedPhotos.clear();
-                _selectedPhotos.addAll(_photos.map((photo) => photo.id));
-              });
-            },
+            icon: Icon(_selectMode ? Icons.close : Icons.select_all),
+            onPressed: _toggleSelectMode,
           ),
-          IconButton(
-            icon: const Icon(Icons.download),
-            onPressed: _selectedPhotos.isEmpty ? null : _downloadSelectedPhotos,
-          ),
+          if (_selectMode)
+            IconButton(
+              icon: const Icon(Icons.select_all),
+              onPressed: () {
+                setState(() {
+                  _selectedPhotos.clear();
+                  _selectedPhotos.addAll(_photos.map((photo) => photo.id));
+                });
+              },
+            ),
+          if (_selectMode)
+            IconButton(
+              icon: const Icon(Icons.download),
+              onPressed:
+                  _selectedPhotos.isEmpty ? null : _downloadSelectedPhotos,
+            ),
+          if (_selectMode)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: _selectedPhotos.isEmpty ? null : _deleteSelectedPhotos,
+            ),
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -170,16 +209,17 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
               final photo = _photos[index];
               final isSelected = _selectedPhotos.contains(photo.id);
               return GestureDetector(
-                onTap: () => _viewPhoto(photo),
-                onLongPress: () {
-                  setState(() {
-                    if (isSelected) {
-                      _selectedPhotos.remove(photo.id);
-                    } else {
-                      _selectedPhotos.add(photo.id);
-                    }
-                  });
-                },
+                onTap: _selectMode
+                    ? () {
+                        setState(() {
+                          if (isSelected) {
+                            _selectedPhotos.remove(photo.id);
+                          } else {
+                            _selectedPhotos.add(photo.id);
+                          }
+                        });
+                      }
+                    : () => _viewPhoto(photo),
                 child: Stack(
                   children: [
                     Image.memory(base64Decode(photo.base64Image)),
