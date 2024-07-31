@@ -64,6 +64,7 @@ dependencies:
   cupertino_date_textbox: ^1.0.3
   omni_datetime_picker: ^1.1.0
   image_cropper: ^7.1.0
+  image_gallery_saver: "^2.0.3"
 
   #location
   syncfusion_flutter_maps: ^25.2.7

@@ -4,6 +4,7 @@ import 'package:rsvp_rally/pages/details_page.dart';
 import 'package:rsvp_rally/pages/poll_page.dart';
 import 'package:rsvp_rally/pages/chat_page.dart';
 import 'package:rsvp_rally/pages/edit_event_page.dart';
+import 'package:rsvp_rally/pages/shared_album_page.dart';
 import 'package:rsvp_rally/widgets/bottomnav.dart';
 
 class EventPageView extends StatefulWidget {
@@ -70,6 +71,11 @@ class _EventPageViewState extends State<EventPageView> {
         rating: widget.rating,
         eventID: widget.eventID,
         username: widget.username,
+      ),
+      SharedAlbumPage(
+        eventID: widget.eventID,
+        username: widget.username,
+        rating: widget.rating,
       ),
     ];
 
