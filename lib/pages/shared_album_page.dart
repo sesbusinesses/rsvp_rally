@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,7 +9,6 @@ import 'package:rsvp_rally/models/colors.dart';
 import 'package:image/image.dart' as img;
 import 'dart:math' as math;
 import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:path_provider/path_provider.dart';
 
 class SharedAlbumPage extends StatefulWidget {
   final String eventID;
@@ -40,7 +40,6 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
           File file = File(image.path);
           List<int> imageBytes = await file.readAsBytes();
 
-          // Check if the image is a GIF
           if (imageBytes.sublist(0, 6).every((byte) => [
                 0x47,
                 0x49,
@@ -52,7 +51,6 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
                 0x37,
                 0x61
               ].contains(byte))) {
-            // Handle GIF
             img.GifDecoder gifDecoder = img.GifDecoder();
             img.Animation? originalGif = gifDecoder.decodeAnimation(imageBytes);
             if (originalGif != null && imageBytes.length > 100000) {
@@ -72,7 +70,6 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
               }
             }
           } else {
-            // Handle static images
             if (imageBytes.length > 100000) {
               img.Image? originalImage = img.decodeImage(imageBytes);
               if (originalImage != null) {
@@ -84,7 +81,6 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
                 img.Image resizedImage = img.copyResize(originalImage,
                     width: newWidth, height: newHeight);
 
-                // Adjust the quality parameter to reduce file size
                 imageBytes = img.encodeJpg(resizedImage, quality: 75);
               }
             }
@@ -92,7 +88,6 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
 
           String base64Image = base64Encode(imageBytes);
 
-          // Create a new photo document in the sub-collection
           final photoRef = FirebaseFirestore.instance
               .collection('Events')
               .doc(widget.eventID)
@@ -114,90 +109,136 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
     }
   }
 
-  void _viewPhoto(Photo photo) {
+  void _viewPhoto(int index) {
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Dialog(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.memory(base64Decode(photo.base64Image)),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text('Uploaded by ${photo.uploadedBy}'),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Column(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.thumb_up,
-                          color: photo.likedBy.contains(widget.username)
-                              ? Colors.blue
-                              : Colors.grey,
-                        ),
-                        onPressed: () async {
-                          if (photo.likedBy.contains(widget.username)) {
-                            photo.likedBy.remove(widget.username);
-                          } else {
-                            photo.likedBy.add(widget.username);
-                            photo.dislikedBy.remove(widget.username);
-                          }
-                          await FirebaseFirestore.instance
-                              .collection('Events')
-                              .doc(widget.eventID)
-                              .collection('Photos')
-                              .doc(photo.id)
-                              .update({
-                            'likedBy': photo.likedBy,
-                            'dislikedBy': photo.dislikedBy,
-                          });
-                          setState(() {});
-                        },
-                      ),
-                      Text(photo.likedBy.join(', ')),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.thumb_down,
-                          color: photo.dislikedBy.contains(widget.username)
-                              ? Colors.red
-                              : Colors.grey,
-                        ),
-                        onPressed: () async {
-                          if (photo.dislikedBy.contains(widget.username)) {
-                            photo.dislikedBy.remove(widget.username);
-                          } else {
-                            photo.dislikedBy.add(widget.username);
-                            photo.likedBy.remove(widget.username);
-                          }
-                          await FirebaseFirestore.instance
-                              .collection('Events')
-                              .doc(widget.eventID)
-                              .collection('Photos')
-                              .doc(photo.id)
-                              .update({
-                            'likedBy': photo.likedBy,
-                            'dislikedBy': photo.dislikedBy,
-                          });
-                          setState(() {});
-                        },
-                      ),
-                      Text(photo.dislikedBy.join(', ')),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: Container(
+                constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width,
+                    maxHeight: MediaQuery.of(context).size.height),
+                child: ExpandablePageView(
+                  initialPage: index,
+                  children: _photos.map((photo) {
+                    return StatefulBuilder(
+                      builder: (context, setState) {
+                        // print("Building photo with ID: ${photo.id}");
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.memory(base64Decode(photo.base64Image)),
+                            const SizedBox(height: 20),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color: getInterpolatedColor(widget.rating),
+                                    width: AppColors.borderWidth),
+                                borderRadius: BorderRadius.circular(10),
+                                color: AppColors.light,
+                              ),
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child:
+                                        Text('Uploaded by ${photo.uploadedBy}'),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Column(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(
+                                              Icons.thumb_up,
+                                              color: photo.likedBy
+                                                      .contains(widget.username)
+                                                  ? Colors.blue
+                                                  : Colors.grey,
+                                            ),
+                                            onPressed: () async {
+                                              if (photo.likedBy
+                                                  .contains(widget.username)) {
+                                                photo.likedBy
+                                                    .remove(widget.username);
+                                              } else {
+                                                photo.likedBy
+                                                    .add(widget.username);
+                                                photo.dislikedBy
+                                                    .remove(widget.username);
+                                              }
+                                              await FirebaseFirestore.instance
+                                                  .collection('Events')
+                                                  .doc(widget.eventID)
+                                                  .collection('Photos')
+                                                  .doc(photo.id)
+                                                  .update({
+                                                'likedBy': photo.likedBy,
+                                                'dislikedBy': photo.dislikedBy,
+                                              });
+                                              setState(() {});
+                                            },
+                                          ),
+                                          Text(photo.likedBy.join(', ')),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: [
+                                          IconButton(
+                                            icon: Icon(
+                                              Icons.thumb_down,
+                                              color: photo.dislikedBy
+                                                      .contains(widget.username)
+                                                  ? Colors.red
+                                                  : Colors.grey,
+                                            ),
+                                            onPressed: () async {
+                                              if (photo.dislikedBy
+                                                  .contains(widget.username)) {
+                                                photo.dislikedBy
+                                                    .remove(widget.username);
+                                              } else {
+                                                photo.dislikedBy
+                                                    .add(widget.username);
+                                                photo.likedBy
+                                                    .remove(widget.username);
+                                              }
+                                              await FirebaseFirestore.instance
+                                                  .collection('Events')
+                                                  .doc(widget.eventID)
+                                                  .collection('Photos')
+                                                  .doc(photo.id)
+                                                  .update({
+                                                'likedBy': photo.likedBy,
+                                                'dislikedBy': photo.dislikedBy,
+                                              });
+                                              setState(() {});
+                                            },
+                                          ),
+                                          Text(photo.dislikedBy.join(', ')),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }).toList(),
+                ),
+              )),
+        );
+      },
     );
   }
 
@@ -368,7 +409,7 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
                           }
                         });
                       }
-                    : () => _viewPhoto(photo),
+                    : () => _viewPhoto(index),
                 child: Stack(
                   children: [
                     Center(
@@ -433,5 +474,146 @@ class Photo {
       dislikedBy: List<String>.from(map['dislikedBy']),
       downloadedBy: List<String>.from(map['downloadedBy']),
     );
+  }
+}
+
+class ExpandablePageView extends StatefulWidget {
+  final List<Widget> children;
+  final int initialPage;
+
+  const ExpandablePageView({
+    super.key,
+    required this.children,
+    this.initialPage = 0,
+  });
+
+  @override
+  State<ExpandablePageView> createState() => _ExpandablePageViewState();
+}
+
+class _ExpandablePageViewState extends State<ExpandablePageView>
+    with TickerProviderStateMixin {
+  late PageController _pageController;
+  late List<double> _heights;
+  int _currentPage = 0;
+
+  double get _currentHeight => _heights[_currentPage];
+
+  @override
+  void initState() {
+    super.initState();
+    _heights = widget.children.map((e) => 0.0).toList();
+    _pageController = PageController(initialPage: widget.initialPage)
+      ..addListener(() {
+        final newPage = _pageController.page?.round() ?? 0;
+        if (_currentPage != newPage) {
+          setState(() {
+            _currentPage = newPage;
+            // print('Page changed to $_currentPage');
+          });
+        }
+      });
+    _currentPage = widget.initialPage;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_heights[_currentPage] == 0.0 && mounted) {
+        setState(() {
+          _heights[_currentPage] = context.size!.height;
+        });
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant ExpandablePageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialPage != widget.initialPage) {
+      _pageController.jumpToPage(widget.initialPage);
+      setState(() {
+        _currentPage = widget.initialPage;
+        // print('Updated initialPage to $_currentPage');
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      curve: Curves.easeInOutCubic,
+      duration: const Duration(milliseconds: 100),
+      tween: Tween<double>(begin: _heights[_currentPage], end: _currentHeight),
+      builder: (context, value, child) {
+        // print('TweenAnimationBuilder value: $value');
+        return SizedBox(height: value, child: child);
+      },
+      child: PageView(
+        controller: _pageController,
+        children: _sizeReportingChildren
+            .asMap()
+            .map((index, child) => MapEntry(index, child))
+            .values
+            .toList(),
+      ),
+    );
+  }
+
+  List<Widget> get _sizeReportingChildren => widget.children
+      .asMap()
+      .map(
+        (index, child) => MapEntry(
+          index,
+          OverflowBox(
+            minHeight: 0,
+            maxHeight: double.infinity,
+            alignment: Alignment.topCenter,
+            child: SizeReportingWidget(
+              onSizeChange: (size) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  setState(() {
+                    _heights[index] = size.height;
+                    // print('Size of page $index: ${size.height}');
+                  });
+                });
+              },
+              child: Align(child: child),
+            ),
+          ),
+        ),
+      )
+      .values
+      .toList();
+}
+
+class SizeReportingWidget extends StatefulWidget {
+  final Widget child;
+  final ValueChanged<Size> onSizeChange;
+
+  const SizeReportingWidget({
+    super.key,
+    required this.child,
+    required this.onSizeChange,
+  });
+
+  @override
+  State<SizeReportingWidget> createState() => _SizeReportingWidgetState();
+}
+
+class _SizeReportingWidgetState extends State<SizeReportingWidget> {
+  Size? _oldSize;
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _notifySize());
+    return widget.child;
+  }
+
+  void _notifySize() {
+    if (!mounted) return;
+    final size = context.size;
+    if (_oldSize != size && size != null) {
+      _oldSize = size;
+      widget.onSizeChange(size);
+      // print('Notified size change: $size');
+    }
   }
 }
