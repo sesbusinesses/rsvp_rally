@@ -9,6 +9,7 @@ import 'package:rsvp_rally/models/colors.dart';
 import 'package:image/image.dart' as img;
 import 'dart:math' as math;
 import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:rsvp_rally/models/database_puller.dart'; // Add this import
 
 class SharedAlbumPage extends StatefulWidget {
   final String eventID;
@@ -127,7 +128,6 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
                   children: _photos.map((photo) {
                     return StatefulBuilder(
                       builder: (context, setState) {
-                        // print("Building photo with ID: ${photo.id}");
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
@@ -186,7 +186,48 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
                                               setState(() {});
                                             },
                                           ),
-                                          Text(photo.likedBy.join(', ')),
+                                          FutureBuilder<List<String?>>(
+                                            future: Future.wait(photo.likedBy
+                                                .map((username) =>
+                                                    _fetchProfilePicture(
+                                                        username))
+                                                .toList()),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.connectionState ==
+                                                      ConnectionState.done &&
+                                                  snapshot.hasData) {
+                                                return Wrap(
+                                                  spacing: 8.0,
+                                                  runSpacing: 4.0,
+                                                  children: snapshot.data!.map(
+                                                      (profilePictureData) {
+                                                    return CircleAvatar(
+                                                      radius: 15,
+                                                      backgroundImage:
+                                                          profilePictureData !=
+                                                                  null
+                                                              ? MemoryImage(
+                                                                  base64Decode(
+                                                                      profilePictureData))
+                                                              : null,
+                                                      child:
+                                                          profilePictureData ==
+                                                                  null
+                                                              ? const Icon(
+                                                                  Icons.person,
+                                                                  size: 20,
+                                                                  color: Colors
+                                                                      .grey)
+                                                              : null,
+                                                    );
+                                                  }).toList(),
+                                                );
+                                              } else {
+                                                return Container();
+                                              }
+                                            },
+                                          ),
+                                          const SizedBox(height: 10),
                                         ],
                                       ),
                                       Column(
@@ -222,7 +263,48 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
                                               setState(() {});
                                             },
                                           ),
-                                          Text(photo.dislikedBy.join(', ')),
+                                          FutureBuilder<List<String?>>(
+                                            future: Future.wait(photo.dislikedBy
+                                                .map((username) =>
+                                                    _fetchProfilePicture(
+                                                        username))
+                                                .toList()),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.connectionState ==
+                                                      ConnectionState.done &&
+                                                  snapshot.hasData) {
+                                                return Wrap(
+                                                  spacing: 8.0,
+                                                  runSpacing: 4.0,
+                                                  children: snapshot.data!.map(
+                                                      (profilePictureData) {
+                                                    return CircleAvatar(
+                                                      radius: 15,
+                                                      backgroundImage:
+                                                          profilePictureData !=
+                                                                  null
+                                                              ? MemoryImage(
+                                                                  base64Decode(
+                                                                      profilePictureData))
+                                                              : null,
+                                                      child:
+                                                          profilePictureData ==
+                                                                  null
+                                                              ? const Icon(
+                                                                  Icons.person,
+                                                                  size: 20,
+                                                                  color: Colors
+                                                                      .grey)
+                                                              : null,
+                                                    );
+                                                  }).toList(),
+                                                );
+                                              } else {
+                                                return Container();
+                                              }
+                                            },
+                                          ),
+                                          const SizedBox(height: 10),
                                         ],
                                       ),
                                     ],
@@ -240,6 +322,10 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
         );
       },
     );
+  }
+
+  Future<String?> _fetchProfilePicture(String username) async {
+    return await pullProfilePicture(username);
   }
 
   void _downloadSelectedPhotos() async {
@@ -509,7 +595,6 @@ class _ExpandablePageViewState extends State<ExpandablePageView>
         if (_currentPage != newPage) {
           setState(() {
             _currentPage = newPage;
-            // print('Page changed to $_currentPage');
           });
         }
       });
@@ -531,7 +616,6 @@ class _ExpandablePageViewState extends State<ExpandablePageView>
       _pageController.jumpToPage(widget.initialPage);
       setState(() {
         _currentPage = widget.initialPage;
-        // print('Updated initialPage to $_currentPage');
       });
     }
   }
@@ -543,7 +627,6 @@ class _ExpandablePageViewState extends State<ExpandablePageView>
       duration: const Duration(milliseconds: 100),
       tween: Tween<double>(begin: _heights[_currentPage], end: _currentHeight),
       builder: (context, value, child) {
-        // print('TweenAnimationBuilder value: $value');
         return SizedBox(height: value, child: child);
       },
       child: PageView(
@@ -571,7 +654,6 @@ class _ExpandablePageViewState extends State<ExpandablePageView>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   setState(() {
                     _heights[index] = size.height;
-                    // print('Size of page $index: ${size.height}');
                   });
                 });
               },
@@ -613,7 +695,6 @@ class _SizeReportingWidgetState extends State<SizeReportingWidget> {
     if (_oldSize != size && size != null) {
       _oldSize = size;
       widget.onSizeChange(size);
-      // print('Notified size change: $size');
     }
   }
 }
