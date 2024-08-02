@@ -111,8 +111,7 @@ class EventPageState extends State<EventPage>
           DateTime? startTime = await getEventStartTime(eventId);
           tempEventStartTimes[eventId] = startTime;
         } else {
-          await _removeEventFromUserDoc(
-              widget.username, eventId, eventDoc['EventName']);
+          await _removeEventFromUserDoc(widget.username, eventId);
         }
       }).toList();
 
@@ -180,8 +179,7 @@ class EventPageState extends State<EventPage>
     return startTime;
   }
 
-  Future<void> _removeEventFromUserDoc(
-      String username, String eventID, String eventName) async {
+  Future<void> _removeEventFromUserDoc(String username, String eventID) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     DocumentReference userDocRef = firestore.collection('Users').doc(username);
 
@@ -198,7 +196,6 @@ class EventPageState extends State<EventPage>
       if (events.contains(eventID)) {
         events.remove(eventID);
         batch.update(userDocRef, {'Events': events});
-
         await batch.commit();
       } else {
         log("Event $eventID not found in user $username's events list");
