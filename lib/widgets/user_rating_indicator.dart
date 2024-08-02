@@ -10,29 +10,110 @@ class UserRatingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    return Container(
-      width: 220,
-      height: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: const [],
+    return GestureDetector(
+      onTap: () => _showRatingInfoDialog(context),
+      child: Container(
+        width: 220,
+        height: 120,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: const [],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            CustomPaint(
+              size: const Size(200, 100), // Adjusted size for the semicircle
+              painter: _SemicircularPainter(userRating),
+            ),
+            Positioned(
+              top: 60, // Adjust position to align the image correctly
+              child: Image.asset(
+                getEmoji(userRating), // Displaying the appropriate emoji image
+                width: 50,
+                height: 50,
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CustomPaint(
-            size: const Size(200, 100), // Adjusted size for the semicircle
-            painter: _SemicircularPainter(userRating),
-          ),
-          Positioned(
-            top: 60, // Adjust position to align the image correctly
-            child: Image.asset(
-              getEmoji(userRating), // Displaying the appropriate emoji image
-              width: 50,
-              height: 50,
+    );
+  }
+
+  String getEmoji(double rating) {
+    if (rating <= 1 / 7) return 'assets/images/octopus.png'; // Worm (Red)
+    if (rating <= 2 / 7) return 'assets/images/squid.png'; // Shrimp (Orange)
+    if (rating <= 3 / 7) return 'assets/images/bumblebee.png'; // Bumblebee (Yellow)
+    if (rating <= 4 / 7) return 'assets/images/turtle.png'; // Turtle (Green)
+    if (rating <= 5 / 7) return 'assets/images/whale.png'; // Whale (Blue)
+    if (rating <= 6 / 7) return 'assets/images/dinosaur.png'; // Jellyfish (Indigo)
+    return 'assets/images/unicorn.png'; // Unicorn (Violet/Purple)
+  }
+
+  void _showRatingInfoDialog(BuildContext context) {
+    showGeneralDialog(
+      context: context,
+      barrierLabel: "Rating Info",
+      barrierDismissible: true,
+      barrierColor: Colors.black54,
+      transitionDuration: Duration(milliseconds: 300),
+      pageBuilder: (context, anim1, anim2) {
+        return Align(
+          alignment: Alignment.center,
+          child: Container(
+            height: 400,
+            margin: EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Rating Icons and Requirements',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  _buildRatingInfoRow(context, 'assets/images/octopus.png', '0.0 - Everyone Starts Out'),
+                  _buildRatingInfoRow(context, 'assets/images/squid.png', '0.15 - Freaky Ahh Squid'),
+                  _buildRatingInfoRow(context, 'assets/images/bumblebee.png', '0.29 - A Busy Little Bee'),
+                  _buildRatingInfoRow(context, 'assets/images/turtle.png', '0.43 - Average Turtle'),
+                  _buildRatingInfoRow(context, 'assets/images/whale.png', '0.58 - Went to EventTown'),
+                  _buildRatingInfoRow(context, 'assets/images/dinosaur.png', '0.72 - Very Impressive!'),
+                  _buildRatingInfoRow(context, 'assets/images/unicorn.png', '0.86 - A Truly Rare Univorn'),
+                ],
+              ),
             ),
           ),
+        );
+      },
+      transitionBuilder: (context, anim1, anim2, child) {
+        return FadeTransition(
+          opacity: anim1,
+          child: child,
+        );
+      },
+    );
+  }
+
+  Widget _buildRatingInfoRow(BuildContext context, String assetPath, String range) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Image.asset(
+            assetPath,
+            width: 30,
+            height: 30,
+          ),
+          SizedBox(width: 10),
+          Text(range),
         ],
       ),
     );
