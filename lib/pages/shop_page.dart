@@ -24,6 +24,7 @@ class ShopPage extends StatelessWidget {
                 children: [
                   ShopCard(
                     rating: rating,
+                    
                     requiredRating: 0.9,
                     username: username,
                     displayUsername: 'username', // Replace with actual username to display
