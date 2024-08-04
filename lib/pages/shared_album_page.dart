@@ -32,6 +32,33 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
   final Set<String> _selectedPhotos = {};
   late List<Photo> _photos;
   bool _selectMode = false;
+  bool _isAllowedAccess = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAccess();
+  }
+
+  Future<void> _checkAccess() async {
+    try {
+      DocumentSnapshot eventDoc = await FirebaseFirestore.instance
+          .collection('Events')
+          .doc(widget.eventID)
+          .get();
+      if (eventDoc.exists) {
+        Map<String, dynamic> eventData =
+            eventDoc.data() as Map<String, dynamic>;
+        Map<String, String> attendees =
+            Map<String, String>.from(eventData['Attendees']);
+        setState(() {
+          _isAllowedAccess = attendees[widget.username] == 'yes';
+        });
+      }
+    } catch (e) {
+      print('Error checking access: $e');
+    }
+  }
 
   Future<void> _pickAndUploadPhoto() async {
     try {
@@ -462,64 +489,75 @@ class _SharedAlbumPageState extends State<SharedAlbumPage> {
             ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('Events')
-            .doc(widget.eventID)
-            .collection('Photos')
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: _isAllowedAccess
+          ? StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('Events')
+                  .doc(widget.eventID)
+                  .collection('Photos')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          _photos = snapshot.data!.docs.map((doc) {
-            return Photo.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-          }).toList();
+                _photos = snapshot.data!.docs.map((doc) {
+                  return Photo.fromMap(
+                      doc.data() as Map<String, dynamic>, doc.id);
+                }).toList();
 
-          return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3),
-            itemCount: _photos.length,
-            itemBuilder: (context, index) {
-              final photo = _photos[index];
-              final isSelected = _selectedPhotos.contains(photo.id);
-              return GestureDetector(
-                onTap: _selectMode
-                    ? () {
-                        setState(() {
-                          if (isSelected) {
-                            _selectedPhotos.remove(photo.id);
-                          } else {
-                            _selectedPhotos.add(photo.id);
-                          }
-                        });
-                      }
-                    : () => _viewPhoto(index),
-                child: Stack(
-                  children: [
-                    Center(
-                        child: Image.memory(base64Decode(photo.base64Image))),
-                    if (isSelected)
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: Icon(Icons.check_circle,
-                            color: getInterpolatedColor(widget.rating)),
+                return GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3),
+                  itemCount: _photos.length,
+                  itemBuilder: (context, index) {
+                    final photo = _photos[index];
+                    final isSelected = _selectedPhotos.contains(photo.id);
+                    return GestureDetector(
+                      onTap: _selectMode
+                          ? () {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedPhotos.remove(photo.id);
+                                } else {
+                                  _selectedPhotos.add(photo.id);
+                                }
+                              });
+                            }
+                          : () => _viewPhoto(index),
+                      child: Stack(
+                        children: [
+                          Center(
+                              child: Image.memory(
+                                  base64Decode(photo.base64Image))),
+                          if (isSelected)
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: Icon(Icons.check_circle,
+                                  color: getInterpolatedColor(widget.rating)),
+                            ),
+                        ],
                       ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _pickAndUploadPhoto,
-        backgroundColor: getInterpolatedColor(widget.rating),
-        child:
-            Icon(Icons.add_a_photo, color: getTextOnRatingColor(widget.rating)),
-      ),
+                    );
+                  },
+                );
+              },
+            )
+          : Center(
+              child: Text(
+                'RSVP \'Yes\' to access the album',
+                style: AppColors.bodyStyle,
+              ),
+            ),
+      floatingActionButton: _isAllowedAccess
+          ? FloatingActionButton(
+              onPressed: _pickAndUploadPhoto,
+              backgroundColor: getInterpolatedColor(widget.rating),
+              child: Icon(Icons.add_a_photo,
+                  color: getTextOnRatingColor(widget.rating)),
+            )
+          : null,
     );
   }
 }

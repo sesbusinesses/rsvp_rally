@@ -26,7 +26,7 @@ class CreateEventPageState extends State<CreateEventPage> {
   final TextEditingController eventDetailsController = TextEditingController();
   List<Map<String, dynamic>> phaseControllers = []; // Updated to dynamic
   List<Map<String, TextEditingController>> notificationControllers = [];
-  List<String> attendees = [];
+  Map<String, String> attendees = {}; // Updated to Map<String, String>
   final dateFormat = DateFormat('MMM d, yyyy h:mm a');
 
   // Function to parse DateTime from display format
@@ -225,7 +225,7 @@ class CreateEventPageState extends State<CreateEventPage> {
       'EventName': eventNameController.text,
       'Details': eventDetailsController.text,
       'HostName': widget.username,
-      'Attendees': attendees,
+      'Attendees': attendees..addEntries([MapEntry(widget.username, 'yes')]),
       'Timeline': phases,
       'Notifications': notifications,
     };
@@ -278,7 +278,7 @@ class CreateEventPageState extends State<CreateEventPage> {
       });
 
       // Add event to attendees
-      for (String attendee in attendees) {
+      for (String attendee in attendees.keys) {
         DocumentReference userDocRef =
             firestore.collection('Users').doc(attendee);
         batch.update(userDocRef, {
@@ -458,6 +458,7 @@ class CreateEventPageState extends State<CreateEventPage> {
                             attendees = newAttendees;
                           });
                         },
+                        existingAttendees: attendees,
                       ),
                       const SizedBox(
                           height:

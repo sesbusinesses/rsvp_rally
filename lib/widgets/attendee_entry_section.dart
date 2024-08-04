@@ -8,8 +8,8 @@ import 'package:rsvp_rally/widgets/widetextbox.dart';
 class AttendeeEntrySection extends StatefulWidget {
   final double rating;
   final String username;
-  final ValueChanged<List<String>> onAttendeesChanged;
-  final List<String>? existingAttendees;
+  final ValueChanged<Map<String, String>> onAttendeesChanged;
+  final Map<String, String>? existingAttendees;
 
   const AttendeeEntrySection({
     super.key,
@@ -78,7 +78,8 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
             filteredFriends = friendsData;
             for (var friend in friendsData) {
               selectedFriends[friend['username']] = ValueNotifier<bool>(
-                widget.existingAttendees?.contains(friend['username']) ?? false,
+                widget.existingAttendees?.containsKey(friend['username']) ??
+                    false,
               );
             }
             log('Friends data with ratings: $friendsData');
@@ -150,8 +151,8 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
     selectedFriends[username]?.value = isSelected;
     widget.onAttendeesChanged(selectedFriends.entries
         .where((entry) => entry.value.value)
-        .map((entry) => entry.key)
-        .toList());
+        .map((entry) => MapEntry(entry.key, 'maybe'))
+        .toMap());
   }
 
   @override
@@ -220,8 +221,8 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
                   widget.onAttendeesChanged(
                     selectedFriends.entries
                         .where((entry) => entry.value.value)
-                        .map((entry) => entry.key)
-                        .toList(),
+                        .map((entry) => MapEntry(entry.key, 'maybe'))
+                        .toMap(),
                   );
                 },
               );
@@ -230,5 +231,11 @@ class AttendeeEntrySectionState extends State<AttendeeEntrySection> {
         ],
       ),
     );
+  }
+}
+
+extension MapExtension<K, V> on Iterable<MapEntry<K, V>> {
+  Map<K, V> toMap() {
+    return {for (var entry in this) entry.key: entry.value};
   }
 }

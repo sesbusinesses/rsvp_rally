@@ -216,9 +216,11 @@ class GroupCreatePageState extends State<GroupCreatePage> {
                               rating: widget.rating,
                               username: widget.username,
                               onAttendeesChanged: (newMembers) {
-                                members = newMembers;
+                                members = newMembers.keys.toList();
                               },
-                              existingAttendees: members,
+                              existingAttendees: {
+                                for (var member in members) member: ''
+                              },
                             ),
                             const SizedBox(height: 170),
                           ],

@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:rsvp_rally/models/colors.dart';
-import 'package:rsvp_rally/pages/main_page_view.dart';
 import 'package:rsvp_rally/widgets/attendee_entry_section.dart';
 import 'package:rsvp_rally/widgets/widebutton.dart';
 import 'package:rsvp_rally/widgets/widetextbox.dart';
@@ -32,8 +31,8 @@ class EditEventPageState extends State<EditEventPage> {
   List<Map<String, dynamic>> phaseControllers = [];
   List<Map<String, double>> phaseGeopoints = [];
   List<Map<String, TextEditingController>> notificationControllers = [];
-  List<String> attendees = [];
-  List<String> originalAttendees = [];
+  Map<String, String> attendees = {};
+  Map<String, String> originalAttendees = {};
   bool isLoading = true;
   final dateFormat = DateFormat('MMM d, yyyy h:mm a');
 
@@ -55,8 +54,8 @@ class EditEventPageState extends State<EditEventPage> {
       setState(() {
         eventNameController.text = eventData['EventName'] ?? '';
         eventDetailsController.text = eventData['Details'] ?? '';
-        attendees = List<String>.from(eventData['Attendees'] ?? []);
-        originalAttendees = List<String>.from(attendees);
+        attendees = Map<String, String>.from(eventData['Attendees'] ?? {});
+        originalAttendees = Map<String, String>.from(attendees);
 
         phaseControllers = (eventData['Timeline'] as List<dynamic>?)
                 ?.map((phase) {
@@ -339,12 +338,19 @@ class EditEventPageState extends State<EditEventPage> {
       };
     }).toList();
 
+    // Initialize attendees map
+    Map<String, String> attendeesMap = {};
+    for (String attendee in attendees.keys) {
+      attendeesMap[attendee] = originalAttendees[attendee] ?? 'maybe';
+    }
+    attendeesMap[widget.username] = originalAttendees[widget.username] ?? 'yes';
+
     // Create event data
     Map<String, dynamic> eventData = {
       'EventName': eventNameController.text,
       'Details': eventDetailsController.text,
       'HostName': widget.username,
-      'Attendees': attendees,
+      'Attendees': attendeesMap,
       'Timeline': phases,
       'Notifications': notifications,
     };
@@ -448,8 +454,9 @@ class EditEventPageState extends State<EditEventPage> {
           await firestore.collection('Users').doc(widget.username).get();
       String hostFirstName = hostDoc['FirstName'] ?? widget.username;
       String hostLastName = hostDoc['LastName'] ?? '';
-      List<String> removedAttendees = originalAttendees
-          .where((attendee) => !attendees.contains(attendee))
+      List<String> removedAttendees = originalAttendees.keys
+          .where((attendee) =>
+              !attendees.containsKey(attendee) && attendee != widget.username)
           .toList();
 
       for (String friend in removedAttendees) {
@@ -470,14 +477,15 @@ class EditEventPageState extends State<EditEventPage> {
         });
       }
 
-      for (String attendee in attendees) {
+      for (String attendee in attendees.keys) {
         DocumentReference userDocRef =
             firestore.collection('Users').doc(attendee);
         Map<String, dynamic> updateData = {
           'Events': FieldValue.arrayUnion([widget.eventID]),
         };
 
-        if (!originalAttendees.contains(attendee)) {
+        if (!originalAttendees.containsKey(attendee) &&
+            attendee != widget.username) {
           updateData['Messages'] = FieldValue.arrayUnion([
             {
               'text':
@@ -528,11 +536,12 @@ class EditEventPageState extends State<EditEventPage> {
       if (eventDoc.exists) {
         Map<String, dynamic> eventData =
             eventDoc.data() as Map<String, dynamic>;
-        List<dynamic> attendees = eventData['Attendees'] ?? [];
+        Map<String, String> attendeesMap =
+            Map<String, String>.from(eventData['Attendees'] ?? {});
 
         WriteBatch batch = firestore.batch();
 
-        for (String attendee in attendees) {
+        for (String attendee in attendeesMap.keys) {
           DocumentReference userDocRef =
               firestore.collection('Users').doc(attendee);
           batch.update(userDocRef, {

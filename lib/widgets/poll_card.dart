@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -105,6 +106,11 @@ class _PollCardState extends State<PollCard> {
           setState(() {
             pollData = pollResponses;
           });
+
+          // Update attendee status if it's an essential poll
+          if (widget.isEssential) {
+            await _updateAttendeeStatus();
+          }
         } else {
           print('Poll data is null');
         }
@@ -113,6 +119,77 @@ class _PollCardState extends State<PollCard> {
       }
     } catch (e) {
       print('Error voting: $e');
+    }
+  }
+
+  Future<void> _updateAttendeeStatus() async {
+    try {
+      DocumentReference eventRef =
+          FirebaseFirestore.instance.collection('Events').doc(widget.eventID);
+
+      DocumentSnapshot eventSnapshot = await eventRef.get();
+      if (eventSnapshot.exists) {
+        Map<String, dynamic> eventData =
+            eventSnapshot.data() as Map<String, dynamic>;
+        Map<String, String> attendees =
+            Map<String, String>.from(eventData['Attendees']);
+
+        // Iterate over all attendees and update their status
+        for (String attendee in attendees.keys) {
+          String status = await isComing(widget.eventID, attendee);
+          attendees[attendee] = status;
+        }
+
+        // Update the attendees list in the Firestore
+        await eventRef.update({'Attendees': attendees});
+      } else {
+        print('Event document does not exist');
+      }
+    } catch (e) {
+      print('Error updating attendee status: $e');
+    }
+  }
+
+  Future<String> isComing(String eventID, String username) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    try {
+      // Fetch the essential polls for the event
+      QuerySnapshot essentialPollsSnapshot = await firestore
+          .collection('Events')
+          .doc(eventID)
+          .collection('EssentialPolls')
+          .get();
+
+      bool hasRespondedYes = false;
+      bool hasRespondedNo = true; // Assume 'No' until proven otherwise
+
+      for (var doc in essentialPollsSnapshot.docs) {
+        Map<String, dynamic> pollData = doc.data() as Map<String, dynamic>;
+
+        if (pollData['Question'].startsWith('RSVP for')) {
+          // Check if the user has responded 'Yes'
+          if (pollData['Yes'] != null && pollData['Yes'].contains(username)) {
+            hasRespondedYes = true;
+            hasRespondedNo = false; // User has responded 'Yes', so not all 'No'
+            break; // No need to check further if 'Yes' is found
+          }
+          // Check if the user has responded 'No'
+          if (pollData['No'] != null && pollData['No'].containsKey(username)) {
+            // Continue checking other polls
+          } else {
+            hasRespondedNo = false; // User has not responded 'No' to this poll
+          }
+        }
+      }
+
+      if (hasRespondedYes) return 'yes';
+      if (hasRespondedNo) {
+        return 'no'; // Return 'no' if no 'Yes' was found and at least one 'No' was found
+      }
+      return 'maybe'; // Default response if no 'Yes' and no 'No' was found
+    } catch (e) {
+      log("Error fetching event or processing data: $e");
+      return 'maybe'; // Default response in case of error
     }
   }
 
@@ -347,47 +424,50 @@ class _PollCardState extends State<PollCard> {
                         const EdgeInsets.only(top: 10, bottom: 10, left: 0),
                     child: Column(
                       children: voters.entries.map<Widget>((entry) {
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            FutureBuilder<String?>(
-                              future: _fetchProfilePicture(entry.key),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  return CircleAvatar(
-                                    radius: 15,
-                                    backgroundImage: snapshot.data != null
-                                        ? MemoryImage(
-                                            base64Decode(snapshot.data!))
-                                        : null,
-                                    child: snapshot.data == null
-                                        ? const Icon(Icons.person,
-                                            size: 20, color: Colors.grey)
-                                        : null,
-                                  );
-                                } else {
-                                  return const CircleAvatar(
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              FutureBuilder<String?>(
+                                future: _fetchProfilePicture(entry.key),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.done &&
+                                      snapshot.hasData) {
+                                    return CircleAvatar(
                                       radius: 15,
-                                      backgroundImage: null,
-                                      child: Icon(Icons.person,
-                                          size: 20, color: Colors.grey));
-                                }
-                              },
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: RichText(
-                                text: TextSpan(
-                                  text: '"${entry.value}"',
-                                  style: AppColors.subtitleStyle,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
+                                      backgroundImage: snapshot.data != null
+                                          ? MemoryImage(
+                                              base64Decode(snapshot.data!))
+                                          : null,
+                                      child: snapshot.data == null
+                                          ? const Icon(Icons.person,
+                                              size: 20, color: Colors.grey)
+                                          : null,
+                                    );
+                                  } else {
+                                    return const CircleAvatar(
+                                        radius: 15,
+                                        backgroundImage: null,
+                                        child: Icon(Icons.person,
+                                            size: 20, color: Colors.grey));
+                                  }
+                                },
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: RichText(
+                                  text: TextSpan(
+                                    text: '"${entry.value}"',
+                                    style: AppColors.subtitleStyle,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       }).toList(),
                     ),
