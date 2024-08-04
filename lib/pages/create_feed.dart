@@ -80,7 +80,7 @@ class CreateFeedPageState extends State<CreateFeedPage> {
         File croppedImageFile = File(croppedFile.path);
         imageBytes = await croppedImageFile.readAsBytes();
 
-        if (imageBytes.length > 1000000) {
+        if (imageBytes.length > 100000) {
           img.Image? originalImage = img.decodeImage(imageBytes);
           if (originalImage != null) {
             if (isGif) {
@@ -90,7 +90,7 @@ class CreateFeedPageState extends State<CreateFeedPage> {
                   gifDecoder.decodeAnimation(imageBytes)!;
               img.Animation resizedGif = img.Animation();
 
-              double reductionFactor = math.sqrt(1000000 / imageBytes.length);
+              double reductionFactor = math.sqrt(100000 / imageBytes.length);
               for (var frame in originalGif.frames) {
                 int newWidth = (frame.width * reductionFactor).toInt();
                 int newHeight = (frame.height * reductionFactor).toInt();
@@ -104,7 +104,7 @@ class CreateFeedPageState extends State<CreateFeedPage> {
               }
             } else {
               // Handle static images
-              double reductionFactor = math.sqrt(1000000 / imageBytes.length);
+              double reductionFactor = math.sqrt(100000 / imageBytes.length);
               int newWidth = (originalImage.width * reductionFactor).toInt();
               int newHeight = (originalImage.height * reductionFactor).toInt();
 
