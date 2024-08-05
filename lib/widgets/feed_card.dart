@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rsvp_rally/models/colors.dart';
 import 'package:rsvp_rally/models/database_puller.dart';
+import 'package:rsvp_rally/pages/feed_chat.dart';
 import 'package:rsvp_rally/widgets/message_bubble.dart';
 
 class FeedCard extends StatefulWidget {
@@ -50,7 +51,7 @@ class _FeedCardState extends State<FeedCard> {
 
   Future<void> fetchUserData() async {
     fullName = await getFullName(widget.user);
-    userRating = (await getUserRating(widget.user));
+    userRating = await getUserRating(widget.user);
     profilePicBase64 = await pullProfilePicture(widget.user);
     if (mounted) {
       setState(() {});
@@ -109,16 +110,19 @@ class _FeedCardState extends State<FeedCard> {
     );
   }
 
-  void _showChatPage(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatDetailPage(
+  void _showChatOverlay(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.67, // Overlay covers bottom 2/3 of the screen
+        child: ChatOverlay(
+          chat: widget.chat,
           postId: widget.postId,
-          user: widget.username,
+          user: widget.user,
           imageUrl: widget.imageUrl,
           description: widget.description,
-          chat: widget.chat,
+          viewerUsername: widget.username,
         ),
       ),
     );
@@ -135,21 +139,19 @@ class _FeedCardState extends State<FeedCard> {
       child: Container(
         width: MediaQuery.of(context).size.width * 0.85,
         decoration: BoxDecoration(
-          color: AppColors.light,
+          color: Colors.white, // Set card color to white
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: getInterpolatedColor(userRating!),
-            width: AppColors.borderWidth,
-          ),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 10,
-              offset: Offset(0, 5),
+              color: getInterpolatedColor(userRating!)
+                  .withOpacity(0.3), // Soft shadow with interpolated color
+              blurRadius: 12,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.all(15),
@@ -185,198 +187,68 @@ class _FeedCardState extends State<FeedCard> {
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            // Move heart and chat icons closer to the image
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  widget.description,
-                  style: AppColors.bodyStyle,
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      if (widget.likes.isNotEmpty)
-                        Text(
-                          widget.likes.length.toString(),
-                          style: TextStyle(
-                            color: isLiked ? Colors.red : AppColors.dark,
-                          ),
-                        ),
-                      IconButton(
-                        icon: Icon(
-                          isLiked ? Icons.favorite : Icons.favorite_border,
-                          color: isLiked ? Colors.red : AppColors.dark,
-                        ),
-                        onPressed: toggleLike,
+                  if (widget.likes.isNotEmpty)
+                    Text(
+                      widget.likes.length.toString(),
+                      style: TextStyle(
+                        color: isLiked ? Colors.red : AppColors.dark,
+                        fontSize: 12, // Smaller font size
                       ),
-                      if (widget.chat.isNotEmpty)
-                        Text(
-                          widget.chat.length.toString(),
-                          style: const TextStyle(
-                            color: AppColors.dark,
-                          ),
-                        ),
-                      IconButton(
-                        icon: const Icon(Icons.chat_bubble_outline),
-                        onPressed: () => _showChatPage(context),
-                      ),
-                    ],
+                    ),
+                  IconButton(
+                    iconSize: 18, // Smaller icon size
+                    icon: Icon(
+                      isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: isLiked ? Colors.red : AppColors.dark,
+                    ),
+                    onPressed: toggleLike,
                   ),
+                  if (widget.chat.isNotEmpty)
+                    Text(
+                      widget.chat.length.toString(),
+                      style: const TextStyle(
+                        color: AppColors.dark,
+                        fontSize: 12, // Smaller font size
+                      ),
+                    ),
+                  IconButton(
+                    iconSize: 18, // Smaller icon size
+                    icon: const Icon(Icons.chat_bubble_outline,
+                        color: AppColors.dark),
+                    onPressed: () => _showChatOverlay(context), // Use the overlay method
+                  ),
+                  const Spacer(),
+                  // Delete button for the user's post
                   if (widget.isUserPost && widget.showDeleteButton)
                     IconButton(
-                      icon: Icon(Icons.delete_outline,
-                          color: getInterpolatedColor(userRating!)),
+                      iconSize: 18, // Smaller icon size
+                      icon: Icon(Icons.delete_outline, color: AppColors.dark),
                       onPressed: () => _showDeleteConfirmationDialog(context),
+                      color: getInterpolatedColor(userRating!),
                     ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ChatDetailPage extends StatefulWidget {
-  final String postId;
-  final String user;
-  final String imageUrl;
-  final String description;
-  final List<Map<String, dynamic>> chat;
-
-  const ChatDetailPage({
-    required this.postId,
-    required this.user,
-    required this.imageUrl,
-    required this.description,
-    required this.chat,
-    super.key,
-  });
-
-  @override
-  _ChatDetailPageState createState() => _ChatDetailPageState();
-}
-
-class _ChatDetailPageState extends State<ChatDetailPage> {
-  final TextEditingController _controller = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  List<Map<String, dynamic>> chatMessages = [];
-
-  @override
-  void initState() {
-    super.initState();
-    chatMessages = widget.chat;
-    _scrollToBottom();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _sendMessage() async {
-    if (_controller.text.isNotEmpty) {
-      final newMessage = {
-        'username': widget.user,
-        'message': _controller.text,
-      };
-      setState(() {
-        chatMessages.add(newMessage);
-      });
-
-      await FirebaseFirestore.instance
-          .collection('Feeds')
-          .doc(widget.postId)
-          .update({
-        'chat': FieldValue.arrayUnion([newMessage]),
-      });
-
-      _controller.clear();
-      _scrollToBottom();
-    }
-  }
-
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        title: Text('Chat', style: AppColors.topStyle),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Container(
-                color: Colors.grey[200],
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.only(bottom: 60),
-                  itemCount: chatMessages.length,
-                  itemBuilder: (context, index) {
-                    var messageEntry = chatMessages[index];
-                    return MessageBubble(
-                      message: messageEntry['message'],
-                      isMe: messageEntry['username'] == widget.user,
-                      username: messageEntry['username'],
-                      viewerUsername: widget.user,
-                    );
-                  },
+            // Move description closer to the heart/chat icons and add padding below
+            if (widget.description.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    15, 0, 15, 30), // Padding adjusted for spacing
+                child: Text(
+                  widget.description,
+                  style: AppColors.bodyStyle.copyWith(
+                    color: AppColors.dark,
+                    fontSize: 12, // Smaller font size
+                  ),
                 ),
               ),
-            ),
-            _buildMessageInputArea(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildMessageInputArea() {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      color: Colors.white,
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                hintText: 'Type a message',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.send, color: AppColors.dark),
-            onPressed: _sendMessage,
-          ),
-        ],
       ),
     );
   }

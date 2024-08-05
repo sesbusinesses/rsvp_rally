@@ -23,15 +23,20 @@ class FeedPage extends StatefulWidget {
 class _FeedPageState extends State<FeedPage> {
   List<DocumentSnapshot> feeds = [];
   bool isLoading = true;
+  late ScrollController _scrollController;
+  late int _lastVisibleItemIndex; // Track the last visible item index
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
+    _lastVisibleItemIndex = 0;
     fetchFeeds();
   }
 
   Future<void> fetchFeeds() async {
     try {
+      // Fetch all feeds at once
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Feeds')
           .orderBy('timestamp', descending: true)
@@ -51,34 +56,57 @@ class _FeedPageState extends State<FeedPage> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     return widget.userRating >= 0.75
         ? Scaffold(
             body: isLoading
                 ? const Center(child: CupertinoActivityIndicator(radius: 15))
-                : ListView.builder(
-                    itemCount: feeds.length,
-                    itemBuilder: (context, index) {
-                      var feed = feeds[index];
-                      return FeedCard(
-                        imageUrl: feed['imageUrl'],
-                        description: feed['description'],
-                        user: feed['user'],
-                        likes: List<String>.from(feed['likes']),
-                        chat: List<Map<String, dynamic>>.from(feed['chat']),
-                        postId: feed.id,
-                        isUserPost: feed['user'] == widget.username,
-                        onDelete: () async {
-                          await FirebaseFirestore.instance
-                              .collection('Feeds')
-                              .doc(feed.id)
-                              .delete();
-                          fetchFeeds(); // Refresh the feed after deletion
-                        },
-                        username: widget.username,
-                      );
+                : NotificationListener<ScrollNotification>(
+                    onNotification: (scrollNotification) {
+                      if (scrollNotification is ScrollUpdateNotification) {
+                        // Update the last visible item index when scrolling
+                        int currentIndex = _scrollController.position.pixels ~/
+                            _scrollController.position.maxScrollExtent *
+                            feeds.length;
+                        _lastVisibleItemIndex = currentIndex;
+                      }
+                      return false;
                     },
+                    child: ListView.builder(
+                      key: PageStorageKey('FeedList'),
+                      controller: _scrollController,
+                      itemCount: feeds.length,
+                      itemBuilder: (context, index) {
+                        var feed = feeds[index];
+                        return FeedCard(
+                          key: ValueKey(feed.id), // Ensure each FeedCard has a unique key
+                          imageUrl: feed['imageUrl'],
+                          description: feed['description'],
+                          user: feed['user'],
+                          likes: List<String>.from(feed['likes']),
+                          chat: List<Map<String, dynamic>>.from(feed['chat']),
+                          postId: feed.id,
+                          isUserPost: feed['user'] == widget.username,
+                          onDelete: () async {
+                            await FirebaseFirestore.instance
+                                .collection('Feeds')
+                                .doc(feed.id)
+                                .delete();
+                            setState(() {
+                              feeds.removeAt(index); // Remove the deleted post locally
+                            });
+                          },
+                          username: widget.username,
+                        );
+                      },
+                    ),
                   ),
             floatingActionButton: CreateFeedButton(
               userRating: widget.userRating,
