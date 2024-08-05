@@ -10,6 +10,7 @@ import 'package:image/image.dart' as img;
 import 'dart:math' as math;
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:rsvp_rally/models/database_puller.dart'; // Add this import
+import 'dart:async';
 
 class SharedAlbumPage extends StatefulWidget {
   final String eventID;
@@ -720,6 +721,7 @@ class SizeReportingWidget extends StatefulWidget {
 
 class _SizeReportingWidgetState extends State<SizeReportingWidget> {
   Size? _oldSize;
+  Timer? _debounceTimer;
 
   @override
   Widget build(BuildContext context) {
@@ -732,7 +734,18 @@ class _SizeReportingWidgetState extends State<SizeReportingWidget> {
     final size = context.size;
     if (_oldSize != size && size != null) {
       _oldSize = size;
-      widget.onSizeChange(size);
+
+      // Debounce size change notifications
+      _debounceTimer?.cancel();
+      _debounceTimer = Timer(const Duration(milliseconds: 40), () {
+        widget.onSizeChange(size);
+      });
     }
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
   }
 }
