@@ -663,7 +663,7 @@ class _ExpandablePageViewState extends State<ExpandablePageView>
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       curve: Curves.easeInOutCubic,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 200),
       tween: Tween<double>(begin: _heights[_currentPage], end: _currentHeight),
       builder: (context, value, child) {
         return SizedBox(height: value, child: child);
@@ -737,7 +737,7 @@ class _SizeReportingWidgetState extends State<SizeReportingWidget> {
 
       // Debounce size change notifications
       _debounceTimer?.cancel();
-      _debounceTimer = Timer(const Duration(milliseconds: 40), () {
+      _debounceTimer = Timer(const Duration(milliseconds: 60), () {
         widget.onSizeChange(size);
       });
     }
