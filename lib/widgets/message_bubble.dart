@@ -110,21 +110,31 @@ class MessageBubble extends StatelessWidget {
                 ),
               Flexible(
                 child: Container(
-                  margin:
-                      const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                  margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                   padding: isPhoto
                       ? EdgeInsets.zero
-                      : const EdgeInsets.symmetric(
-                          vertical: 10, horizontal: 15),
+                      : const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
                   decoration: BoxDecoration(
-                    color: getInterpolatedColor(userRating),
+                    gradient: LinearGradient(
+                      colors: [
+                        getInterpolatedColor(userRating),
+                        getInterpolatedColor(userRating).withOpacity(0.7),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: getInterpolatedColor(userRating).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4), // Shadow direction and distance
+                      ),
+                    ],
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(15),
                       topRight: const Radius.circular(15),
-                      bottomLeft:
-                          isMe ? const Radius.circular(15) : Radius.zero,
-                      bottomRight:
-                          isMe ? Radius.zero : const Radius.circular(15),
+                      bottomLeft: isMe ? const Radius.circular(15) : Radius.zero,
+                      bottomRight: isMe ? Radius.zero : const Radius.circular(15),
                     ),
                   ),
                   child: isPhoto
@@ -132,14 +142,11 @@ class MessageBubble extends StatelessWidget {
                           borderRadius: BorderRadius.only(
                             topLeft: const Radius.circular(15),
                             topRight: const Radius.circular(15),
-                            bottomLeft:
-                                isMe ? const Radius.circular(15) : Radius.zero,
-                            bottomRight:
-                                isMe ? Radius.zero : const Radius.circular(15),
+                            bottomLeft: isMe ? const Radius.circular(15) : Radius.zero,
+                            bottomRight: isMe ? Radius.zero : const Radius.circular(15),
                           ),
                           child: Image.memory(
-                            base64Decode(
-                                message.split(',')[1]), // Decode Base64 string
+                            base64Decode(message.split(',')[1]), // Decode Base64 string
                             width: 200,
                             height: 200,
                             fit: BoxFit.cover,
@@ -148,15 +155,17 @@ class MessageBubble extends StatelessWidget {
                                 width: 200,
                                 height: 200,
                                 color: Colors.grey[300],
-                                child: const Icon(Icons.broken_image,
-                                    color: Colors.red),
+                                child: const Icon(Icons.broken_image, color: Colors.red),
                               );
                             },
                           ),
                         )
-                      : Text(message,
+                      : Text(
+                          message,
                           style: AppColors.bodyStyle.copyWith(
-                              color: getTextOnRatingColor(userRating))),
+                            color: getTextOnRatingColor(userRating),
+                          ),
+                        ),
                 ),
               ),
               if (isMe)

@@ -170,6 +170,7 @@ Widget build(BuildContext context) {
     appBar: AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
+      surfaceTintColor: Colors.transparent,
     ),
     body: FutureBuilder<Map<String, dynamic>>(
       future: _getProfileData(widget.username),

@@ -301,23 +301,46 @@ class EditEventPageState extends State<EditEventPage> {
             parseDateTimeFromController(phaseControllers[i + 1]['startTime']!);
       }
 
-      // Properly handle the geopoint
+      DocumentSnapshot initialEventDoc =
+          await firestore.collection('Events').doc(widget.eventID).get();
+      Map<String, dynamic> initialEventData =
+          initialEventDoc.data() as Map<String, dynamic>;
+      List<dynamic> existingTimeline = initialEventData['Timeline'] ?? [];
+
+      // Determine if the location is still the placeholder
+      String locationText = phaseControllers[i]['location']!.text;
       GeoPoint? geopoint;
+
+      // Use the existing GeoPoint if the placeholder is still in use
+      if (i < existingTimeline.length &&
+          existingTimeline[i]['GeoPoint'] != null) {
+        geopoint = existingTimeline[i]['GeoPoint'] as GeoPoint;
+        print(
+            'Phase ${i + 1} - Using existing GeoPoint from placeholder: $geopoint');
+      }
+      // Handle new GeoPoint if a new location is provided
       if (phaseControllers[i]['geopoint'] != null &&
           phaseControllers[i]['geopoint'] is GeoPoint) {
         geopoint = phaseControllers[i]['geopoint'];
+        print('Phase ${i + 1} - GeoPoint from controller is valid: $geopoint');
       } else if (phaseControllers[i]['geopoint'] != null) {
         geopoint = GeoPoint(phaseControllers[i]['geopoint']['lat'],
             phaseControllers[i]['geopoint']['lng']);
+        print('Phase ${i + 1} - Created GeoPoint from lat/lng: $geopoint');
+      } else {
+        print('Phase ${i + 1} - GeoPoint is null');
       }
 
       phases.add({
         'PhaseName': phaseControllers[i]['name']!.text,
-        'PhaseLocation': phaseControllers[i]['location']!.text,
+        'PhaseLocation': locationText,
         'StartTime': startTime != null ? Timestamp.fromDate(startTime) : null,
         'EndTime': endTime != null ? Timestamp.fromDate(endTime) : null,
         'GeoPoint': geopoint,
       });
+
+      // Log the finalized phase data
+      print('Phase ${i + 1} - Finalized Phase Data: ${phases.last}');
     }
 
     // Collect notifications

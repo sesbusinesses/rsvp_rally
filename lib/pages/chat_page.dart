@@ -214,46 +214,64 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-// Method to build the message input area with shadow
   Widget _buildMessageInputAreaWithShadow() {
+    double shadowHeight = 60.0; // Adjustable height for the shadow
+    double shadowWidth = 60.0; // Adjustable width for the shadow
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white, // Set background color to white
         boxShadow: [
           BoxShadow(
             color: getInterpolatedColor(
                 widget.rating), // Use interpolated color for shadow
             blurRadius: 8,
-            offset: Offset(0, -2), // Shadow direction and distance
+            offset: const Offset(0, -2), // Shadow direction and distance
           ),
         ],
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
       ),
-      child: _buildMessageInputArea(), // Original input area widget
-    );
-  }
-
-  Widget _buildMessageInputArea() {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      color: Colors.white,
-      child: Row(
-        children: [
-          IconButton(
-            icon: Icon(Icons.photo, color: getInterpolatedColor(widget.rating)),
-            onPressed: _pickAndSendPhoto,
-          ),
-          Expanded(
-            child: WideTextBox(
-              hintText: 'Type a message',
-              controller: _controller,
-              canGrow: true,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          children: [
+            Container(
+              height: shadowHeight,
+              width: shadowWidth,
+              decoration: BoxDecoration(
+                color: AppColors.accentLight, // Background color similar to WideTextBox
+                borderRadius:
+                    BorderRadius.circular(10), // Rounded corners for shadow
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.photo),
+                color: Colors.grey.shade800, // Dark gray icon color
+                iconSize: 30, // Increase icon size
+                onPressed: _pickAndSendPhoto,
+                splashRadius: 25, // Adjust splash radius for effect
+              ),
             ),
-          ),
-          IconButton(
-            icon: Icon(Icons.send, color: getInterpolatedColor(widget.rating)),
-            onPressed: _sendMessage,
-          ),
-        ],
+            const SizedBox(
+                width: 10), // Add space between the icon and the text box
+            Expanded(
+              child: WideTextBox(
+                hintText: 'Type a message...',
+                controller: _controller,
+                canGrow: true,
+              ),
+            ),
+            IconButton(
+              icon:
+                  Icon(Icons.send, color: getInterpolatedColor(widget.rating)),
+              iconSize: 30, // Increase icon sizeS
+              onPressed: _sendMessage,
+              splashRadius: 25, // Adjust splash radius for effect
+            ),
+          ],
+        ),
       ),
     );
   }
