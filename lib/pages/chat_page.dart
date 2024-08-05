@@ -122,7 +122,10 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
+        elevation: 5,
+        shadowColor: getInterpolatedColor(
+            widget.rating), // Use interpolated color for shadow
         surfaceTintColor: Colors.transparent,
         title: Text(eventName, style: AppColors.topStyle),
         centerTitle: true,
@@ -134,7 +137,7 @@ class _ChatPageState extends State<ChatPage> {
               children: [
                 Expanded(
                   child: Container(
-                    color: Colors.grey[200], // Light grey background
+                    color: Colors.white, // White background for chat
                     child: rsvpStatus == 'yes' || widget.isGroup
                         ? StreamBuilder<DocumentSnapshot>(
                             stream: FirebaseFirestore.instance
@@ -166,11 +169,17 @@ class _ChatPageState extends State<ChatPage> {
                                   child: ListView.builder(
                                     controller: _scrollController,
                                     padding: const EdgeInsets.only(bottom: 60),
-                                    itemCount: messages.length,
+                                    itemCount: messages.length + 1,
                                     itemBuilder: (context, index) {
+                                      if (index == 0) {
+                                        return const SizedBox(
+                                          height:
+                                              20, // Height of the SizedBox above messages
+                                        );
+                                      }
                                       var messageEntry =
                                           Map<String, dynamic>.from(
-                                              messages[index]);
+                                              messages[index - 1]);
                                       var entry = messageEntry.entries.first;
                                       bool isPhoto = entry.value is String &&
                                           entry.value
@@ -196,12 +205,30 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
                 if (rsvpStatus == 'yes' || widget.isGroup)
-                  _buildMessageInputArea(),
+                  _buildMessageInputAreaWithShadow(), // Updated input area with shadow
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+// Method to build the message input area with shadow
+  Widget _buildMessageInputAreaWithShadow() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: getInterpolatedColor(
+                widget.rating), // Use interpolated color for shadow
+            blurRadius: 8,
+            offset: Offset(0, -2), // Shadow direction and distance
+          ),
+        ],
+      ),
+      child: _buildMessageInputArea(), // Original input area widget
     );
   }
 
