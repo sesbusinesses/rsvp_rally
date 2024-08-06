@@ -22,28 +22,35 @@ class FeedPage extends StatefulWidget {
 
 class _FeedPageState extends State<FeedPage> {
   List<DocumentSnapshot> feeds = [];
+  List<String> friendsUsernames = [];
   bool isLoading = true;
   late ScrollController _scrollController;
-  late int _lastVisibleItemIndex; // Track the last visible item index
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    _lastVisibleItemIndex = 0;
-    fetchFeeds();
+    fetchFriendsAndFeeds();
   }
 
-  Future<void> fetchFeeds() async {
+  Future<void> fetchFriendsAndFeeds() async {
     try {
+      // Fetch user's friends
+      await fetchFriends();
+
       // Fetch all feeds at once
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('Feeds')
           .orderBy('timestamp', descending: true)
           .get();
 
+      // Filter feeds to only include those posted by friends
+      List<DocumentSnapshot> friendFeeds = snapshot.docs
+          .where((feed) => friendsUsernames.contains(feed['user']))
+          .toList();
+
       setState(() {
-        feeds = snapshot.docs;
+        feeds = friendFeeds;
         isLoading = false;
       });
     } catch (e) {
@@ -51,7 +58,23 @@ class _FeedPageState extends State<FeedPage> {
         isLoading = false;
       });
       // Handle the error appropriately in your app
-      print('Error fetching feeds: $e');
+      print('Error fetching feeds or friends: $e');
+    }
+  }
+
+  Future<void> fetchFriends() async {
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(widget.username)
+          .get();
+
+      if (userDoc.exists) {
+        Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+        friendsUsernames = List<String>.from(userData['Friends'] ?? []);
+      }
+    } catch (e) {
+      print('Error fetching friends: $e');
     }
   }
 
@@ -68,45 +91,35 @@ class _FeedPageState extends State<FeedPage> {
         ? Scaffold(
             body: isLoading
                 ? const Center(child: CupertinoActivityIndicator(radius: 15))
-                : NotificationListener<ScrollNotification>(
-                    onNotification: (scrollNotification) {
-                      if (scrollNotification is ScrollUpdateNotification) {
-                        // Update the last visible item index when scrolling
-                        int currentIndex = _scrollController.position.pixels ~/
-                            _scrollController.position.maxScrollExtent *
-                            feeds.length;
-                        _lastVisibleItemIndex = currentIndex;
-                      }
-                      return false;
+                : ListView.builder(
+                    key: const PageStorageKey('FeedList'),
+                    controller: _scrollController,
+                    itemCount: feeds.length,
+                    itemBuilder: (context, index) {
+                      var feed = feeds[index];
+                      return FeedCard(
+                        key: ValueKey(
+                            feed.id), // Ensure each FeedCard has a unique key
+                        imageUrl: feed['imageUrl'],
+                        description: feed['description'],
+                        user: feed['user'],
+                        likes: List<String>.from(feed['likes']),
+                        chat: List<Map<String, dynamic>>.from(feed['chat']),
+                        postId: feed.id,
+                        isUserPost: feed['user'] == widget.username,
+                        onDelete: () async {
+                          await FirebaseFirestore.instance
+                              .collection('Feeds')
+                              .doc(feed.id)
+                              .delete();
+                          setState(() {
+                            feeds.removeAt(
+                                index); // Remove the deleted post locally
+                          });
+                        },
+                        username: widget.username,
+                      );
                     },
-                    child: ListView.builder(
-                      key: PageStorageKey('FeedList'),
-                      controller: _scrollController,
-                      itemCount: feeds.length,
-                      itemBuilder: (context, index) {
-                        var feed = feeds[index];
-                        return FeedCard(
-                          key: ValueKey(feed.id), // Ensure each FeedCard has a unique key
-                          imageUrl: feed['imageUrl'],
-                          description: feed['description'],
-                          user: feed['user'],
-                          likes: List<String>.from(feed['likes']),
-                          chat: List<Map<String, dynamic>>.from(feed['chat']),
-                          postId: feed.id,
-                          isUserPost: feed['user'] == widget.username,
-                          onDelete: () async {
-                            await FirebaseFirestore.instance
-                                .collection('Feeds')
-                                .doc(feed.id)
-                                .delete();
-                            setState(() {
-                              feeds.removeAt(index); // Remove the deleted post locally
-                            });
-                          },
-                          username: widget.username,
-                        );
-                      },
-                    ),
                   ),
             floatingActionButton: CreateFeedButton(
               userRating: widget.userRating,
