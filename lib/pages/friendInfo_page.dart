@@ -163,175 +163,176 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
   }
 
   @override
-Widget build(BuildContext context) {
-  Size screenSize = MediaQuery.of(context).size;
+  Widget build(BuildContext context) {
+    Size screenSize = MediaQuery.of(context).size;
 
-  return Scaffold(
-    appBar: AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-    ),
-    body: FutureBuilder<Map<String, dynamic>>(
-      future: _getProfileData(widget.username),
-      builder: (context, profileSnapshot) {
-        if (profileSnapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (profileSnapshot.hasError) {
-          return const Center(child: Text('Error loading profile data'));
-        } else if (profileSnapshot.hasData) {
-          var profileData = profileSnapshot.data!;
-          String? profilePicBase64 = profileData['profilePicBase64'];
-          String fullName = profileData['fullName'];
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _getProfileData(widget.username),
+        builder: (context, profileSnapshot) {
+          if (profileSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (profileSnapshot.hasError) {
+            return const Center(child: Text('Error loading profile data'));
+          } else if (profileSnapshot.hasData) {
+            var profileData = profileSnapshot.data!;
+            String? profilePicBase64 = profileData['profilePicBase64'];
+            String fullName = profileData['fullName'];
 
-          return FutureBuilder<DocumentSnapshot>(
-            future: FirebaseFirestore.instance
-                .collection('Shop')
-                .doc('freakText')
-                .get(),
-            builder: (context, freakSnapshot) {
-              if (freakSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (freakSnapshot.hasError) {
-                return const Center(
-                    child: Text('Error loading freak status'));
-              } else {
-                bool isFreak = false;
-                if (freakSnapshot.hasData && freakSnapshot.data != null) {
-                  Map<String, dynamic> freakData =
-                      freakSnapshot.data!.data() as Map<String, dynamic>;
-                  isFreak = freakData[widget.username] == true;
-                }
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('Shop')
+                  .doc('freakText')
+                  .get(),
+              builder: (context, freakSnapshot) {
+                if (freakSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (freakSnapshot.hasError) {
+                  return const Center(
+                      child: Text('Error loading freak status'));
+                } else {
+                  bool isFreak = false;
+                  if (freakSnapshot.hasData && freakSnapshot.data != null) {
+                    Map<String, dynamic> freakData =
+                        freakSnapshot.data!.data() as Map<String, dynamic>;
+                    isFreak = freakData[widget.username] == true;
+                  }
 
-                return SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: screenSize.width * 0.85,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        margin: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: AppColors.light,
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(
-                            color: getInterpolatedColor(widget.rating),
-                            width: AppColors.borderWidth,
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: AppColors.shadow,
-                              blurRadius: 10,
-                              offset: Offset(0, 5),
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: screenSize.width * 0.85,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          margin: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.light,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(
+                              color: getInterpolatedColor(widget.rating),
+                              width: AppColors.borderWidth,
                             ),
-                          ],
-                        ),
-                        child: Stack(
-                          children: [
-                            Align(
-                              alignment: Alignment.center,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(height: 10),
-                                  Stack(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 50,
-                                        backgroundImage:
-                                            profilePicBase64 != null
-                                                ? MemoryImage(base64Decode(
-                                                    profilePicBase64))
-                                                : null,
-                                        child: profilePicBase64 == null
-                                            ? const Icon(Icons.add,
-                                                size: 50, color: Colors.grey)
-                                            : null,
-                                      ),
-                                      if (profilePicBase64 != null)
-                                        Positioned(
-                                          bottom: 5,
-                                          right: -3,
-                                          child: CircleAvatar(
-                                            radius: 20,
-                                            backgroundColor:
-                                                Colors.transparent,
-                                            child: Image.asset(
-                                              getEmoji(widget.rating),
-                                              width: 30,
-                                              height: 30,
+                            boxShadow: const [
+                              BoxShadow(
+                                color: AppColors.shadow,
+                                blurRadius: 10,
+                                offset: Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            children: [
+                              Align(
+                                alignment: Alignment.center,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const SizedBox(height: 10),
+                                    Stack(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 50,
+                                          backgroundImage:
+                                              profilePicBase64 != null
+                                                  ? MemoryImage(base64Decode(
+                                                      profilePicBase64))
+                                                  : null,
+                                          child: profilePicBase64 == null
+                                              ? const Icon(Icons.add,
+                                                  size: 50, color: Colors.grey)
+                                              : null,
+                                        ),
+                                        if (profilePicBase64 != null)
+                                          Positioned(
+                                            bottom: 5,
+                                            right: -3,
+                                            child: CircleAvatar(
+                                              radius: 20,
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              child: Image.asset(
+                                                getEmoji(widget.rating),
+                                                width: 30,
+                                                height: 30,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    fullName,
-                                    style: AppColors.titleStyle,
-                                  ),
-                                  Text(
-                                    widget.username,
-                                    style: AppColors.usernameStyle,
-                                  ),
-                                  const SizedBox(height: 12),
-                                ],
-                              ),
-                            ),
-                            if (isFreak)
-                              Positioned(
-                                top: 15,
-                                right: 15,
-                                child: Text(
-                                  "𝓯𝓻𝓮𝓪𝓴𝔂",
-                                  style: TextStyle(
-                                    fontFamily: 'Times New Roman',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color:
-                                        getInterpolatedColor(widget.rating),
-                                  ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      fullName,
+                                      style: AppColors.titleStyle,
+                                    ),
+                                    Text(
+                                      widget.username,
+                                      style: AppColors.usernameStyle,
+                                    ),
+                                    const SizedBox(height: 12),
+                                  ],
                                 ),
                               ),
-                          ],
+                              if (isFreak)
+                                Positioned(
+                                  top: 15,
+                                  right: 15,
+                                  child: Text(
+                                    "𝓯𝓻𝓮𝓪𝓴𝔂",
+                                    style: TextStyle(
+                                      fontFamily: 'Times New Roman',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color:
+                                          getInterpolatedColor(widget.rating),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                      CustomTabSwitcher(
-                        tabs: const [Icons.rss_feed, Icons.people],
-                        subtitles: const ['Feed', 'Friends'],
-                        selectedIndex: selectedIndex,
-                        onTabChanged: (index) {
-                          setState(() {
-                            selectedIndex = index;
-                          });
-                        },
-                        userRating: widget.rating,
-                        padding: const EdgeInsets.symmetric(vertical: 0),
-                        iconSize: 30,
-                      ),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        transitionBuilder: (Widget child, Animation<double> animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
-                        child: selectedIndex == 1
-                            ? _buildFriendsList()
-                            : _buildFeed(),
-                      ),
-                    ],
-                  ),
-                );
-              }
-            },
-          );
-        }
-        return const Center(child: Text('No profile data found'));
-      },
-    ),
-  );
-}
+                        CustomTabSwitcher(
+                          tabs: const [Icons.rss_feed, Icons.people],
+                          subtitles: const ['Feed', 'Friends'],
+                          selectedIndex: selectedIndex,
+                          onTabChanged: (index) {
+                            setState(() {
+                              selectedIndex = index;
+                            });
+                          },
+                          userRating: widget.rating,
+                          padding: const EdgeInsets.symmetric(vertical: 0),
+                          iconSize: 30,
+                        ),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder:
+                              (Widget child, Animation<double> animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: child,
+                            );
+                          },
+                          child: selectedIndex == 1
+                              ? _buildFriendsList()
+                              : _buildFeed(),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+            );
+          }
+          return const Center(child: Text('No profile data found'));
+        },
+      ),
+    );
+  }
 
   Widget _buildFriendsList() {
     return Column(
@@ -370,7 +371,7 @@ Widget build(BuildContext context) {
           itemBuilder: (context, index) {
             var feed = feeds[index];
             return FeedCard(
-              imageUrl: feed['imageUrl'],
+              imageUrls: List<String>.from(feed['imageUrls']),
               description: feed['description'],
               user: feed['user'],
               likes: List<String>.from(feed['likes']),

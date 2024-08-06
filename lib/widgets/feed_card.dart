@@ -7,7 +7,7 @@ import 'package:rsvp_rally/pages/feed_chat.dart';
 import 'package:rsvp_rally/widgets/message_bubble.dart';
 
 class FeedCard extends StatefulWidget {
-  final String imageUrl;
+  final List<String> imageUrls; // Updated to a list of image URLs
   final String description;
   final String user;
   final List<String> likes;
@@ -19,7 +19,7 @@ class FeedCard extends StatefulWidget {
   final String username;
 
   const FeedCard({
-    required this.imageUrl,
+    required this.imageUrls, // Update constructor to accept a list
     required this.description,
     required this.user,
     required this.likes,
@@ -120,7 +120,7 @@ class _FeedCardState extends State<FeedCard> {
           chat: widget.chat,
           postId: widget.postId,
           user: widget.user,
-          imageUrl: widget.imageUrl,
+          imageUrl: widget.imageUrls.first, // Use the first image for chat overlay
           description: widget.description,
           viewerUsername: widget.username,
         ),
@@ -175,15 +175,23 @@ class _FeedCardState extends State<FeedCard> {
                 ],
               ),
             ),
+            // Image carousel using PageView
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15),
-                child: Image.memory(
-                  base64Decode(widget.imageUrl),
-                  width: double.infinity,
+                child: SizedBox(
                   height: 200,
-                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  child: PageView.builder(
+                    itemCount: widget.imageUrls.length,
+                    itemBuilder: (context, index) {
+                      return Image.memory(
+                        base64Decode(widget.imageUrls[index]),
+                        fit: BoxFit.cover,
+                      );
+                    },
+                  ),
                 ),
               ),
             ),

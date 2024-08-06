@@ -86,8 +86,10 @@ class _FeedPageState extends State<FeedPage> {
                       itemBuilder: (context, index) {
                         var feed = feeds[index];
                         return FeedCard(
-                          key: ValueKey(feed.id), // Ensure each FeedCard has a unique key
-                          imageUrl: feed['imageUrl'],
+                          key: ValueKey(
+                              feed.id), // Ensure each FeedCard has a unique key
+                          imageUrls: List<String>.from(feed[
+                              'imageUrls']), // Updated to handle multiple images
                           description: feed['description'],
                           user: feed['user'],
                           likes: List<String>.from(feed['likes']),
@@ -100,7 +102,8 @@ class _FeedPageState extends State<FeedPage> {
                                 .doc(feed.id)
                                 .delete();
                             setState(() {
-                              feeds.removeAt(index); // Remove the deleted post locally
+                              feeds.removeAt(
+                                  index); // Remove the deleted post locally
                             });
                           },
                           username: widget.username,
