@@ -41,6 +41,7 @@ class _FeedCardState extends State<FeedCard> {
   String? fullName;
   double? userRating;
   String? profilePicBase64;
+  int currentIndex = 0; // Current index of the PageView
 
   @override
   void initState() {
@@ -120,7 +121,8 @@ class _FeedCardState extends State<FeedCard> {
           chat: widget.chat,
           postId: widget.postId,
           user: widget.user,
-          imageUrl: widget.imageUrls.first, // Use the first image for chat overlay
+          imageUrl:
+              widget.imageUrls.first, // Use the first image for chat overlay
           description: widget.description,
           viewerUsername: widget.username,
         ),
@@ -175,7 +177,8 @@ class _FeedCardState extends State<FeedCard> {
                 ],
               ),
             ),
-            // Image carousel using PageView
+            // Image carousel using PageView with overlay
+            // Image carousel using PageView with overlay
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
               child: ClipRRect(
@@ -183,18 +186,51 @@ class _FeedCardState extends State<FeedCard> {
                 child: SizedBox(
                   height: 200,
                   width: double.infinity,
-                  child: PageView.builder(
-                    itemCount: widget.imageUrls.length,
-                    itemBuilder: (context, index) {
-                      return Image.memory(
-                        base64Decode(widget.imageUrls[index]),
-                        fit: BoxFit.cover,
-                      );
-                    },
+                  child: Stack(
+                    children: [
+                      PageView.builder(
+                        itemCount: widget.imageUrls.length,
+                        onPageChanged: (index) {
+                          setState(() {
+                            currentIndex = index; // Update current index
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          return Image.memory(
+                            base64Decode(widget.imageUrls[index]),
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      ),
+                      // Overlay for index display, only show if more than one image
+                      if (widget.imageUrls.length > 1)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 4,
+                              horizontal: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${currentIndex + 1}/${widget.imageUrls.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
             ),
+
             // Move heart and chat icons closer to the image
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
@@ -228,7 +264,8 @@ class _FeedCardState extends State<FeedCard> {
                     iconSize: 18, // Smaller icon size
                     icon: const Icon(Icons.chat_bubble_outline,
                         color: AppColors.dark),
-                    onPressed: () => _showChatOverlay(context), // Use the overlay method
+                    onPressed: () =>
+                        _showChatOverlay(context), // Use the overlay method
                   ),
                   const Spacer(),
                   // Delete button for the user's post
