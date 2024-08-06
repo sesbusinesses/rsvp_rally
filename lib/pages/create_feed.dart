@@ -25,11 +25,12 @@ class CreateFeedPage extends StatefulWidget {
 class CreateFeedPageState extends State<CreateFeedPage> {
   final TextEditingController _descriptionController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  String? _base64Image;
+  List<String?> _base64Images = [null]; // List to hold images
   bool _isLoading = false;
   bool _isPosting = false;
+  int _imageCount = 1; // Initial number of images
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(int index) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       File file = File(image.path);
@@ -121,7 +122,7 @@ class CreateFeedPageState extends State<CreateFeedPage> {
         }
 
         setState(() {
-          _base64Image = base64Encode(imageBytes);
+          _base64Images[index] = base64Encode(imageBytes); // Store image in list
         });
       }
     }
@@ -129,7 +130,8 @@ class CreateFeedPageState extends State<CreateFeedPage> {
 
   Future<void> _postFeed() async {
     if (_isPosting) return; // Prevent multiple calls
-    if (_base64Image == null || _descriptionController.text.isEmpty) {
+    if (_base64Images.every((image) => image == null) ||
+        _descriptionController.text.isEmpty) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -149,7 +151,7 @@ class CreateFeedPageState extends State<CreateFeedPage> {
 
     try {
       await FirebaseFirestore.instance.collection('Feeds').add({
-        'imageUrl': _base64Image,
+        'imageUrls': _base64Images.where((image) => image != null).toList(),
         'description': _descriptionController.text,
         'user': widget.username,
         'likes': [],
@@ -214,9 +216,29 @@ class CreateFeedPageState extends State<CreateFeedPage> {
     }
   }
 
+  void _incrementImageCount() {
+    setState(() {
+      if (_imageCount < 3) {
+        _imageCount++;
+        _base64Images.add(null); // Add new image slot
+      }
+    });
+  }
+
+  void _decrementImageCount() {
+    setState(() {
+      if (_imageCount > 1) {
+        _imageCount--;
+        _base64Images.removeLast(); // Remove last image slot
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Color borderColor = getInterpolatedColor(widget.rating);
+    Color buttonColor = getInterpolatedColor(widget.rating);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Create Feed', style: AppColors.topStyle),
@@ -231,37 +253,71 @@ class CreateFeedPageState extends State<CreateFeedPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: Container(
-                    width: double.infinity,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(
-                          color: getInterpolatedColor(widget.rating),
-                          width: AppColors.borderWidth),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.remove,
+                        color: _imageCount > 1 ? buttonColor : Colors.grey,
+                      ),
+                      onPressed: _imageCount > 1 ? _decrementImageCount : null,
                     ),
-                    child: _base64Image != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(15),
-                            child: Image.memory(
-                              base64Decode(_base64Image!),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 200,
-                            ),
-                          )
-                        : Center(
-                            child: Icon(
-                              Icons.add_a_photo,
-                              color: borderColor,
-                              size: 50,
-                            ),
-                          ),
-                  ),
+                    Text(
+                      '$_imageCount',
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.add,
+                        color: _imageCount < 3 ? buttonColor : Colors.grey,
+                      ),
+                      onPressed: _imageCount < 3 ? _incrementImageCount : null,
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 10),
+                ...List.generate(_imageCount, (index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10.0),
+                    child: GestureDetector(
+                      onTap: () => _pickImage(index),
+                      child: Container(
+                        width: double.infinity,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: borderColor,
+                            width: AppColors.borderWidth,
+                          ),
+                        ),
+                        child: _base64Images[index] != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: Image.memory(
+                                  base64Decode(_base64Images[index]!),
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: 200,
+                                ),
+                              )
+                            : Center(
+                                child: Icon(
+                                  Icons.add_a_photo,
+                                  color: borderColor,
+                                  size: 50,
+                                ),
+                              ),
+                      ),
+                    ),
+                  );
+                }),
                 const SizedBox(height: 10),
                 WideTextBox(
                   hintText: 'Caption',
