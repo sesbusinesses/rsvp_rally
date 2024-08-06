@@ -88,8 +88,10 @@ class _FeedPageState extends State<FeedPage> {
                         return FeedCard(
                           key: ValueKey(
                               feed.id), // Ensure each FeedCard has a unique key
-                          imageUrls: List<String>.from(feed[
-                              'imageUrls']), // Updated to handle multiple images
+                          imageUrls: feed['imageUrl'] is List
+                              ? List<String>.from(feed[
+                                  'imageUrl']) // Convert to list if it's already a list
+                              : [feed['imageUrl']],
                           description: feed['description'],
                           user: feed['user'],
                           likes: List<String>.from(feed['likes']),

@@ -151,7 +151,7 @@ class CreateFeedPageState extends State<CreateFeedPage> {
 
     try {
       await FirebaseFirestore.instance.collection('Feeds').add({
-        'imageUrls': _base64Images.where((image) => image != null).toList(),
+        'imageUrl': _base64Images.where((image) => image != null).toList(),
         'description': _descriptionController.text,
         'user': widget.username,
         'likes': [],

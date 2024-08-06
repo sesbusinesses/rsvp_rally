@@ -371,7 +371,10 @@ class _FriendInfoPageState extends State<FriendInfoPage> {
           itemBuilder: (context, index) {
             var feed = feeds[index];
             return FeedCard(
-              imageUrls: List<String>.from(feed['imageUrls']),
+              imageUrls: feed['imageUrl'] is List
+                  ? List<String>.from(feed[
+                      'imageUrl']) // Convert to list if it's already a list
+                  : [feed['imageUrl']],
               description: feed['description'],
               user: feed['user'],
               likes: List<String>.from(feed['likes']),
